@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🔤 English Scrabble Duel - Vocabulary & Spelling Game</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #181824 0%, #1e1b4b 50%, #030712 100%);
+            color: #f8fafc;
+            overflow-x: hidden;
+        }
+        @keyframes pulse-scrabble {
+            0%, 100% { transform: scale(1); filter: drop-shadow(0 0 10px rgba(99, 102, 241, 0.4)); }
+            50% { transform: scale(1.02); filter: drop-shadow(0 0 20px rgba(99, 102, 241, 0.8)); }
+        }
+        .animate-scrabble-card {
+            animation: pulse-scrabble 3s infinite ease-in-out;
+        }
+        .scrabble-board {
+            display: grid;
+            grid-template-columns: repeat(11, minmax(0, 1fr));
+            grid-template-rows: repeat(11, minmax(0, 1fr));
+            gap: 3px;
+        }
+        .tile-cell {
+            background-color: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 0.375rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            user-select: none;
+        }
+        .tile-cell:hover {
+            border-color: #6366f1;
+            background-color: #334155;
+        }
+        .tile-cell.dl { background-color: #0369a1; border-color: #38bdf8; color: #bae6fd; }
+        .tile-cell.tl { background-color: #047857; border-color: #34d399; color: #a7f3d0; }
+        .tile-cell.dw { background-color: #b91c1c; border-color: #f87171; color: #fecaca; }
+        .tile-cell.tw { background-color: #7e22ce; border-color: #c084fc; color: #f3e8ff; }
+        .rack-tile {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            color: #fff;
+            font-weight: 800;
+            border-radius: 0.5rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+            cursor: grab;
+            transition: transform 0.1s;
+        }
+        .rack-tile:active {
+            cursor: grabbing;
+            transform: scale(0.95);
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col items-center justify-between p-4 md:p-6">
+
+    <header class="w-full max-w-5xl text-center my-3">
+        <h1 class="text-3xl md:text-5xl font-extrabold tracking-wide bg-gradient-to-r from-amber-400 via-indigo-300 to-purple-400 bg-clip-text text-transparent drop-shadow-md">
+            🔤 English Scrabble Duel 🧩
+        </h1>
+        <p class="text-sm md:text-base text-indigo-200 mt-1 font-medium">
+            Classic Vocabulary & Spelling Review Game for English Learners
+        </p>
+    </header>
+
+    <div id="setup-modal" class="fixed inset-0 bg-black/85 backdrop-blur-md z-50 flex items-center justify-center p-4">
+        <div class="bg-gradient-to-br from-slate-900 to-indigo-950 border-4 border-indigo-500 w-full max-w-md rounded-3xl p-6 md:p-8 shadow-2xl text-center flex flex-col items-center gap-5">
+            <div class="text-5xl">🔠🏆</div>
+            <h2 class="text-2xl font-extrabold text-indigo-400">Configure Scrabble Teams</h2>
+            
+            <div class="w-full flex flex-col gap-3 text-left">
+                <label for="team-count-input" class="text-xs font-semibold text-indigo-300">Number of Teams (2 - 15):</label>
+                <input type="number" id="team-count-input" min="2" max="15" value="5" class="w-full bg-slate-800 border border-indigo-500/50 rounded-xl px-4 py-3 text-white font-bold text-center text-lg focus:outline-none focus:border-indigo-400">
+            </div>
+
+            <button onclick="initializeGame()" class="w-full bg-gradient-to-r from-indigo-600 to-amber-500 hover:from-indigo-700 hover:to-amber-600 text-slate-950 font-extrabold py-3.5 px-6 rounded-xl shadow-lg transition transform active:scale-95 text-base mt-2">
+                Start Scrabble Duel! 🚀
+            </button>
+        </div>
+    </div>
+
+    <main class="w-full max-w-6xl grid grid-cols-1 lg:grid-cols-3 gap-6 items-start my-auto">
+
+        <!-- Left Sidebar: Teams & Leaderboard -->
+        <section class="lg:col-span-1 bg-slate-900/80 backdrop-blur-md border border-indigo-500/30 p-5 rounded-2xl shadow-2xl flex flex-col gap-5">
+            <div class="flex items-center justify-between">
+                <h2 class="text-xl font-bold text-indigo-400 flex items-center gap-2">
+                    <span>🏆</span> Teams (<span id="team-count-badge">5</span>)
+                </h2>
+                <button onclick="openSetupModal()" class="text-xs bg-indigo-900/80 hover:bg-indigo-800 text-white px-2.5 py-1.5 rounded-lg transition font-semibold shadow">
+                    Settings
+                </button>
+            </div>
+
+            <!-- Teams List -->
+            <div id="teams-container" class="flex flex-col gap-2.5 max-h-[260px] overflow-y-auto pr-1">
+                <!-- Dynamically populated -->
+            </div>
+
+            <div class="bg-slate-800/80 p-3 rounded-xl border border-slate-700 text-xs text-slate-300 space-y-1">
+                <p class="font-bold text-indigo-400">💡 Scrabble Rules:</p>
+                <p>1. Form valid English words on the board.</p>
+                <p>2. Earn points based on letter values & multipliers (DL, TL, DW, TW).</p>
+                <p>3. Sound effects enabled for tile placements & scoring!</p>
+            </div>
+        </section>
+
+        <!-- Center / Right: Scrabble Board & Rack Arena -->
+        <section class="lg:col-span-2 bg-slate-900/90 backdrop-blur-md border border-indigo-500/30 p-6 md:p-8 rounded-2xl shadow-2xl flex flex-col items-center text-center relative overflow-hidden gap-5">
+            
+            <!-- Active Team Banner -->
+            <div class="w-full flex items-center justify-between bg-indigo-950/60 p-3 rounded-xl border border-indigo-500/40">
+                <span class="text-xs font-semibold text-indigo-300 uppercase tracking-wider">Active Scrabble Turn</span>
+                <div id="current-team-banner" class="text-sm md:text-base font-extrabold px-4 py-1.5 rounded-full bg-indigo-600 text-white flex items-center gap-2 shadow-inner">
+                    <span class="w-2.5 h-2.5 rounded-full bg-white animate-pulse"></span>
+                    <span id="active-team-name">Team 1</span>
+                </div>
+            </div>
+
+            <!-- Scrabble 11x11 Grid Board -->
+            <div id="scrabble-board" class="scrabble-board w-full aspect-square max-w-[420px] bg-slate-950 p-2 rounded-2xl border-4 border-indigo-500/80 shadow-2xl">
+                <!-- Populated via JS -->
+            </div>
+
+            <!-- Player Tile Rack -->
+            <div class="w-full bg-slate-950/90 border border-indigo-500/40 p-4 rounded-2xl flex flex-col items-center gap-2">
+                <div class="text-xs font-bold text-amber-300 uppercase tracking-widest flex items-center gap-2">
+                    <span>🔠</span> Your Letter Tile Rack (Click tile, then click board cell)
+                </div>
+                <div id="tile-rack" class="flex gap-2.5 justify-center flex-wrap min-h-[48px] items-center">
+                    <!-- Populated via JS -->
+                </div>
+            </div>
+
+            <!-- Controls -->
+            <div class="w-full flex flex-wrap gap-3 justify-center">
+                <button onclick="submitWord()" class="flex-1 min-w-[150px] bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-extrabold py-3 px-6 rounded-xl shadow-lg transition transform active:scale-95 text-sm">
+                    Submit Word ✅
+                </button>
+                <button onclick="shuffleRack()" class="bg-slate-800 hover:bg-slate-700 text-indigo-300 font-bold py-3 px-5 rounded-xl shadow transition text-sm border border-indigo-500/30">
+                    Shuffle Rack 🔀
+                </button>
+                <button onclick="passTurn()" class="bg-rose-900/60 hover:bg-rose-900 text-rose-200 font-bold py-3 px-5 rounded-xl shadow transition text-sm border border-rose-500/30">
+                    Pass Turn ⏭️
+                </button>
+            </div>
+
+        </section>
+
+    </main>
+
+    <!-- Winner Celebration Modal -->
+    <div id="winner-modal" class="fixed inset-0 bg-black/85 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-gradient-to-br from-slate-900 to-indigo-950 border-4 border-amber-400 w-full max-w-md rounded-3xl p-8 shadow-2xl text-center flex flex-col items-center gap-5">
+            <div class="text-6xl animate-bounce">🏆🔤</div>
+            <h2 class="text-3xl font-extrabold text-amber-400">Scrabble Champion!</h2>
+            <p id="winner-announcement" class="text-lg text-slate-200 font-semibold">
+                Team 1 won with the highest word score!
+            </p>
+            <button onclick="resetGame()" class="bg-gradient-to-r from-indigo-600 to-amber-500 text-slate-950 font-extrabold py-3 px-8 rounded-xl shadow-lg hover:scale-105 transition text-base">
+                Play Again 🔄
+            </button>
+        </div>
+    </div>
+
+    <script>
+        const colorPalette = [
+            { bg: "bg-indigo-600", border: "border-indigo-400" },
+            { bg: "bg-amber-500", border: "border-amber-300" },
+            { bg: "bg-emerald-600", border: "border-emerald-400" },
+            { bg: "bg-purple-600", border: "border-purple-400" },
+            { bg: "bg-pink-600", border: "border-pink-400" },
+            { bg: "bg-cyan-600", border: "border-cyan-400" },
+            { bg: "bg-sky-600", border: "border-sky-400" },
+            { bg: "bg-teal-600", border: "border-teal-400" },
+            { bg: "bg-rose-600", border: "border-rose-400" },
+            { bg: "bg-orange-600", border: "border-orange-400" },
+            { bg: "bg-blue-600", border: "border-blue-400" },
+            { bg: "bg-violet-600", border: "border-violet-400" },
+            { bg: "bg-red-600", border: "border-red-400" },
+            { bg: "bg-lime-600", border: "border-lime-400" },
+            { bg: "bg-yellow-500", border: "border-yellow-300" }
+        ];
+
+        let teams = [];
+        let currentTurnIndex = 0;
+        let board = [];
+        let rack = [];
+        let selectedTileIndex = null;
+
+        // Scrabble letter values
+        const letterValues = {
+            'A': 1, 'B': 3, 'C': 3, 'D': 2, 'E': 1, 'F': 4, 'G': 2, 'H': 4, 'I': 1,
+            'J': 8, 'K': 5, 'L': 1, 'M': 3, 'N': 1, 'O': 1, 'P': 3, 'Q': 10, 'R': 1,
+            'S': 1, 'T': 1, 'U': 1, 'V': 4, 'W': 4, 'X': 8, 'Y': 4, 'Z': 10
+        };
+
+        const letterBag = "AAAAAAAAABBCCDDDDEEEEEEEEEEEEFFGGGHHIIIIIIIIJKLLLLMMNNNNNNOOOOOOOOPPQRRRRRRSSSSTTTTTTUUUUVVWWXYYZ";
+
+        // Web Audio API Sound Generator
+        let audioCtx = null;
+        function getAudioContext() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+            return audioCtx;
+        }
+
+        function playClickSound() {
+            try {
+                const ctx = getAudioContext();
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(500, ctx.currentTime);
+                gain.gain.setValueAtTime(0.04, ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.05);
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.start();
+                osc.stop(ctx.currentTime + 0.05);
+            } catch (e) {}
+        }
+
+        function playTileSound() {
+            try {
+                const ctx = getAudioContext();
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(700, ctx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(300, ctx.currentTime + 0.1);
+                gain.gain.setValueAtTime(0.08, ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.1);
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.start();
+                osc.stop(ctx.currentTime + 0.1);
+            } catch (e) {}
+        }
+
+        function playSuccessSound() {
+            try {
+                const ctx = getAudioContext();
+                const now = ctx.currentTime;
+                [523.25, 659.25, 783.99, 1046.50].forEach((freq, i) => {
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(freq, now + i * 0.08);
+                    gain.gain.setValueAtTime(0.1, now + i * 0.08);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.08 + 0.2);
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    osc.start(now + i * 0.08);
+                    osc.stop(now + i * 0.08 + 0.2);
+                });
+            } catch (e) {}
+        }
+
+        function playErrorSound() {
+            try {
+                const ctx = getAudioContext();
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(200, ctx.currentTime);
+                osc.frequency.linearRampToValueAtTime(120, ctx.currentTime + 0.2);
+                gain.gain.setValueAtTime(0.1, ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.2);
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.start();
+                osc.stop(ctx.currentTime + 0.2);
+            } catch (e) {}
+        }
+
+        function initializeGame() {
+            playClickSound();
+            const inputVal = parseInt(document.getElementById('team-count-input').value) || 5;
+            const count = Math.max(2, Math.min(15, inputVal));
+            
+            teams = [];
+            for (let i = 0; i < count; i++) {
+                const palette = colorPalette[i % colorPalette.length];
+                teams.push({
+                    id: i,
+                    name: `Team ${i + 1}`,
+                    colorBg: palette.bg,
+                    colorBorder: palette.border,
+                    score: 0
+                });
+            }
+
+            currentTurnIndex = 0;
+            document.getElementById('team-count-badge').innerText = count;
+            document.getElementById('setup-modal').classList.add('hidden');
+            
+            initBoard();
+            generateNewRack();
+            renderTeams();
+            renderBoard();
+            renderRack();
+        }
+
+        function openSetupModal() {
+            playClickSound();
+            document.getElementById('setup-modal').classList.remove('hidden');
+        }
+
+        function initBoard() {
+            board = [];
+            for (let r = 0; r < 11; r++) {
+                let row = [];
+                for (let c = 0; c < 11; c++) {
+                    let type = 'normal';
+                    // Center star
+                    if (r === 5 && c === 5) type = 'dw';
+                    // Special multiplier positions on 11x11 grid
+                    else if ((r === 0 && c === 0) || (r === 0 && c === 10) || (r === 10 && c === 0) || (r === 10 && c === 10)) type = 'tw';
+                    else if ((r === 2 && c === 2) || (r === 2 && c === 8) || (r === 8 && c === 2) || (r === 8 && c === 8)) type = 'tl';
+                    else if ((r === 3 && c === 3) || (r === 3 && c === 7) || (r === 7 && c === 3) || (r === 7 && c === 7)) type = 'dl';
+                    else if ((r === 0 && c === 5) || (r === 5 && c === 0) || (r === 5 && c === 10) || (r === 10 && c === 5)) type = 'dw';
+
+                    row.push({ letter: null, type: type, originalType: type });
+                }
+                board.push(row);
+            }
+        }
+
+        function generateNewRack() {
+            rack = [];
+            for (let i = 0; i < 7; i++) {
+                const randChar = letterBag[Math.floor(Math.random() * letterBag.length)];
+                rack.push(randChar);
+            }
+        }
+
+        function renderTeams() {
+            const container = document.getElementById('teams-container');
+            container.innerHTML = '';
+            teams.forEach((team, index) => {
+                const isCurrent = index === currentTurnIndex;
+                const card = document.createElement('div');
+                card.className = `flex items-center justify-between p-2.5 rounded-xl border transition ${
+                    isCurrent ? 'bg-indigo-950/60 border-indigo-400 shadow-md ring-1 ring-indigo-400' : 'bg-slate-800/60 border-slate-700'
+                }`;
+                card.innerHTML = `
+                    <div class="flex items-center gap-2">
+                        <div class="w-3.5 h-3.5 rounded-full ${team.colorBg} shadow-sm border border-white/40"></div>
+                        <span class="font-bold text-xs ${isCurrent ? 'text-indigo-300' : 'text-slate-200'}">${team.name}</span>
+                    </div>
+                    <div class="text-[11px] font-extrabold bg-slate-900 px-2.5 py-0.5 rounded-lg border border-slate-700 text-amber-400">
+                        ${team.score} pts
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+
+            const banner = document.getElementById('current-team-banner');
+            const activeTeam = teams[currentTurnIndex];
+            banner.className = `text-sm md:text-base font-extrabold px-4 py-1.5 rounded-full shadow-inner ${activeTeam.colorBg} text-white flex items-center gap-2`;
+            banner.innerHTML = `<span class="w-2.5 h-2.5 rounded-full bg-white animate-pulse"></span><span>${activeTeam.name}'s Turn</span>`;
+        }
+
+        function renderBoard() {
+            const boardEl = document.getElementById('scrabble-board');
+            boardEl.innerHTML = '';
+
+            for (let r = 0; r < 11; r++) {
+                for (let c = 0; c < 11; c++) {
+                    const cellData = board[r][c];
+                    const cellEl = document.createElement('div');
+                    
+                    let cls = 'tile-cell ';
+                    let text = '';
+
+                    if (cellData.letter) {
+                        cls += 'bg-amber-500 text-slate-950 border-amber-300 font-extrabold';
+                        text = `${cellData.letter} <span class="text-[9px] opacity-70">${letterValues[cellData.letter] || 1}</span>`;
+                    } else {
+                        if (cellData.type === 'dl') { cls += 'dl'; text = 'DL'; }
+                        else if (cellData.type === 'tl') { cls += 'tl'; text = 'TL'; }
+                        else if (cellData.type === 'dw') { cls += 'dw'; text = 'DW'; }
+                        else if (cellData.type === 'tw') { cls += 'tw'; text = 'TW'; }
+                        else if (r === 5 && c === 5) { cls += 'dw'; text = '★'; }
+                        else { text = ''; }
+                    }
+
+                    cellEl.className = cls;
+                    cellEl.innerHTML = text;
+                    cellEl.onclick = () => handleCellClick(r, c);
+                    boardEl.appendChild(cellEl);
+                }
+            }
+        }
+
+        function renderRack() {
+            const rackEl = document.getElementById('tile-rack');
+            rackEl.innerHTML = '';
+
+            rack.forEach((char, index) => {
+                const tile = document.createElement('div');
+                const isSelected = selectedTileIndex === index;
+                tile.className = `rack-tile w-10 h-10 md:w-12 md:h-12 flex flex-col items-center justify-center text-sm md:text-base ${
+                    isSelected ? 'ring-4 ring-amber-300 scale-105' : ''
+                }`;
+                tile.innerHTML = `<span>${char}</span><span class="text-[9px] opacity-80">${letterValues[char] || 1}</span>`;
+                tile.onclick = () => {
+                    playClickSound();
+                    selectedTileIndex = selectedTileIndex === index ? null : index;
+                    renderRack();
+                };
+                rackEl.appendChild(tile);
+            });
+        }
+
+        function handleCellClick(r, c) {
+            if (selectedTileIndex !== null && !board[r][c].letter) {
+                playTileSound();
+                const char = rack[selectedTileIndex];
+                board[r][c].letter = char;
+                rack.splice(selectedTileIndex, 1);
+                selectedTileIndex = null;
+                renderBoard();
+                renderRack();
+            } else if (board[r][c].letter) {
+                // Return tile to rack if clicked back
+                playClickSound();
+                rack.push(board[r][c].letter);
+                board[r][c].letter = null;
+                renderBoard();
+                renderRack();
+            }
+        }
+
+        function shuffleRack() {
+            playClickSound();
+            rack.sort(() => Math.random() - 0.5);
+            renderRack();
+        }
+
+        function passTurn() {
+            playClickSound();
+            selectedTileIndex = null;
+            currentTurnIndex = (currentTurnIndex + 1) % teams.length;
+            generateNewRack();
+            renderTeams();
+            renderBoard();
+            renderRack();
+        }
+
+        function submitWord() {
+            playClickSound();
+            // Simple validation: check if letters were placed
+            let placedCount = 0;
+            let wordScore = 0;
+            let wordLetters = "";
+
+            for (let r = 0; r < 11; r++) {
+                for (let c = 0; c < 11; c++) {
+                    if (board[r][c].letter) {
+                        placedCount++;
+                        wordLetters += board[r][c].letter;
+                        let val = letterValues[board[r][c].letter] || 1;
+                        if (board[r][c].type === 'dl') val *= 2;
+                        if (board[r][c].type === 'tl') val *= 3;
+                        wordScore += val;
+                    }
+                }
+            }
+
+            if (placedCount < 2) {
+                playErrorSound();
+                alert("Place at least 2 connected letters on the board to form a word!");
+                return;
+            }
+
+            playSuccessSound();
+            const team = teams[currentTurnIndex];
+            team.score += Math.max(wordScore, 5); // Minimum 5 points for any valid word attempt
+            renderTeams();
+
+            if (team.score >= 50) {
+                triggerWinner(team);
+            } else {
+                currentTurnIndex = (currentTurnIndex + 1) % teams.length;
+                initBoard();
+                generateNewRack();
+                renderTeams();
+                renderBoard();
+                renderRack();
+            }
+        }
+
+        function triggerWinner(team) {
+            playSuccessSound();
+            const modal = document.getElementById('winner-modal');
+            const announcement = document.getElementById('winner-announcement');
+            announcement.innerText = `${team.name} reached 50 points and won the Scrabble Championship! 🎉`;
+            modal.classList.remove('hidden');
+        }
+
+        function resetGame() {
+            playClickSound();
+            document.getElementById('winner-modal').classList.add('hidden');
+            teams.forEach(t => t.score = 0);
+            currentTurnIndex = 0;
+            initBoard();
+            generateNewRack();
+            renderTeams();
+            renderBoard();
+            renderRack();
+        }
+
+        window.onload = function() {
+            // Setup modal open
+        };
+    </script>
+</body>
+</html>

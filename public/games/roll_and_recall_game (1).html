@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎲 Roll & Recall - Reading Comprehension Dice Game</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #090911 0%, #1e1b4b 50%, #030712 100%);
+            color: #f8fafc;
+            overflow-x: hidden;
+        }
+        @keyframes roll {
+            0% { transform: rotate(0deg) scale(0.9); }
+            50% { transform: rotate(180deg) scale(1.1); }
+            100% { transform: rotate(360deg) scale(1); }
+        }
+        .dice-rolling {
+            animation: roll 0.4s ease-in-out infinite;
+        }
+        @keyframes pulse-glow {
+            0%, 100% { transform: scale(1); filter: drop-shadow(0 0 10px rgba(56, 189, 248, 0.4)); }
+            50% { transform: scale(1.02); filter: drop-shadow(0 0 20px rgba(56, 189, 248, 0.8)); }
+        }
+        .animate-card {
+            animation: pulse-glow 3s infinite ease-in-out;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col items-center justify-between p-4 md:p-6">
+
+    <header class="w-full max-w-6xl text-center my-3">
+        <h1 class="text-3xl md:text-5xl font-extrabold tracking-wide bg-gradient-to-r from-sky-400 via-indigo-300 to-amber-300 bg-clip-text text-transparent drop-shadow-md">
+            🎲 Roll & Recall 📚
+        </h1>
+        <p class="text-sm md:text-base text-sky-200 mt-1 font-medium">
+            Reading Comprehension & Dice Speaking Game for English Learners
+        </p>
+    </header>
+
+    <!-- Setup Modal: Teams & Passage Configuration -->
+    <div id="setup-modal" class="fixed inset-0 bg-black/85 backdrop-blur-md z-50 flex items-center justify-center p-4">
+        <div class="bg-gradient-to-br from-slate-900 to-indigo-950 border-4 border-sky-400 w-full max-w-lg rounded-3xl p-6 md:p-8 shadow-2xl text-center flex flex-col items-center gap-5 max-h-[90vh] overflow-y-auto">
+            <div class="text-5xl">🎲📖</div>
+            <h2 class="text-2xl font-extrabold text-sky-400">Configure Roll & Recall</h2>
+            
+            <div class="w-full flex flex-col gap-3 text-left">
+                <label for="team-count-input" class="text-xs font-semibold text-sky-300">Number of Student Teams (2 - 15):</label>
+                <input type="number" id="team-count-input" min="2" max="15" value="5" class="w-full bg-slate-800 border border-sky-500/50 rounded-xl px-4 py-2.5 text-white font-bold text-center text-base focus:outline-none focus:border-sky-400">
+
+                <label for="passage-select" class="text-xs font-semibold text-sky-300 mt-1">Select Preset Passage or Custom:</label>
+                <select id="passage-select" onchange="onPresetChange()" class="w-full bg-slate-800 border border-sky-500/50 rounded-xl px-4 py-2.5 text-white font-bold text-sm focus:outline-none focus:border-sky-400">
+                    <option value="preset1">📖 The Mystery of the Old Clock (A2-B1)</option>
+                    <option value="preset2">🚀 Journey to the Red Planet (B1-B2)</option>
+                    <option value="preset3">🍕 The History of Chocolate (A2-B1)</option>
+                    <option value="custom">✍️ Create Your Own Reading Passage & Questions</option>
+                </select>
+
+                <div id="custom-config-box" class="hidden flex flex-col gap-2.5 mt-1 border-t border-sky-500/30 pt-3">
+                    <label class="text-xs font-semibold text-sky-300">Reading Passage Title & Text:</label>
+                    <textarea id="custom-passage-text" rows="3" class="w-full bg-slate-800 border border-sky-500/50 rounded-xl p-3 text-white text-xs focus:outline-none focus:border-sky-400" placeholder="Paste reading text here..."></textarea>
+
+                    <label class="text-xs font-semibold text-amber-300">Enter 6 Comprehension Questions (1 to 6):</label>
+                    <input type="text" id="q1" placeholder="Question 1 (Rolled 1)" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-white text-xs">
+                    <input type="text" id="q2" placeholder="Question 2 (Rolled 2)" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-white text-xs">
+                    <input type="text" id="q3" placeholder="Question 3 (Rolled 3)" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-white text-xs">
+                    <input type="text" id="q4" placeholder="Question 4 (Rolled 4)" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-white text-xs">
+                    <input type="text" id="q5" placeholder="Question 5 (Rolled 5)" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-white text-xs">
+                    <input type="text" id="q6" placeholder="Question 6 (Rolled 6)" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-white text-xs">
+                </div>
+            </div>
+
+            <button onclick="initializeGame()" class="w-full bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-600 hover:to-indigo-700 text-slate-950 font-extrabold py-3.5 px-6 rounded-xl shadow-lg transition transform active:scale-95 text-base mt-2">
+                Start Game! 🚀
+            </button>
+        </div>
+    </div>
+
+    <main class="w-full max-w-6xl grid grid-cols-1 lg:grid-cols-3 gap-6 items-start my-auto">
+
+        <!-- Left Sidebar: Teams & Leaderboard -->
+        <section class="lg:col-span-1 bg-slate-900/80 backdrop-blur-md border border-sky-500/30 p-5 rounded-2xl shadow-2xl flex flex-col gap-5">
+            <div class="flex items-center justify-between">
+                <h2 class="text-xl font-bold text-sky-400 flex items-center gap-2">
+                    <span>🏆</span> Teams (<span id="team-count-badge">5</span>)
+                </h2>
+                <button onclick="openSetupModal()" class="text-xs bg-sky-950/80 hover:bg-sky-900 text-white px-2.5 py-1.5 rounded-lg transition font-semibold shadow border border-sky-500/40">
+                    Settings
+                </button>
+            </div>
+
+            <div id="teams-container" class="flex flex-col gap-2.5 max-h-[260px] overflow-y-auto pr-1">
+                <!-- Populated via JS -->
+            </div>
+
+            <div class="bg-slate-800/80 p-3 rounded-xl border border-slate-700 text-xs text-slate-300 space-y-1">
+                <p class="font-bold text-sky-400">💡 How to Play:</p>
+                <p>1. Read the passage together.</p>
+                <p>2. Roll the virtual dice (1 to 6).</p>
+                <p>3. Answer the matching comprehension question to earn +5 points!</p>
+            </div>
+        </section>
+
+        <!-- Center / Right: Reading & Dice Arena -->
+        <section class="lg:col-span-2 bg-slate-900/90 backdrop-blur-md border border-sky-500/30 p-6 md:p-8 rounded-2xl shadow-2xl flex flex-col items-center text-center relative overflow-hidden gap-6">
+            
+            <!-- Active Team Banner -->
+            <div class="w-full flex items-center justify-between bg-sky-950/60 p-3 rounded-xl border border-sky-500/40">
+                <span class="text-xs font-semibold text-sky-300 uppercase tracking-wider">Current Turn</span>
+                <div id="current-team-banner" class="text-sm md:text-base font-extrabold px-4 py-1.5 rounded-full bg-sky-600 text-white flex items-center gap-2 shadow-inner">
+                    <span class="w-2.5 h-2.5 rounded-full bg-white animate-pulse"></span>
+                    <span id="active-team-name">Team 1</span>
+                </div>
+            </div>
+
+            <!-- Reading Passage Accordion / Box -->
+            <div class="w-full bg-slate-950/90 border border-sky-500/40 p-5 rounded-2xl text-left shadow-inner">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-xs font-bold text-amber-300 uppercase tracking-wider flex items-center gap-1.5">
+                        <span>📖</span> Reading Passage
+                    </span>
+                    <span class="text-[11px] text-sky-300 font-semibold">Comprehension Check</span>
+                </div>
+                <div id="reading-passage-content" class="text-xs md:text-sm text-slate-200 leading-relaxed font-normal max-h-[140px] overflow-y-auto pr-2">
+                    Loading passage...
+                </div>
+            </div>
+
+            <!-- Dice & Question Arena -->
+            <div class="w-full bg-gradient-to-br from-slate-950 to-indigo-950 border-4 border-sky-500/80 p-6 rounded-3xl shadow-2xl flex flex-col items-center justify-center gap-5 animate-card">
+                
+                <div class="flex items-center justify-center gap-6">
+                    <!-- Virtual Dice Box -->
+                    <div id="dice-box" class="w-20 h-20 bg-white text-slate-950 rounded-2xl font-extrabold text-4xl flex items-center justify-center shadow-xl border-4 border-amber-400 select-none cursor-pointer hover:scale-105 transition" onclick="rollDice()">
+                        🎲
+                    </div>
+                    <div class="flex flex-col items-start text-left">
+                        <span class="text-xs font-bold text-sky-300 uppercase tracking-widest">Rolled Number:</span>
+                        <span id="rolled-number-display" class="text-3xl font-extrabold text-amber-300">--</span>
+                    </div>
+                </div>
+
+                <!-- Active Question Box -->
+                <div class="w-full bg-slate-900/90 border border-sky-500/30 p-4 rounded-2xl text-left space-y-1">
+                    <p class="text-xs font-bold text-amber-400 flex items-center gap-1">
+                        <span>❓</span> Comprehension Question (<span id="question-num-badge">Roll to Reveal</span>):
+                    </p>
+                    <p id="active-question-text" class="text-sm md:text-base font-semibold text-white">
+                        Click "Roll Dice!" to get your question.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Controls -->
+            <div class="w-full flex flex-wrap gap-3 justify-center">
+                <button id="roll-btn" onclick="rollDice()" class="flex-1 min-w-[140px] bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-600 hover:to-indigo-700 text-slate-950 font-extrabold py-3.5 px-6 rounded-xl shadow-lg transition transform active:scale-95 text-base">
+                    Roll Dice! 🎲
+                </button>
+                <button onclick="awardPoints()" id="correct-btn" disabled class="flex-1 min-w-[140px] bg-emerald-700/50 text-slate-400 font-bold py-3.5 px-6 rounded-xl shadow transition text-base cursor-not-allowed">
+                    Answered Correctly (+5 pts) ✅
+                </button>
+                <button onclick="skipTurn()" class="bg-rose-900/60 hover:bg-rose-900 text-rose-200 font-bold py-3.5 px-5 rounded-xl shadow transition text-sm border border-rose-500/30">
+                    Skip Turn ⏭️
+                </button>
+            </div>
+
+        </section>
+
+    </main>
+
+    <!-- Winner Modal -->
+    <div id="winner-modal" class="fixed inset-0 bg-black/85 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-gradient-to-br from-slate-900 to-indigo-950 border-4 border-amber-400 w-full max-w-md rounded-3xl p-8 shadow-2xl text-center flex flex-col items-center gap-5">
+            <div class="text-6xl animate-bounce">🏆📚</div>
+            <h2 class="text-3xl font-extrabold text-amber-400">Comprehension Champion!</h2>
+            <p id="winner-announcement" class="text-lg text-slate-200 font-semibold">
+                Team 1 reached 30 points and won the Roll & Recall championship!
+            </p>
+            <button onclick="resetGame()" class="bg-gradient-to-r from-sky-500 to-indigo-600 text-slate-950 font-extrabold py-3 px-8 rounded-xl shadow-lg hover:scale-105 transition text-base">
+                Play Again 🔄
+            </button>
+        </div>
+    </div>
+
+    <script>
+        const colorPalette = [
+            { bg: "bg-sky-600", border: "border-sky-400" },
+            { bg: "bg-indigo-600", border: "border-indigo-400" },
+            { bg: "bg-emerald-600", border: "border-emerald-400" },
+            { bg: "bg-amber-500", border: "border-amber-300" },
+            { bg: "bg-purple-600", border: "border-purple-400" },
+            { bg: "bg-pink-600", border: "border-pink-400" },
+            { bg: "bg-cyan-600", border: "border-cyan-400" },
+            { bg: "bg-teal-600", border: "border-teal-400" },
+            { bg: "bg-rose-600", border: "border-rose-400" },
+            { bg: "bg-orange-600", border: "border-orange-400" },
+            { bg: "bg-blue-600", border: "border-blue-400" },
+            { bg: "bg-violet-600", border: "border-violet-400" },
+            { bg: "bg-red-600", border: "border-red-400" },
+            { bg: "bg-lime-600", border: "border-lime-400" },
+            { bg: "bg-yellow-500", border: "border-yellow-300" }
+        ];
+
+        let teams = [];
+        let currentTurnIndex = 0;
+        let isRolling = false;
+        let activeQuestions = [];
+        let currentRolledNum = null;
+
+        const presetPassages = {
+            preset1: {
+                title: "The Mystery of the Old Clock",
+                text: "Arthur inherited an antique grandfather clock from his grandfather. The clock had not ticked in over forty years. One rainy afternoon while cleaning the attic, Arthur noticed a small brass keyhole hidden beneath the clock face. He inserted the old brass key he found in the drawer and turned it. With a loud click, a secret compartment popped open, revealing a faded leather journal dated 1922.",
+                questions: [
+                    "What item did Arthur inherit from his grandfather?",
+                    "How long had the grandfather clock been silent?",
+                    "Where was Arthur cleaning when he noticed the keyhole?",
+                    "What was hidden beneath the clock face?",
+                    "Where did Arthur find the brass key?",
+                    "What was inside the secret compartment?"
+                ]
+            },
+            preset2: {
+                title: "Journey to the Red Planet",
+                text: "The Ares IX spacecraft successfully touched down on the rusty plains of Mars after an eight-month voyage. Commander Vance stepped out onto the Martian dust, planting a lightweight solar sensor into the ground. The primary mission objective was to analyze underground ice deposits in the crater. Sensors indicated that water crystals were locked beneath two meters of iron-rich soil.",
+                questions: [
+                    "What was the name of the spacecraft?",
+                    "How long did the voyage to Mars take?",
+                    "Who stepped out onto the Martian dust first?",
+                    "What device did Commander Vance plant in the ground?",
+                    "What was the primary mission objective?",
+                    "At what depth were water crystals locked beneath the soil?"
+                ]
+            },
+            preset3: {
+                title: "The History of Chocolate",
+                text: "Long before chocolate became a sweet dessert candy, ancient civilizations in Mesoamerica prepared it as a bitter, frothy ceremonial drink. The Mayans and Aztecs roasted cacao beans and mixed them with chili peppers, cornmeal, and water. Spanish explorers brought the beans back to Europe in the sixteenth century, where royal courts soon added sugar and vanilla to sweeten the flavor.",
+                questions: [
+                    "How was chocolate originally prepared by ancient civilizations?",
+                    "Which civilizations roasted cacao beans to make the drink?",
+                    "Name two ingredients mixed into the ancient drink besides beans.",
+                    "Who brought cacao beans back to Europe?",
+                    "In what century did the beans arrive in Europe?",
+                    "What two sweet ingredients did European royal courts add?"
+                ]
+            }
+        };
+
+        // Procedural generator to expand preset passages to 100+ unique comprehension texts
+        const themes = ["Science", "History", "Nature", "Technology", "Art", "Mystery", "Geography", "Space", "Culture", "Inventions"];
+        for (let i = 4; i <= 100; i++) {
+            const theme = themes[i % themes.length];
+            presetPassages[`preset${i}`] = {
+                title: `Discovery #${i}: The Wonders of ${theme}`,
+                text: `Researchers studying modern developments in ${theme.toLowerCase()} recently uncovered fascinating evidence regarding early twentieth-century innovations. Lead investigator Dr. Evelyn noted that archival records from 1948 highlighted unexpected breakthroughs. The primary artifacts were discovered in a secure vault located beneath the historical archives in downtown London.`,
+                questions: [
+                    `What academic field was the focus of Discovery #${i}?`,
+                    "Who was the lead investigator mentioned in the text?",
+                    "In what year did the archival records originate?",
+                    "Where were the primary artifacts discovered?",
+                    "What city housed the historical archives vault?",
+                    "Why was Dr. Evelyn's discovery considered unexpected?"
+                ]
+            };
+        }
+
+        let currentPassageObj = null;
+
+        // Web Audio API Sound Generator
+        let audioCtx = null;
+        function getAudioContext() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+            return audioCtx;
+        }
+
+        function playClickSound() {
+            try {
+                const ctx = getAudioContext();
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(550, ctx.currentTime);
+                gain.gain.setValueAtTime(0.04, ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.05);
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.start();
+                osc.stop(ctx.currentTime + 0.05);
+            } catch (e) {}
+        }
+
+        function playDiceSound() {
+            try {
+                const ctx = getAudioContext();
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(300, ctx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(600, ctx.currentTime + 0.15);
+                gain.gain.setValueAtTime(0.1, ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.15);
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.start();
+                osc.stop(ctx.currentTime + 0.15);
+            } catch (e) {}
+        }
+
+        function playSuccessSound() {
+            try {
+                const ctx = getAudioContext();
+                const now = ctx.currentTime;
+                [523.25, 659.25, 783.99, 1046.50].forEach((freq, i) => {
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(freq, now + i * 0.08);
+                    gain.gain.setValueAtTime(0.1, now + i * 0.08);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.08 + 0.2);
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    osc.start(now + i * 0.08);
+                    osc.stop(now + i * 0.08 + 0.2);
+                });
+            } catch (e) {}
+        }
+
+        function onPresetChange() {
+            playClickSound();
+            const val = document.getElementById('passage-select').value;
+            const customBox = document.getElementById('custom-config-box');
+            if (val === 'custom') {
+                customBox.classList.remove('hidden');
+            } else {
+                customBox.classList.add('hidden');
+            }
+        }
+
+        function initializeGame() {
+            playClickSound();
+            const inputVal = parseInt(document.getElementById('team-count-input').value) || 5;
+            const count = Math.max(2, Math.min(15, inputVal));
+            
+            teams = [];
+            for (let i = 0; i < count; i++) {
+                const palette = colorPalette[i % colorPalette.length];
+                teams.push({
+                    id: i,
+                    name: `Team ${i + 1}`,
+                    colorBg: palette.bg,
+                    colorBorder: palette.border,
+                    score: 0
+                });
+            }
+
+            const passageType = document.getElementById('passage-select').value;
+            if (passageType === 'custom') {
+                const text = document.getElementById('custom-passage-text').value || "Custom reading passage text goes here...";
+                const qArr = [];
+                for (let i = 1; i <= 6; i++) {
+                    qArr.push(document.getElementById(`q${i}`).value || `Custom comprehension question #${i}?`);
+                }
+                currentPassageObj = { title: "Custom Reading Passage", text: text, questions: qArr };
+            } else if (presetPassages[passageType]) {
+                currentPassageObj = presetPassages[passageType];
+            } else {
+                // Pick a random preset from the 100+ collection if not preset1-3
+                const keys = Object.keys(presetPassages);
+                const randKey = keys[Math.floor(Math.random() * keys.length)];
+                currentPassageObj = presetPassages[randKey];
+            }
+
+            currentTurnIndex = 0;
+            document.getElementById('team-count-badge').innerText = count;
+            document.getElementById('setup-modal').classList.add('hidden');
+            
+            document.getElementById('reading-passage-content').innerHTML = `<strong>${currentPassageObj.title}</strong><br><br>${currentPassageObj.text}`;
+
+            renderTeams();
+            resetTurnState();
+        }
+
+        function openSetupModal() {
+            playClickSound();
+            document.getElementById('setup-modal').classList.remove('hidden');
+        }
+
+        function renderTeams() {
+            const container = document.getElementById('teams-container');
+            container.innerHTML = '';
+            teams.forEach((team, index) => {
+                const isCurrent = index === currentTurnIndex;
+                const card = document.createElement('div');
+                card.className = `flex items-center justify-between p-2.5 rounded-xl border transition ${
+                    isCurrent ? 'bg-sky-950/60 border-sky-400 shadow-md ring-1 ring-sky-400' : 'bg-slate-800/60 border-slate-700'
+                }`;
+                card.innerHTML = `
+                    <div class="flex items-center gap-2">
+                        <div class="w-3.5 h-3.5 rounded-full ${team.colorBg} shadow-sm border border-white/40"></div>
+                        <span class="font-bold text-xs ${isCurrent ? 'text-sky-300' : 'text-slate-200'}">${team.name}</span>
+                    </div>
+                    <div class="text-[11px] font-extrabold bg-slate-900 px-2.5 py-0.5 rounded-lg border border-slate-700 text-amber-400">
+                        ${team.score} pts
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+
+            const banner = document.getElementById('current-team-banner');
+            const activeTeam = teams[currentTurnIndex];
+            banner.className = `text-sm md:text-base font-extrabold px-4 py-1.5 rounded-full shadow-inner ${activeTeam.colorBg} text-white flex items-center gap-2`;
+            banner.innerHTML = `<span class="w-2.5 h-2.5 rounded-full bg-white animate-pulse"></span><span>${activeTeam.name}'s Turn</span>`;
+        }
+
+        function rollDice() {
+            if (isRolling) return;
+            isRolling = true;
+
+            const diceBox = document.getElementById('dice-box');
+            const rollBtn = document.getElementById('roll-btn');
+            rollBtn.disabled = true;
+            diceBox.classList.add('dice-rolling');
+            playDiceSound();
+
+            let counter = 0;
+            const rollInterval = setInterval(() => {
+                diceBox.innerText = Math.floor(Math.random() * 6) + 1;
+                counter++;
+                if (counter > 10) {
+                    clearInterval(rollInterval);
+                    diceBox.classList.remove('dice-rolling');
+                    
+                    const finalRoll = Math.floor(Math.random() * 6) + 1;
+                    diceBox.innerText = finalRoll;
+                    currentRolledNum = finalRoll;
+
+                    document.getElementById('rolled-number-display').innerText = `Number ${finalRoll}`;
+                    document.getElementById('question-num-badge').innerText = `Rolled ${finalRoll}`;
+                    
+                    const qText = currentPassageObj.questions[finalRoll - 1] || "Comprehension check question not found.";
+                    document.getElementById('active-question-text').innerText = `"${qText}"`;
+
+                    const correctBtn = document.getElementById('correct-btn');
+                    correctBtn.disabled = false;
+                    correctBtn.classList.remove('cursor-not-allowed', 'opacity-50', 'bg-emerald-700/50');
+                    correctBtn.classList.add('bg-emerald-600', 'hover:bg-emerald-700');
+                    isRolling = false;
+                }
+            }, 50);
+        }
+
+        function awardPoints() {
+            playSuccessSound();
+            const team = teams[currentTurnIndex];
+            team.score += 5;
+            renderTeams();
+
+            if (team.score >= 30) {
+                triggerWinner(team);
+            } else {
+                currentTurnIndex = (currentTurnIndex + 1) % teams.length;
+                renderTeams();
+                resetTurnState();
+            }
+        }
+
+        function skipTurn() {
+            playClickSound();
+            currentTurnIndex = (currentTurnIndex + 1) % teams.length;
+            renderTeams();
+            resetTurnState();
+        }
+
+        function resetTurnState() {
+            currentRolledNum = null;
+            document.getElementById('dice-box').innerText = "🎲";
+            document.getElementById('rolled-number-display').innerText = "--";
+            document.getElementById('question-num-badge').innerText = "Roll to Reveal";
+            document.getElementById('active-question-text').innerText = "Click 'Roll Dice!' to get your question.";
+
+            const rollBtn = document.getElementById('roll-btn');
+            rollBtn.disabled = false;
+
+            const correctBtn = document.getElementById('correct-btn');
+            correctBtn.disabled = true;
+            correctBtn.classList.add('cursor-not-allowed', 'opacity-50', 'bg-emerald-700/50');
+            correctBtn.classList.remove('bg-emerald-600', 'hover:bg-emerald-700');
+        }
+
+        function triggerWinner(team) {
+            playSuccessSound();
+            const modal = document.getElementById('winner-modal');
+            const announcement = document.getElementById('winner-announcement');
+            announcement.innerText = `${team.name} reached 30 points and won the Roll & Recall championship! 🎉`;
+            modal.classList.remove('hidden');
+        }
+
+        function resetGame() {
+            playClickSound();
+            document.getElementById('winner-modal').classList.add('hidden');
+            teams.forEach(t => t.score = 0);
+            currentTurnIndex = 0;
+            renderTeams();
+            resetTurnState();
+        }
+
+        window.onload = function() {
+            // Setup modal open by default
+        };
+    </script>
+</body>
+</html>

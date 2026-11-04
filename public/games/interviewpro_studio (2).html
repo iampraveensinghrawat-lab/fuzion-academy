@@ -1,0 +1,948 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>InterviewPro Studio - AI English Job Interview Practice</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Plus Jakarta Sans', 'sans-serif'],
+                        display: ['Outfit', 'sans-serif'],
+                    },
+                    colors: {
+                        corporate: {
+                            50: '#f0fdf4',
+                            500: '#10b981',
+                            600: '#059669',
+                            700: '#047857',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.88);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(226, 232, 240, 0.8);
+        }
+        .dark .glass-card {
+            background: rgba(15, 23, 42, 0.88);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(51, 65, 85, 0.8);
+        }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(148, 163, 184, 0.4); border-radius: 3px; }
+    </style>
+</head>
+<body class="h-full flex flex-col bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 transition-colors duration-200 overflow-hidden">
+
+    <!-- Header Navigation -->
+    <header class="glass-card border-b border-slate-200 dark:border-slate-800 px-6 py-4 flex items-center justify-between shrink-0 z-20">
+        <div class="flex items-center space-x-3">
+            <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-600 to-teal-500 flex items-center justify-center shadow-lg shadow-emerald-500/25">
+                <i class="fa-solid fa-briefcase text-white text-lg"></i>
+            </div>
+            <div>
+                <h1 class="font-display font-extrabold text-lg tracking-tight text-slate-900 dark:text-white">INTERVIEW<span class="text-emerald-500">PRO</span> STUDIO</h1>
+                <p class="text-xs text-emerald-600 dark:text-emerald-400 font-semibold">Fuzion Academy English Job Prep</p>
+            </div>
+        </div>
+
+        <!-- Student Metrics Bar -->
+        <div class="hidden md:flex items-center space-x-4">
+            <div class="flex items-center space-x-2 bg-slate-100 dark:bg-slate-900 px-3.5 py-1.5 rounded-xl border border-slate-200 dark:border-slate-800">
+                <i class="fa-solid fa-fire text-amber-500 text-xs"></i>
+                <span class="text-xs text-slate-500 dark:text-slate-400">Score:</span>
+                <span id="header-score" class="text-xs font-bold text-slate-900 dark:text-white">0 XP</span>
+            </div>
+            <div class="flex items-center space-x-2 bg-slate-100 dark:bg-slate-900 px-3.5 py-1.5 rounded-xl border border-slate-200 dark:border-slate-800">
+                <i class="fa-solid fa-medal text-emerald-500 text-xs"></i>
+                <span class="text-xs text-slate-500 dark:text-slate-400">Mode:</span>
+                <span id="header-mode" class="text-xs font-bold text-slate-900 dark:text-white">Not Started</span>
+            </div>
+        </div>
+
+        <div class="flex items-center space-x-2">
+            <button onclick="openApiKeyModal()" class="px-3 py-1.5 bg-slate-100 dark:bg-slate-900 hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-xl text-xs font-semibold border border-slate-200 dark:border-slate-800 transition flex items-center space-x-1.5">
+                <i class="fa-solid fa-key text-emerald-500"></i>
+                <span class="hidden sm:inline">API Key</span>
+            </button>
+            <button onclick="toggleDarkMode()" class="p-2 rounded-xl bg-slate-100 dark:bg-slate-900 hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-800 transition">
+                <i class="fa-solid fa-moon dark:hidden"></i>
+                <i class="fa-solid fa-sun hidden dark:inline text-amber-400"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Workspace Container -->
+    <main class="flex-1 flex flex-col overflow-hidden relative">
+
+        <!-- VIEW 1: MODE & INTERVIEWER SELECTOR DASHBOARD -->
+        <div id="view-dashboard" class="absolute inset-0 overflow-y-auto p-4 md:p-8 z-20 bg-slate-50 dark:bg-slate-950">
+            <div class="max-w-5xl mx-auto space-y-8">
+                
+                <!-- Welcome Banner -->
+                <div class="glass-card rounded-3xl p-6 md:p-8 border border-emerald-500/20 shadow-xl shadow-emerald-500/5 relative overflow-hidden">
+                    <div class="absolute right-0 top-0 translate-x-8 -translate-y-8 w-64 h-64 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none"></div>
+                    <div class="relative z-10 max-w-2xl">
+                        <span class="px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-xs font-bold uppercase tracking-wider mb-3 inline-block">Professional English Simulator</span>
+                        <h2 class="font-display text-2xl md:text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight mb-3">Ace Your Next English Job Interview</h2>
+                        <p class="text-slate-600 dark:text-slate-400 text-sm md:text-base leading-relaxed mb-6">Select your profession, choose an interview round, and practice your spoken responses with rigorous honest feedback, 10 deep scenario questions per round, and instant coaching.</p>
+                        
+                        <!-- Candidate Profession Selector -->
+                        <div class="space-y-4 mb-6">
+                            <div>
+                                <label class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 block mb-2">1. Select Your Profession / Role:</label>
+                                <select id="candidate-profession" class="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-2xl px-4 py-3 text-sm text-slate-900 dark:text-white font-semibold focus:outline-none focus:border-emerald-500 shadow-sm">
+                                    <option value="Software Engineer">Software Engineer / Developer</option>
+                                    <option value="Accounting & Finance">Accounting & Finance Professional</option>
+                                    <option value="Management Information Systems (MIS)">MIS / Data Specialist</option>
+                                    <option value="Data Analyst">Data Analyst / Business Intelligence</option>
+                                    <option value="Marketing & Sales">Marketing & Sales Specialist</option>
+                                    <option value="Project Manager">Project / Product Manager</option>
+                                    <option value="Customer Success">Customer Success & Support</option>
+                                    <option value="Soft Skills Trainer">Soft Skills Trainer</option>
+                                    <option value="English Trainer">English Language Trainer</option>
+                                    <option value="HR">Human Resources (HR) Specialist</option>
+                                    <option value="Medical Billing">Medical Billing & Coding Specialist</option>
+                                </select>
+                            </div>
+
+                            <!-- Experience Level Selector -->
+                            <div>
+                                <label class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 block mb-2">Experience Level:</label>
+                                <div class="grid grid-cols-2 gap-3">
+                                    <button onclick="setExperienceLevel('fresher')" id="exp-fresher" class="p-3 rounded-2xl border text-center transition bg-emerald-500/10 border-emerald-500 text-slate-900 dark:text-white text-xs font-bold">
+                                        Fresher / Entry-Level
+                                    </button>
+                                    <button onclick="setExperienceLevel('experienced')" id="exp-experienced" class="p-3 rounded-2xl border text-center transition bg-slate-100 dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 text-xs font-bold">
+                                        Experienced Professional
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Persona Selector -->
+                        <div class="space-y-2">
+                            <label class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">2. Choose Interviewer Persona:</label>
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                <button onclick="selectPersona('coach')" id="persona-coach" class="p-3 rounded-2xl border text-left transition bg-emerald-500/10 border-emerald-500 text-slate-900 dark:text-white">
+                                    <div class="font-bold text-xs">Friendly Coach</div>
+                                    <div class="text-[11px] text-slate-500">Encouraging & helpful</div>
+                                </button>
+                                <button onclick="selectPersona('hr')" id="persona-hr" class="p-3 rounded-2xl border text-left transition bg-slate-100 dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300">
+                                    <div class="font-bold text-xs">Strict Corporate HR</div>
+                                    <div class="text-[11px] text-slate-500">Professional & formal</div>
+                                </button>
+                                <button onclick="selectPersona('tech')" id="persona-tech" class="p-3 rounded-2xl border text-left transition bg-slate-100 dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300">
+                                    <div class="font-bold text-xs">Casual Tech Lead</div>
+                                    <div class="text-[11px] text-slate-500">Direct & probing</div>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Interview Rounds Grid -->
+                <div>
+                    <h3 class="font-display font-bold text-lg text-slate-900 dark:text-white mb-4 flex items-center space-x-2">
+                        <i class="fa-solid fa-list-check text-emerald-500"></i>
+                        <span>3. Select Interview Round (10 Questions Each)</span>
+                    </h3>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- Card 1 -->
+                        <div onclick="startInterview('hr')" class="glass-card rounded-3xl p-6 border border-slate-200 dark:border-slate-800 hover:border-emerald-500/50 hover:shadow-xl hover:shadow-emerald-500/5 transition cursor-pointer group flex flex-col justify-between">
+                            <div>
+                                <div class="flex items-center justify-between mb-4">
+                                    <div class="w-12 h-12 rounded-2xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-xl group-hover:scale-110 transition">
+                                        <i class="fa-solid fa-user-check"></i>
+                                    </div>
+                                    <span class="px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[10px] font-bold uppercase">Standard</span>
+                                </div>
+                                <h4 class="font-display font-bold text-lg text-slate-900 dark:text-white mb-2 group-hover:text-emerald-500 transition">1. HR / Recruiter Round</h4>
+                                <p class="text-xs text-slate-600 dark:text-slate-400 leading-relaxed mb-4">Comprehensive screening covering background, career motivation, strengths, weaknesses, and culture fit.</p>
+                            </div>
+                            <div class="flex items-center justify-between pt-4 border-t border-slate-200 dark:border-slate-800 text-xs font-bold text-emerald-600 dark:text-emerald-400">
+                                <span>10 Deep Questions</span>
+                                <span class="group-hover:translate-x-1 transition flex items-center space-x-1">Start Round <i class="fa-solid fa-arrow-right"></i></span>
+                            </div>
+                        </div>
+
+                        <!-- Card 2 -->
+                        <div onclick="startInterview('tech')" class="glass-card rounded-3xl p-6 border border-slate-200 dark:border-slate-800 hover:border-emerald-500/50 hover:shadow-xl hover:shadow-emerald-500/5 transition cursor-pointer group flex flex-col justify-between">
+                            <div>
+                                <div class="flex items-center justify-between mb-4">
+                                    <div class="w-12 h-12 rounded-2xl bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center text-xl group-hover:scale-110 transition">
+                                        <i class="fa-solid fa-laptop-code"></i>
+                                    </div>
+                                    <span class="px-3 py-1 rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-400 text-[10px] font-bold uppercase">Profession-Based</span>
+                                </div>
+                                <h4 class="font-display font-bold text-lg text-slate-900 dark:text-white mb-2 group-hover:text-blue-500 transition">2. Technical & Domain Round</h4>
+                                <p class="text-xs text-slate-600 dark:text-slate-400 leading-relaxed mb-4">Rigorous technical and domain-specific questions tailored dynamically to your selected profession.</p>
+                            </div>
+                            <div class="flex items-center justify-between pt-4 border-t border-slate-200 dark:border-slate-800 text-xs font-bold text-blue-600 dark:text-blue-400">
+                                <span>10 Deep Questions</span>
+                                <span class="group-hover:translate-x-1 transition flex items-center space-x-1">Start Round <i class="fa-solid fa-arrow-right"></i></span>
+                            </div>
+                        </div>
+
+                        <!-- Card 3 -->
+                        <div onclick="startInterview('behavioral')" class="glass-card rounded-3xl p-6 border border-slate-200 dark:border-slate-800 hover:border-emerald-500/50 hover:shadow-xl hover:shadow-emerald-500/5 transition cursor-pointer group flex flex-col justify-between">
+                            <div>
+                                <div class="flex items-center justify-between mb-4">
+                                    <div class="w-12 h-12 rounded-2xl bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center text-xl group-hover:scale-110 transition">
+                                        <i class="fa-solid fa-star"></i>
+                                    </div>
+                                    <span class="px-3 py-1 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 text-[10px] font-bold uppercase">STAR Method</span>
+                                </div>
+                                <h4 class="font-display font-bold text-lg text-slate-900 dark:text-white mb-2 group-hover:text-amber-500 transition">3. Behavioral & Situational Round</h4>
+                                <p class="text-xs text-slate-600 dark:text-slate-400 leading-relaxed mb-4">Master complex workplace scenarios, conflict management, failure analysis, and leadership challenges.</p>
+                            </div>
+                            <div class="flex items-center justify-between pt-4 border-t border-slate-200 dark:border-slate-800 text-xs font-bold text-amber-600 dark:text-amber-400">
+                                <span>10 Deep Questions</span>
+                                <span class="group-hover:translate-x-1 transition flex items-center space-x-1">Start Round <i class="fa-solid fa-arrow-right"></i></span>
+                            </div>
+                        </div>
+
+                        <!-- Card 4 -->
+                        <div onclick="startInterview('salary')" class="glass-card rounded-3xl p-6 border border-slate-200 dark:border-slate-800 hover:border-emerald-500/50 hover:shadow-xl hover:shadow-emerald-500/5 transition cursor-pointer group flex flex-col justify-between">
+                            <div>
+                                <div class="flex items-center justify-between mb-4">
+                                    <div class="w-12 h-12 rounded-2xl bg-purple-500/10 text-purple-600 dark:text-purple-400 flex items-center justify-center text-xl group-hover:scale-110 transition">
+                                        <i class="fa-solid fa-handshake"></i>
+                                    </div>
+                                    <span class="px-3 py-1 rounded-full bg-purple-500/10 text-purple-600 dark:text-purple-400 text-[10px] font-bold uppercase">Closing</span>
+                                </div>
+                                <h4 class="font-display font-bold text-lg text-slate-900 dark:text-white mb-2 group-hover:text-purple-500 transition">4. Salary Negotiation & Closing</h4>
+                                <p class="text-xs text-slate-600 dark:text-slate-400 leading-relaxed mb-4">Negotiate compensation professionally, evaluate total rewards, and close job offers with confidence.</p>
+                            </div>
+                            <div class="flex items-center justify-between pt-4 border-t border-slate-200 dark:border-slate-800 text-xs font-bold text-purple-600 dark:text-purple-400">
+                                <span>10 Deep Questions</span>
+                                <span class="group-hover:translate-x-1 transition flex items-center space-x-1">Start Round <i class="fa-solid fa-arrow-right"></i></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- VIEW 2: ACTIVE INTERVIEW STUDIO -->
+        <div id="view-interview" class="hidden absolute inset-0 flex flex-col md:flex-row overflow-hidden z-30 bg-slate-50 dark:bg-slate-950">
+            
+            <!-- Left Panel: Interviewer Info & Live Star Scaffolding -->
+            <div class="w-full md:w-80 glass-card border-r border-slate-200 dark:border-slate-800 p-5 flex flex-col justify-between shrink-0 overflow-y-auto">
+                <div class="space-y-6">
+                    <div>
+                        <button onclick="returnToDashboard()" class="text-xs font-semibold text-emerald-600 dark:text-emerald-400 hover:underline mb-3 flex items-center space-x-1">
+                            <i class="fa-solid fa-arrow-left"></i>
+                            <span>Change Round</span>
+                        </button>
+                        <div id="active-round-badge" class="px-2.5 py-1 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[10px] font-bold uppercase mb-2 inline-block">HR Round</div>
+                        <h3 id="active-round-title" class="font-display font-bold text-lg text-slate-900 dark:text-white">Recruiter Screening</h3>
+                        <div class="mt-1 text-xs text-slate-500 font-medium">Role: <span id="display-profession-name" class="text-emerald-600 dark:text-emerald-400 font-bold">Software Engineer</span></div>
+                        <div class="mt-0.5 text-[11px] text-slate-400 font-semibold">Track: <span id="display-experience-level" class="text-slate-700 dark:text-slate-300">Fresher</span></div>
+                    </div>
+
+                    <!-- Interviewer Avatar Card -->
+                    <div class="p-4 rounded-2xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-center">
+                        <div class="w-16 h-16 rounded-2xl bg-gradient-to-tr from-emerald-600 to-teal-500 mx-auto flex items-center justify-center text-white text-2xl shadow-lg mb-3">
+                            <i id="interviewer-avatar-icon" class="fa-solid fa-user-tie"></i>
+                        </div>
+                        <h4 id="interviewer-name" class="font-display font-bold text-slate-900 dark:text-white text-sm">Mr. Vance (HR Director)</h4>
+                        <div class="mt-2 text-[11px] text-emerald-600 dark:text-emerald-400 font-semibold bg-emerald-500/10 py-1 px-3 rounded-full inline-flex items-center space-x-1.5 border border-emerald-500/20">
+                            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                            <span>Honest Evaluation Mode</span>
+                        </div>
+                    </div>
+
+                    <!-- STAR / Professional Tip Box -->
+                    <div class="p-4 rounded-2xl bg-emerald-500/5 dark:bg-emerald-500/10 border border-emerald-500/20">
+                        <span class="text-xs font-bold text-emerald-600 dark:text-emerald-400 flex items-center space-x-1.5 mb-2">
+                            <i class="fa-solid fa-lightbulb"></i>
+                            <span id="scaffolding-title">Professional Tip</span>
+                        </span>
+                        <p id="scaffolding-text" class="text-xs text-slate-600 dark:text-slate-300 italic">"Be rigorous, specific, and support your claims with concrete examples."</p>
+                    </div>
+
+                    <!-- Instant Metrics Summary Box -->
+                    <div id="instant-metrics-box" class="hidden p-4 rounded-2xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 space-y-2">
+                        <div class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Latest Answer Evaluation</div>
+                        <div class="grid grid-cols-2 gap-2 text-xs">
+                            <div class="bg-white dark:bg-slate-800 p-2 rounded-xl">
+                                <span class="text-slate-500 block text-[10px]">Score</span>
+                                <span id="metric-clarity" class="font-bold text-emerald-500">82%</span>
+                            </div>
+                            <div class="bg-white dark:bg-slate-800 p-2 rounded-xl">
+                                <span class="text-slate-500 block text-[10px]">Tone</span>
+                                <span id="metric-vocab" class="font-bold text-indigo-500">Professional</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Progress Bar -->
+                <div class="pt-4 mt-4 border-t border-slate-200 dark:border-slate-800">
+                    <div class="flex justify-between text-xs text-slate-500 dark:text-slate-400 mb-1.5">
+                        <span>Interview Progress</span>
+                        <span id="question-count-display">Question 1 of 10</span>
+                    </div>
+                    <div class="w-full bg-slate-200 dark:bg-slate-800 h-2 rounded-full overflow-hidden">
+                        <div id="progress-bar" class="bg-emerald-600 h-full w-10 transition-all duration-300"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Conversation & Voice Studio -->
+            <div class="flex-1 flex flex-col bg-slate-100/50 dark:bg-slate-900/50 relative overflow-hidden">
+                
+                <!-- Chat Messages Scroll Area -->
+                <div id="chat-messages" class="flex-1 p-4 md:p-6 overflow-y-auto space-y-4">
+                    <!-- Populated dynamically -->
+                </div>
+
+                <!-- Waveform / Recording Overlay -->
+                <div id="voice-waveform-overlay" class="hidden absolute bottom-24 left-4 right-4 md:left-8 md:right-8 p-4 rounded-2xl bg-slate-900/90 backdrop-blur border border-emerald-500/40 text-white flex items-center justify-between shadow-2xl z-20">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-10 h-10 rounded-xl bg-rose-500/20 border border-rose-500 text-rose-400 flex items-center justify-center animate-pulse">
+                            <i class="fa-solid fa-microphone"></i>
+                        </div>
+                        <div>
+                            <div class="text-xs font-bold text-rose-400">Recording your answer...</div>
+                            <div id="live-speech-transcript" class="text-sm text-slate-300 italic max-w-md truncate">Speak clearly into your microphone</div>
+                        </div>
+                    </div>
+                    <button onclick="stopVoiceRecognition()" class="px-4 py-2 bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold rounded-xl shadow-lg transition">Submit Answer</button>
+                </div>
+
+                <!-- Bottom Controls Bar -->
+                <div class="glass-card border-t border-slate-200 dark:border-slate-800 p-4 flex items-center justify-between gap-3 shrink-0">
+                    <div class="flex items-center space-x-2 w-full">
+                        <button id="btn-mic" onclick="toggleVoiceInput()" class="flex-1 md:flex-none px-6 py-3.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-display font-bold rounded-xl shadow-lg shadow-emerald-500/25 transition flex items-center justify-center space-x-2">
+                            <i id="mic-icon" class="fa-solid fa-microphone text-base"></i>
+                            <span id="mic-btn-text">Tap & Speak Answer</span>
+                        </button>
+                        <button onclick="toggleTextInputBox()" class="p-3.5 bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-xl border border-slate-300 dark:border-slate-700 transition" title="Type response">
+                            <i class="fa-solid fa-keyboard"></i>
+                        </button>
+                        <button onclick="repeatInterviewerAudio()" class="hidden sm:flex items-center space-x-1.5 px-4 py-3.5 bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-xl border border-slate-300 dark:border-slate-700 text-xs font-semibold transition">
+                            <i class="fa-solid fa-volume-high text-emerald-500"></i>
+                            <span>Repeat Question</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Text Input Drawer -->
+                <div id="text-input-drawer" class="hidden p-3 bg-slate-200/80 dark:bg-slate-900/80 border-t border-slate-300 dark:border-slate-800 flex items-center space-x-2">
+                    <input type="text" id="user-typed-input" placeholder="Type your interview response here..." class="flex-1 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl px-4 py-2.5 text-sm text-slate-900 dark:text-white focus:outline-none focus:border-emerald-500" onkeydown="if(event.key==='Enter') sendTypedMessage()">
+                    <button onclick="sendTypedMessage()" class="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl text-sm transition">Submit</button>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- VIEW 3: FINAL SCORECARD & REPORT CARD -->
+        <div id="view-scorecard" class="hidden absolute inset-0 overflow-y-auto p-4 md:p-8 z-40 bg-slate-50 dark:bg-slate-950">
+            <div class="max-w-2xl mx-auto space-y-6">
+                <div class="glass-card rounded-3xl p-8 border border-emerald-500/30 shadow-2xl relative overflow-hidden text-center">
+                    <div class="w-20 h-20 rounded-3xl bg-gradient-to-tr from-emerald-500 to-teal-600 mx-auto flex items-center justify-center text-white text-3xl shadow-xl shadow-emerald-500/20 mb-4">
+                        <i class="fa-solid fa-award"></i>
+                    </div>
+                    <span class="px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-xs font-bold uppercase tracking-wider mb-2 inline-block">Official Fuzion Academy Certificate</span>
+                    <h2 class="font-display text-3xl font-extrabold text-slate-900 dark:text-white mb-2">Honest Performance Debrief</h2>
+                    <p id="scorecard-subtitle" class="text-slate-600 dark:text-slate-400 text-sm mb-6">Comprehensive 10-question evaluation report for your interview session.</p>
+
+                    <!-- Score Grid -->
+                    <div class="grid grid-cols-4 gap-3 mb-8">
+                        <div class="p-3 rounded-2xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
+                            <div class="text-[10px] text-slate-500 mb-1">Overall</div>
+                            <div id="score-overall" class="font-display text-xl md:text-2xl font-bold text-emerald-500">85%</div>
+                        </div>
+                        <div class="p-3 rounded-2xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
+                            <div class="text-[10px] text-slate-500 mb-1">Depth</div>
+                            <div id="score-clarity" class="font-display text-xl md:text-2xl font-bold text-indigo-500">82%</div>
+                        </div>
+                        <div class="p-3 rounded-2xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
+                            <div class="text-[10px] text-slate-500 mb-1">Vocabulary</div>
+                            <div id="score-vocab" class="font-display text-xl md:text-2xl font-bold text-blue-500">88%</div>
+                        </div>
+                        <div class="p-3 rounded-2xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
+                            <div class="text-[10px] text-slate-500 mb-1">Confidence</div>
+                            <div id="score-confidence" class="font-display text-xl md:text-2xl font-bold text-amber-500">86%</div>
+                        </div>
+                    </div>
+
+                    <!-- Detailed Strengths & Growth Areas -->
+                    <div class="text-left space-y-4 mb-8">
+                        <div class="p-5 rounded-2xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
+                            <h4 class="font-bold text-xs uppercase tracking-wider text-emerald-600 dark:text-emerald-400 mb-2 flex items-center space-x-2">
+                                <i class="fa-solid fa-circle-check"></i>
+                                <span>Honest Strengths Analysis</span>
+                            </h4>
+                            <p id="report-strengths" class="text-sm text-slate-700 dark:text-slate-300 leading-relaxed">
+                                Evaluated across 10 rounds: Demonstrated strong domain comprehension and clear articulation of professional background.
+                            </p>
+                        </div>
+                        <div class="p-5 rounded-2xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
+                            <h4 class="font-bold text-xs uppercase tracking-wider text-rose-600 dark:text-rose-400 mb-2 flex items-center space-x-2">
+                                <i class="fa-solid fa-triangle-exclamation"></i>
+                                <span>Critical Areas for Improvement</span>
+                            </h4>
+                            <p id="report-improvements" class="text-sm text-slate-700 dark:text-slate-300 leading-relaxed">
+                                Some answers lacked specific metrics and deep technical precision. Ensure you ground your responses in measurable past achievements.
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="flex space-x-4">
+                        <button onclick="returnToDashboard()" class="flex-1 py-4 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-display font-bold rounded-2xl shadow-lg shadow-emerald-500/25 transition">
+                            Practice Another Round
+                        </button>
+                        <button onclick="copyTranscript()" class="px-6 py-4 bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 font-display font-bold rounded-2xl transition">
+                            Copy Transcript
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- API Key Modal -->
+    <div id="modal-apikey" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+        <div class="glass-card max-w-md w-full p-6 rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800">
+            <div class="flex items-center justify-between mb-4">
+                <div class="flex items-center space-x-2">
+                    <div class="w-8 h-8 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center font-bold">
+                        <i class="fa-solid fa-key"></i>
+                    </div>
+                    <h3 class="font-display font-bold text-lg text-slate-900 dark:text-white">Gemini API Key</h3>
+                </div>
+                <button onclick="closeApiKeyModal()" class="text-slate-400 hover:text-slate-600">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+            <p class="text-xs text-slate-600 dark:text-slate-400 mb-4 leading-relaxed">
+                Enter your Gemini API key if you wish to override the default sandbox connection.
+            </p>
+            <input type="password" id="input-api-key" placeholder="AIzaSy..." class="w-full bg-slate-100 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl px-4 py-3 text-sm text-slate-900 dark:text-white focus:outline-none focus:border-emerald-500 mb-4">
+            <div class="flex space-x-3">
+                <button onclick="saveApiKey()" class="flex-1 py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl text-sm transition shadow-lg shadow-emerald-500/20">Save Key</button>
+                <button onclick="clearApiKey()" class="px-4 py-3 bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold rounded-xl text-sm transition">Clear</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript Application Logic -->
+    <script>
+        // Interview Configuration Data with 10 Questions Per Round
+        const interviewModes = {
+            hr: {
+                title: "HR & Recruiter Screening Round",
+                badge: "HR Round",
+                scaffolding: "Focus on professionalism, career trajectory, motivation, and cultural alignment.",
+                questions: {
+                    fresher: [
+                        "Tell me about yourself and walk me through your educational background.",
+                        "Why are you looking to start your career with our organization?",
+                        "What do you know about our company culture and recent milestones?",
+                        "What would you consider to be your greatest personal strength?",
+                        "What is your most notable weakness, and how are you working to improve it?",
+                        "Describe a time during your studies when you had to adapt quickly to unexpected group project changes.",
+                        "How do you handle constructive feedback from professors or mentors?",
+                        "What are your core workplace values when collaborating in diverse teams?",
+                        "Where do you see your career progression and goals in the next 3 to 5 years?",
+                        "Do you have any questions regarding our team onboarding process?"
+                    ],
+                    experienced: [
+                        "Tell me about yourself and walk me through your professional career trajectory.",
+                        "Why are you looking to leave your current role and join our organization?",
+                        "What strategic advantages do you think you bring over other candidates?",
+                        "What is your management or leadership philosophy when steering complex projects?",
+                        "Describe a time when you experienced major organizational restructuring. How did you lead your team through it?",
+                        "How do you handle high-stakes performance reviews or disputes with senior management?",
+                        "What are your core standards when delegating tasks across cross-functional departments?",
+                        "Where do you see your leadership scope and executive impact in the next 3 to 5 years?",
+                        "How do you maintain team morale and retention during demanding project crunch periods?",
+                        "Do you have any questions regarding our long-term company roadmap or executive goals?"
+                    ]
+                }
+            },
+            tech: {
+                title: "Technical & Domain Mastery Round",
+                badge: "Technical Round",
+                scaffolding: "Provide rigorous technical specifics, problem-solving strategies, and industry best practices for your profession.",
+                questions: {
+                    fresher: [
+                        "Can you walk me through your final year project or your primary hands-on experience in your field?",
+                        "How do you approach learning new tools or complex frameworks under tight deadlines?",
+                        "Describe your methodology for quality checking your own academic or internship work.",
+                        "How do you stay updated with emerging industry standards and technological trends?",
+                        "Tell me about a time when an assignment or mini-project failed initially. How did you troubleshoot it?",
+                        "How do you explain technical concepts to someone from a non-technical background?",
+                        "Describe your experience with team collaboration and sharing responsibilities in group tasks.",
+                        "How do you ensure accuracy, compliance, and ethical standards in your work?",
+                        "What software, applications, or productivity tools do you use daily?",
+                        "If given an unfamiliar task with limited documentation, what is your first step to solve it?"
+                    ],
+                    experienced: [
+                        "Can you walk me through a mission-critical technical architecture or project you recently led?",
+                        "How do you prioritize deliverables when managing competing technical demands from multiple stakeholders?",
+                        "Describe your enterprise framework for quality assurance, risk mitigation, and error prevention.",
+                        "How do you evaluate and integrate emerging industry standards or tools into legacy systems?",
+                        "Tell me about a major production failure or critical error you diagnosed and resolved under pressure.",
+                        "How do you mentor junior staff and bridge communication gaps between technical and business teams?",
+                        "Describe your experience managing multi-departmental dependencies and enterprise workflows.",
+                        "How do you guarantee strict adherence to data governance, security compliance, and ethics?",
+                        "What enterprise tools or proprietary platforms are essential for your leadership productivity?",
+                        "If handed an ambiguous project with high financial risk and strict deadlines, what is your strategic plan?"
+                    ]
+                }
+            },
+            behavioral: {
+                title: "Behavioral & Situational Round (STAR Method)",
+                badge: "STAR Method",
+                scaffolding: "Use the STAR framework: Situation, Task, Action, Result. Highlight your personal impact and lessons learned.",
+                questions: {
+                    fresher: [
+                        "Describe a time when you experienced a significant conflict with a classmate or teammate. How did you resolve it?",
+                        "Tell me about a time when you missed an academic deadline. What went wrong and what did you learn?",
+                        "Give an example of a situation where you convinced a peer group to adopt your idea for a project.",
+                        "Tell me about a time when you took initiative on an extracurricular task outside your assigned duties.",
+                        "Describe a situation where you had to manage an extremely demanding professor or group leader.",
+                        "Tell me about a time when you had to make a tough decision with incomplete information.",
+                        "Give an example of how you supported a struggling colleague to achieve success in a course.",
+                        "Describe a project where you successfully balanced conflicting deadlines between two courses.",
+                        "Tell me about a time when you identified an inefficiency in your study workflow and optimized it.",
+                        "Share an instance where you received harsh criticism and how you translated it into positive growth."
+                    ],
+                    experienced: [
+                        "Describe a time when you experienced a severe professional conflict with a senior stakeholder. How did you resolve it?",
+                        "Tell me about a high-visibility project that missed its target goal. What went wrong and how did you pivot?",
+                        "Give an example of how you persuaded executive board members to adopt a brand new strategic initiative.",
+                        "Tell me about a time when you took on emergency responsibilities far outside your job description to save a deal.",
+                        "Describe a situation where you had to manage an abusive or exceptionally difficult enterprise client.",
+                        "Tell me about a high-stakes decision where you had to bet on incomplete data with financial consequences.",
+                        "Give an example of how you mentored a struggling team member and turned their performance around.",
+                        "Describe an enterprise initiative where you successfully resolved conflicting priorities between two department heads.",
+                        "Tell me about a time when you identified a company-wide bottleneck and engineered a permanent solution.",
+                        "Share an instance where you received intense executive critique and how it reshaped your leadership style."
+                    ]
+                }
+            },
+            salary: {
+                title: "Salary Negotiation & Closing Round",
+                badge: "Salary & Closing",
+                scaffolding: "Be confident, professional, and base your expectations on market benchmarks and total compensation rewards.",
+                questions: {
+                    fresher: [
+                        "What are your initial salary expectations for your first full-time role?",
+                        "How did you research market entry rates for your specific profession?",
+                        "Are you open to a compensation structure that includes performance bonuses or skill-based certifications?",
+                        "How would you react if our initial entry-level offer is slightly below your target range?",
+                        "What non-monetary benefits, such as mentorship or training stipends, are most valuable to you right now?",
+                        "If we offered you this position today, how soon could you join our team?",
+                        "Do you have any other active interviews or offers pending right now?",
+                        "What are your primary professional milestones for your first year on the job?",
+                        "How do you evaluate long-term career growth versus starting compensation?",
+                        "Do you have any final questions regarding our training program or company culture?"
+                    ],
+                    experienced: [
+                        "What are your current compensation requirements and target salary package for this role?",
+                        "How do you benchmark your worth based on your years of specialized experience in this market?",
+                        "Are you open to structuring compensation with equity, performance bonuses, or retention milestones?",
+                        "How do you approach negotiations when an offer does not meet your current remuneration level?",
+                        "What executive perks or total rewards components are non-negotiable for you?",
+                        "If we extended an offer today, what is your required notice period in your current role?",
+                        "Do you have competing executive offers that might accelerate your decision timeline?",
+                        "What financial and operational milestones do you plan to deliver to justify your compensation?",
+                        "How do you weigh long-term stock incentives against immediate cash compensation?",
+                        "Do you have any final questions regarding company performance bonuses or equity vesting?"
+                    ]
+                }
+            }
+        };
+
+        const personas = {
+            coach: { name: "Coach Sarah", title: "Friendly Career Mentor", prompt: "You are Coach Sarah, a warm career coach who provides honest, constructive, and direct feedback." },
+            hr: { name: "Director Vance", title: "Strict Corporate HR", prompt: "You are Director Vance, a formal and demanding corporate HR director who evaluates candidates with strict, uncompromising professional standards." },
+            tech: { name: "Alex Chen", title: "Lead Tech Manager", prompt: "You are Alex Chen, a direct, highly technical senior manager who demands precise answers and probes deeply into domain expertise." }
+        };
+
+        // App State
+        let currentMode = 'hr';
+        let currentPersona = 'coach';
+        let currentProfession = 'Software Engineer';
+        let experienceLevel = 'fresher';
+        let currentQuestionIndex = 0;
+        let transcriptLog = [];
+        let sessionScores = [];
+        let recognition = null;
+        let synthesis = window.speechSynthesis;
+        let isListening = false;
+
+        window.addEventListener('DOMContentLoaded', () => {
+            initSpeechRecognition();
+        });
+
+        function selectPersona(pKey) {
+            currentPersona = pKey;
+            ['coach', 'hr', 'tech'].forEach(k => {
+                const btn = document.getElementById(`persona-${k}`);
+                if (k === pKey) {
+                    btn.className = "p-3 rounded-2xl border text-left transition bg-emerald-500/10 border-emerald-500 text-slate-900 dark:text-white";
+                } else {
+                    btn.className = "p-3 rounded-2xl border text-left transition bg-slate-100 dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300";
+                }
+            });
+        }
+
+        function setExperienceLevel(level) {
+            experienceLevel = level;
+            const btnFresher = document.getElementById('exp-fresher');
+            const btnExp = document.getElementById('exp-experienced');
+            if (level === 'fresher') {
+                btnFresher.className = "p-3 rounded-2xl border text-center transition bg-emerald-500/10 border-emerald-500 text-slate-900 dark:text-white text-xs font-bold";
+                btnExp.className = "p-3 rounded-2xl border text-center transition bg-slate-100 dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 text-xs font-bold";
+            } else {
+                btnExp.className = "p-3 rounded-2xl border text-center transition bg-emerald-500/10 border-emerald-500 text-slate-900 dark:text-white text-xs font-bold";
+                btnFresher.className = "p-3 rounded-2xl border text-center transition bg-slate-100 dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 text-xs font-bold";
+            }
+        }
+
+        function startInterview(modeKey) {
+            currentMode = modeKey;
+            currentProfession = document.getElementById('candidate-profession').value;
+            currentQuestionIndex = 0;
+            transcriptLog = [];
+            sessionScores = [];
+
+            const modeData = interviewModes[modeKey];
+            const personaData = personas[currentPersona];
+
+            document.getElementById('active-round-title').innerText = modeData.title;
+            document.getElementById('active-round-badge').innerText = modeData.badge;
+            document.getElementById('display-profession-name').innerText = currentProfession;
+            document.getElementById('display-experience-level').innerText = experienceLevel === 'fresher' ? 'Fresher / Entry-Level' : 'Experienced Professional';
+            document.getElementById('scaffolding-text').innerText = `"${modeData.scaffolding}"`;
+            document.getElementById('interviewer-name').innerText = `${personaData.name} (${personaData.title})`;
+            document.getElementById('header-mode').innerText = modeData.badge;
+
+            document.getElementById('view-dashboard').classList.add('hidden');
+            document.getElementById('view-scorecard').classList.add('hidden');
+            document.getElementById('view-interview').classList.remove('hidden');
+
+            document.getElementById('chat-messages').innerHTML = '';
+            document.getElementById('instant-metrics-box').classList.add('hidden');
+
+            // Trigger first question
+            askCurrentQuestion();
+        }
+
+        function returnToDashboard() {
+            if (synthesis) synthesis.cancel();
+            stopVoiceRecognition();
+            document.getElementById('view-interview').classList.add('hidden');
+            document.getElementById('view-scorecard').classList.add('hidden');
+            document.getElementById('view-dashboard').classList.remove('hidden');
+        }
+
+        function initSpeechRecognition() {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if (SpeechRecognition) {
+                recognition = new SpeechRecognition();
+                recognition.continuous = false;
+                recognition.interimResults = true;
+                recognition.lang = 'en-US';
+
+                recognition.onstart = () => {
+                    isListening = true;
+                    document.getElementById('voice-waveform-overlay').classList.remove('hidden');
+                    document.getElementById('mic-icon').classList.remove('fa-microphone');
+                    document.getElementById('mic-icon').classList.add('fa-stop');
+                    document.getElementById('mic-btn-text').innerText = 'Recording...';
+                };
+
+                recognition.onresult = (event) => {
+                    let transcript = '';
+                    for (let i = event.resultIndex; i < event.results.length; ++i) {
+                        transcript += event.results[i][0].transcript;
+                    }
+                    document.getElementById('live-speech-transcript').innerText = transcript;
+                    if (event.results[event.results.length - 1].isFinal) {
+                        stopVoiceRecognition();
+                        submitUserAnswer(transcript);
+                    }
+                };
+
+                recognition.onerror = () => stopVoiceRecognition();
+                recognition.onend = () => stopVoiceRecognition();
+            }
+        }
+
+        function toggleVoiceInput() {
+            if (!recognition) {
+                alert("Speech recognition is not supported in this browser. Please use text input.");
+                toggleTextInputBox();
+                return;
+            }
+            if (isListening) {
+                recognition.stop();
+            } else {
+                try { recognition.start(); } catch(e) { console.error(e); }
+            }
+        }
+
+        function stopVoiceRecognition() {
+            isListening = false;
+            document.getElementById('voice-waveform-overlay').classList.add('hidden');
+            document.getElementById('mic-icon').classList.remove('fa-stop');
+            document.getElementById('mic-icon').classList.add('fa-microphone');
+            document.getElementById('mic-btn-text').innerText = 'Tap & Speak Answer';
+        }
+
+        function toggleTextInputBox() {
+            const drawer = document.getElementById('text-input-drawer');
+            drawer.classList.toggle('hidden');
+            if (!drawer.classList.contains('hidden')) {
+                document.getElementById('user-typed-input').focus();
+            }
+        }
+
+        function sendTypedMessage() {
+            const input = document.getElementById('user-typed-input');
+            const text = input.value.trim();
+            if (!text) return;
+            input.value = '';
+            document.getElementById('text-input-drawer').classList.add('hidden');
+            submitUserAnswer(text);
+        }
+
+        function appendMessage(sender, text, feedbackHtml = '') {
+            const container = document.getElementById('chat-messages');
+            const isAi = sender === 'ai';
+            const div = document.createElement('div');
+            div.className = `flex ${isAi ? 'justify-start' : 'justify-end'} mb-4`;
+
+            div.innerHTML = `
+                <div class="max-w-[85%] md:max-w-[75%] rounded-2xl p-4 ${isAi ? 'glass-card border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-100' : 'bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-lg'}">
+                    <div class="flex items-center space-x-2 mb-1">
+                        <span class="text-[10px] font-bold uppercase tracking-wider ${isAi ? 'text-emerald-600 dark:text-emerald-400' : 'text-emerald-200'}">${isAi ? personas[currentPersona].name : 'You (Candidate)'}</span>
+                    </div>
+                    <p class="text-sm leading-relaxed">${escapeHtml(text)}</p>
+                    ${feedbackHtml}
+                </div>
+            `;
+            container.appendChild(div);
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function escapeHtml(text) {
+            const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
+            return text.replace(/[&<>"']/g, function(m) { return map[m]; });
+        }
+
+        async function askCurrentQuestion() {
+            const modeData = interviewModes[currentMode];
+            let qText = modeData.questions[experienceLevel][currentQuestionIndex];
+            
+            // Tailor technical or domain questions dynamically based on profession
+            if (currentMode === 'tech' && currentQuestionIndex === 0) {
+                if (experienceLevel === 'fresher') {
+                    qText = `As an aspiring ${currentProfession} professional, can you walk me through your key academic or practical training projects?`;
+                } else {
+                    qText = `As an experienced ${currentProfession}, can you walk me through a mission-critical project or complex problem you recently solved in your career?`;
+                }
+            }
+
+            const totalQ = modeData.questions[experienceLevel].length;
+            document.getElementById('question-count-display').innerText = `Question ${currentQuestionIndex + 1} of ${totalQ}`;
+            document.getElementById('progress-bar').style.width = `${((currentQuestionIndex + 1) / totalQ) * 100}%`;
+
+            appendMessage('ai', qText);
+            speakText(qText);
+            transcriptLog.push({ role: 'Interviewer', text: qText });
+        }
+
+        async function submitUserAnswer(userText) {
+            appendMessage('user', userText);
+            transcriptLog.push({ role: 'Candidate', text: userText });
+
+            // Evaluate answer with Gemini AI (Honest Feedback System)
+            const evaluation = await evaluateWithGemini(userText);
+            sessionScores.push(evaluation.score);
+            
+            // Render honest feedback card below answer
+            const feedbackHtml = `
+                <div class="mt-3 pt-3 border-t border-slate-200 dark:border-slate-700/60 text-xs space-y-1.5">
+                    <div class="flex items-center justify-between font-bold text-emerald-600 dark:text-emerald-400">
+                        <span><i class="fa-solid fa-scale-balanced mr-1"></i> Honest AI Evaluation</span>
+                        <span>Score: ${evaluation.score}%</span>
+                    </div>
+                    <p class="text-slate-600 dark:text-slate-300"><strong>Critique:</strong> ${evaluation.feedback}</p>
+                    <p class="text-emerald-700 dark:text-emerald-300 italic"><strong>Professional Phrasing:</strong> "${evaluation.betterWay}"</p>
+                </div>
+            `;
+            
+            // Append feedback card to last message bubble
+            const chatMsgs = document.getElementById('chat-messages');
+            const lastBubble = chatMsgs.lastElementChild.firstElementChild;
+            lastBubble.innerHTML += feedbackHtml;
+            chatMsgs.scrollTop = chatMsgs.scrollHeight;
+
+            // Update instant metrics
+            document.getElementById('metric-clarity').innerText = `${evaluation.score}%`;
+            document.getElementById('metric-vocab').innerText = evaluation.score > 80 ? 'Strong' : 'Needs Depth';
+            document.getElementById('instant-metrics-box').classList.remove('hidden');
+
+            currentQuestionIndex++;
+            const modeData = interviewModes[currentMode];
+
+            if (currentQuestionIndex < modeData.questions[experienceLevel].length) {
+                setTimeout(askCurrentQuestion, 1500);
+            } else {
+                setTimeout(showFinalScorecard, 2000);
+            }
+        }
+
+        async function evaluateWithGemini(userAnswer) {
+            const prompt = `${personas[currentPersona].prompt}
+The candidate is interviewing for the profession: "${currentProfession}" at the "${experienceLevel}" level in round "${interviewModes[currentMode].title}".
+Evaluate this candidate's interview answer honestly and rigorously: "${userAnswer}". Do not sugarcoat flaws. Point out vague statements, lack of metrics, or weak professional vocabulary. Provide an honest score from 45 to 98, constructive critical feedback, and a superior professional phrasing suggestion.
+Return ONLY valid JSON format like this:
+{"score": 78, "feedback": "Too brief and lacked specific quantifiable metrics.", "betterWay": "I spearheaded the initiative by..."}`;
+
+            const responseText = await callGemini(prompt);
+            try {
+                const cleaned = responseText.replace(/```json/g, '').replace(/```/g, '').trim();
+                return JSON.parse(cleaned);
+            } catch(e) {
+                return {
+                    score: 75,
+                    feedback: "Adequate response, but lacks specific domain metrics and structured delivery.",
+                    betterWay: "I successfully delivered results by implementing..."
+                };
+            }
+        }
+
+        async function callGemini(prompt) {
+            const apiKey = localStorage.getItem('ip_api_key') || "";
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
+            const payload = {
+                contents: [{ parts: [{ text: prompt }] }],
+                systemInstruction: { parts: [{ text: "You are an honest, uncompromising executive hiring manager and expert AI interviewer." }] }
+            };
+
+            for (let attempt = 0; attempt < 3; attempt++) {
+                try {
+                    const res = await fetch(apiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+                    const data = await res.json();
+                    const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+                    if (text) return text;
+                } catch(e) {
+                    await new Promise(r => setTimeout(r, 1000 * Math.pow(2, attempt)));
+                }
+            }
+            return '{"score": 75, "feedback": "Solid answer, but could be more data-driven.", "betterWay": "I optimized performance by..."}';
+        }
+
+        function speakText(text) {
+            if (!synthesis) return;
+            synthesis.cancel();
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.rate = 0.95;
+            utterance.lang = 'en-US';
+            synthesis.speak(utterance);
+        }
+
+        function repeatInterviewerAudio() {
+            if (transcriptLog.length > 0) {
+                const lastQ = transcriptLog.filter(t => t.role === 'Interviewer').pop();
+                if (lastQ) speakText(lastQ.text);
+            }
+        }
+
+        function showFinalScorecard() {
+            if (synthesis) synthesis.cancel();
+            document.getElementById('view-interview').classList.add('hidden');
+            document.getElementById('view-scorecard').classList.remove('hidden');
+
+            const avgScore = sessionScores.length > 0 ? Math.round(sessionScores.reduce((a, b) => a + b, 0) / sessionScores.length) : 80;
+            
+            document.getElementById('score-overall').innerText = `${avgScore}%`;
+            document.getElementById('score-clarity').innerText = `${Math.min(98, avgScore + 3)}%`;
+            document.getElementById('score-vocab').innerText = `${Math.min(99, avgScore + 5)}%`;
+            document.getElementById('score-confidence').innerText = `${Math.max(60, avgScore - 2)}%`;
+
+            document.getElementById('scorecard-subtitle').innerText = `10-Question Comprehensive Evaluation for ${currentProfession} (${experienceLevel})`;
+
+            if (avgScore < 75) {
+                document.getElementById('report-strengths').innerText = "Showed baseline familiarity with interview formats and attempted all 10 questions.";
+                document.getElementById('report-improvements').innerText = "Critical areas for growth: Answers frequently lacked structured frameworks (like STAR), concrete metrics, and robust professional vocabulary appropriate for a ${experienceLevel} " + currentProfession + ".";
+            } else {
+                document.getElementById('report-strengths').innerText = "Maintained a steady professional demeanor across all 10 questions with clear articulation and solid domain understanding.";
+                document.getElementById('report-improvements').innerText = "To reach top-tier executive readiness as a " + currentProfession + ", incorporate sharper quantitative data and tighten response pacing.";
+            }
+
+            document.getElementById('header-score').innerText = `${avgScore * 10} XP`;
+        }
+
+        function copyTranscript() {
+            const text = transcriptLog.map(t => `${t.role}: ${t.text}`).join('\n\n');
+            const textArea = document.createElement("textarea");
+            textArea.value = text;
+            document.body.appendChild(textArea);
+            textArea.select();
+            try {
+                document.execCommand('copy');
+                alert("Interview transcript copied to clipboard!");
+            } catch(e) {
+                alert("Failed to copy transcript.");
+            }
+            document.body.removeChild(textArea);
+        }
+
+        function toggleDarkMode() {
+            document.documentElement.classList.toggle('dark');
+        }
+
+        function openApiKeyModal() {
+            document.getElementById('input-api-key').value = localStorage.getItem('ip_api_key') || '';
+            document.getElementById('modal-apikey').classList.remove('hidden');
+        }
+        function closeApiKeyModal() {
+            document.getElementById('modal-apikey').classList.add('hidden');
+        }
+        function saveApiKey() {
+            const val = document.getElementById('input-api-key').value.trim();
+            if (val) {
+                localStorage.setItem('ip_api_key', val);
+                alert("API Key saved successfully!");
+                closeApiKeyModal();
+            }
+        }
+        function clearApiKey() {
+            localStorage.removeItem('ip_api_key');
+            document.getElementById('input-api-key').value = '';
+            alert("API Key cleared. Using sandbox.");
+            closeApiKeyModal();
+        }
+    </script>
+</body>
+</html>

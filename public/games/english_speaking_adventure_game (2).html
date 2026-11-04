@@ -1,0 +1,1055 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>English Speaking Adventure - Interactive Learning Game</title>
+    <!-- Tailwind CSS for modern responsive styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- FontAwesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Canvas Confetti for rewards -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .pulse-ring {
+            animation: pulse-ring 2s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
+        }
+        @keyframes pulse-ring {
+            0% { transform: scale(0.95); opacity: 0.8; }
+            50% { transform: scale(1.15); opacity: 0.4; }
+            100% { transform: scale(0.95); opacity: 0.8; }
+        }
+        .mic-active {
+            box-shadow: 0 0 25px rgba(239, 68, 68, 0.6);
+            animation: bounce 1s infinite;
+        }
+        /* Custom scrollbar */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: rgba(15, 23, 42, 0.6); }
+        ::-webkit-scrollbar-thumb { background: rgba(99, 102, 241, 0.4); border-radius: 9999px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(99, 102, 241, 0.7); }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-indigo-950 via-purple-950 to-slate-950 text-slate-100 h-full flex flex-col">
+
+    <!-- Header Navigation -->
+    <header class="bg-slate-900/80 backdrop-blur-md border-b border-slate-800 sticky top-0 z-50 px-4 py-3">
+        <div class="max-w-6xl mx-auto flex justify-between items-center">
+            <div class="flex items-center space-x-3 cursor-pointer" onclick="playSound('click'); switchView('dashboard')">
+                <div class="bg-gradient-to-tr from-indigo-500 to-pink-500 p-2.5 rounded-xl shadow-lg">
+                    <i class="fa-solid fa-microphone-lines text-white text-xl"></i>
+                </div>
+                <div>
+                    <h1 class="font-bold text-lg text-white tracking-wide">LinguaQuest 300</h1>
+                    <p class="text-xs text-indigo-300">English Speaking Adventure</p>
+                </div>
+            </div>
+            
+            <div class="flex items-center space-x-3">
+                <div class="flex items-center bg-slate-800/80 border border-slate-700/60 rounded-full px-3 py-1 text-sm space-x-2 shadow-inner">
+                    <span class="text-amber-400"><i class="fa-solid fa-star"></i></span>
+                    <span id="header-score" class="font-bold text-white">0</span>
+                    <span class="text-slate-500">|</span>
+                    <span class="text-rose-400"><i class="fa-solid fa-fire"></i></span>
+                    <span id="header-streak" class="font-bold text-white">0</span>
+                </div>
+                <button onclick="playSound('click'); openBadgeModal()" class="bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 px-3 py-1.5 rounded-xl text-sm font-medium transition flex items-center space-x-1.5">
+                    <i class="fa-solid fa-trophy text-yellow-400"></i>
+                    <span class="hidden sm:inline">Badges</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main App Container -->
+    <main class="flex-1 overflow-y-auto p-4 md:p-6 max-w-5xl mx-auto w-full flex flex-col">
+        
+        <!-- Dashboard View: Game Modes -->
+        <div id="view-dashboard" class="space-y-6 my-auto">
+            <div class="text-center space-y-2 py-2">
+                <span class="bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 text-xs px-3 py-1 rounded-full font-semibold uppercase tracking-wider">300 Easy Topics Edition + Audio & Corrections</span>
+                <h2 class="text-3xl md:text-5xl font-extrabold text-white tracking-tight">Choose Your Speaking Quest</h2>
+                <p class="text-slate-300 max-w-xl mx-auto text-sm md:text-base">Explore 100 easy topics in each mode, practice speech recognition, hear audio sound effects, and get comprehensive correction reports!</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+                <!-- Mode 1: Rapid Fire -->
+                <div onclick="playSound('click'); openTopicBrowser('rapid')" class="group bg-slate-800/60 hover:bg-slate-800 border border-slate-700/80 hover:border-indigo-500/80 p-6 rounded-2xl cursor-pointer transition-all duration-300 shadow-xl flex flex-col justify-between relative overflow-hidden">
+                    <div class="absolute -right-6 -bottom-6 w-32 h-32 bg-indigo-600/10 rounded-full group-hover:scale-150 transition-transform duration-500"></div>
+                    <div>
+                        <div class="w-12 h-12 bg-indigo-500/20 border border-indigo-500/30 text-indigo-400 rounded-xl flex items-center justify-center text-xl mb-4 group-hover:scale-110 transition-transform">
+                            <i class="fa-solid fa-bolt"></i>
+                        </div>
+                        <h3 class="text-xl font-bold text-white mb-2">Rapid Fire</h3>
+                        <p class="text-slate-400 text-sm">100 Easy Vocabulary & Pronunciation Topics. Say as many words as you can in 30s!</p>
+                    </div>
+                    <div class="mt-6 flex items-center justify-between text-indigo-400 font-semibold text-sm">
+                        <span>Browse 100 Topics</span>
+                        <i class="fa-solid fa-arrow-right group-hover:translate-x-1 transition-transform"></i>
+                    </div>
+                </div>
+
+                <!-- Mode 2: Story Builder -->
+                <div onclick="playSound('click'); openTopicBrowser('story')" class="group bg-slate-800/60 hover:bg-slate-800 border border-slate-700/80 hover:border-purple-500/80 p-6 rounded-2xl cursor-pointer transition-all duration-300 shadow-xl flex flex-col justify-between relative overflow-hidden">
+                    <div class="absolute -right-6 -bottom-6 w-32 h-32 bg-purple-600/10 rounded-full group-hover:scale-150 transition-transform duration-500"></div>
+                    <div>
+                        <div class="w-12 h-12 bg-purple-500/20 border border-purple-500/30 text-purple-400 rounded-xl flex items-center justify-center text-xl mb-4 group-hover:scale-110 transition-transform">
+                            <i class="fa-solid fa-book-open"></i>
+                        </div>
+                        <h3 class="text-xl font-bold text-white mb-2">Story Builder</h3>
+                        <p class="text-slate-400 text-sm">100 Creative Story Starters. Take turns building epic tales sentence by sentence.</p>
+                    </div>
+                    <div class="mt-6 flex items-center justify-between text-purple-400 font-semibold text-sm">
+                        <span>Browse 100 Topics</span>
+                        <i class="fa-solid fa-arrow-right group-hover:translate-x-1 transition-transform"></i>
+                    </div>
+                </div>
+
+                <!-- Mode 3: Roleplay Scenarios -->
+                <div onclick="playSound('click'); openTopicBrowser('roleplay')" class="group bg-slate-800/60 hover:bg-slate-800 border border-slate-700/80 hover:border-pink-500/80 p-6 rounded-2xl cursor-pointer transition-all duration-300 shadow-xl flex flex-col justify-between relative overflow-hidden">
+                    <div class="absolute -right-6 -bottom-6 w-32 h-32 bg-pink-600/10 rounded-full group-hover:scale-150 transition-transform duration-500"></div>
+                    <div>
+                        <div class="w-12 h-12 bg-pink-500/20 border border-pink-500/30 text-pink-400 rounded-xl flex items-center justify-center text-xl mb-4 group-hover:scale-110 transition-transform">
+                            <i class="fa-solid fa-comments"></i>
+                        </div>
+                        <h3 class="text-xl font-bold text-white mb-2">Roleplay Scenarios</h3>
+                        <p class="text-slate-400 text-sm">100 Real-life Situations. Chat with realistic AI characters and get instant feedback.</p>
+                    </div>
+                    <div class="mt-6 flex items-center justify-between text-pink-400 font-semibold text-sm">
+                        <span>Browse 100 Topics</span>
+                        <i class="fa-solid fa-arrow-right group-hover:translate-x-1 transition-transform"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Classroom banner -->
+            <div class="bg-gradient-to-r from-slate-900 to-indigo-950 border border-slate-800 rounded-2xl p-5 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-xl">
+                <div class="flex items-center space-x-4">
+                    <div class="bg-indigo-600/30 p-3 rounded-xl text-indigo-300">
+                        <i class="fa-solid fa-graduation-cap text-2xl"></i>
+                    </div>
+                    <div>
+                        <h4 class="font-bold text-white text-base">Sound Effects & Detailed Corrections</h4>
+                        <p class="text-slate-400 text-xs md:text-sm">Every completed task triggers a comprehensive correction report analyzing your spoken grammar & pronunciation.</p>
+                    </div>
+                </div>
+                <button onclick="playSound('click'); showQuickTips()" class="bg-indigo-600 hover:bg-indigo-500 text-white font-semibold px-4 py-2 rounded-xl text-xs md:text-sm transition shadow-lg shrink-0">
+                    <i class="fa-solid fa-lightbulb mr-2"></i>Speaking Tips
+                </button>
+            </div>
+        </div>
+
+        <!-- Topic Browser Modal / View -->
+        <div id="view-browser" class="hidden flex-1 flex flex-col space-y-4">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 bg-slate-900/90 border border-slate-800 p-4 rounded-2xl shadow-xl">
+                <div class="flex items-center space-x-3">
+                    <button onclick="playSound('click'); switchView('dashboard')" class="bg-slate-800 hover:bg-slate-700 text-slate-300 p-2 rounded-xl text-sm transition">
+                        <i class="fa-solid fa-arrow-left"></i>
+                    </button>
+                    <div>
+                        <h3 id="browser-title" class="font-bold text-white text-lg">Select a Topic</h3>
+                        <p id="browser-subtitle" class="text-xs text-slate-400">Choose from 100 easy topics</p>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-2 w-full sm:w-auto">
+                    <div class="relative flex-1 sm:w-64">
+                        <i class="fa-solid fa-search absolute left-3 top-3 text-slate-400 text-xs"></i>
+                        <input type="text" id="topic-search" oninput="filterTopics()" placeholder="Search topics..." class="w-full bg-slate-800 border border-slate-700 rounded-xl pl-9 pr-3 py-1.5 text-xs text-white outline-none focus:border-indigo-500">
+                    </div>
+                    <button onclick="playSound('click'); startRandomTopic()" class="bg-indigo-600 hover:bg-indigo-500 text-white font-medium px-3 py-1.5 rounded-xl text-xs transition whitespace-nowrap shadow-md">
+                        <i class="fa-solid fa-shuffle mr-1"></i> Random
+                    </button>
+                </div>
+            </div>
+
+            <!-- Topics Grid / List -->
+            <div id="topic-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 overflow-y-auto max-h-[60vh] pr-1">
+                <!-- Dynamically populated 100 topics -->
+            </div>
+        </div>
+
+        <!-- Game View: Rapid Fire -->
+        <div id="view-rapid" class="hidden flex-1 flex flex-col justify-between max-w-2xl mx-auto w-full space-y-6 my-auto">
+            <div class="flex items-center justify-between">
+                <button onclick="playSound('click'); openTopicBrowser('rapid')" class="text-slate-400 hover:text-white flex items-center text-sm font-medium">
+                    <i class="fa-solid fa-arrow-left mr-2"></i> Topic List
+                </button>
+                <div class="bg-slate-800 px-4 py-1.5 rounded-xl text-indigo-300 text-sm font-bold border border-slate-700">
+                    <i class="fa-solid fa-bolt text-yellow-400 mr-1.5"></i> Rapid Fire
+                </div>
+            </div>
+
+            <div class="bg-slate-800/70 border border-slate-700 rounded-2xl p-6 md:p-8 text-center space-y-6 shadow-2xl backdrop-blur-md">
+                <div class="flex justify-between items-center text-sm font-semibold text-slate-400">
+                    <span>Active Topic</span>
+                    <span id="rapid-timer" class="text-indigo-400 font-mono text-lg bg-indigo-950 px-3 py-1 rounded-lg border border-indigo-900">30s</span>
+                </div>
+
+                <div class="space-y-2">
+                    <h3 id="rapid-prompt" class="text-2xl md:text-3xl font-black text-white tracking-tight">Animals in Africa</h3>
+                    <p class="text-slate-400 text-sm">Speak as many correct English words related to this topic as fast as you can!</p>
+                </div>
+
+                <div class="bg-slate-900/80 border border-slate-700 rounded-xl p-4 min-h-[90px] flex flex-col justify-center items-center">
+                    <p id="rapid-transcript" class="text-lg text-emerald-400 font-medium italic">"Tap microphone and start speaking..."</p>
+                </div>
+
+                <div class="flex flex-col items-center justify-center space-y-4">
+                    <button id="rapid-mic-btn" onclick="playSound('click'); toggleSpeechRecognition('rapid')" class="w-20 h-20 bg-rose-600 hover:bg-rose-500 text-white rounded-full flex items-center justify-center text-3xl shadow-2xl transition transform active:scale-95 relative">
+                        <div class="absolute inset-0 rounded-full border-4 border-rose-400/50 pulse-ring"></div>
+                        <i id="rapid-mic-icon" class="fa-solid fa-microphone"></i>
+                    </button>
+                    <span id="rapid-status-text" class="text-xs font-semibold text-slate-400 uppercase tracking-widest">Tap to Speak</span>
+                </div>
+
+                <div class="pt-4 border-t border-slate-700/60 flex justify-between items-center text-sm">
+                    <span class="text-slate-400">Words Collected: <strong id="rapid-word-count" class="text-white text-base">0</strong></span>
+                    <button onclick="playSound('click'); finishRapidFireEarly()" class="bg-indigo-600 hover:bg-indigo-500 text-white px-3 py-1.5 rounded-xl font-semibold text-xs transition">Finish & View Report</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Game View: Story Builder -->
+        <div id="view-story" class="hidden flex-1 flex flex-col justify-between max-w-2xl mx-auto w-full space-y-6 my-auto">
+            <div class="flex items-center justify-between">
+                <button onclick="playSound('click'); openTopicBrowser('story')" class="text-slate-400 hover:text-white flex items-center text-sm font-medium">
+                    <i class="fa-solid fa-arrow-left mr-2"></i> Topic List
+                </button>
+                <div class="bg-slate-800 px-4 py-1.5 rounded-xl text-purple-300 text-sm font-bold border border-slate-700">
+                    <i class="fa-solid fa-book-open text-purple-400 mr-1.5"></i> Story Builder
+                </div>
+            </div>
+
+            <div class="bg-slate-800/70 border border-slate-700 rounded-2xl p-6 md:p-8 flex-1 flex flex-col justify-between shadow-2xl backdrop-blur-md space-y-6">
+                <div class="space-y-4">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <span class="text-xs uppercase tracking-wider font-semibold text-purple-400 block">Story Starter</span>
+                            <h4 id="story-topic-title" class="text-white font-bold text-base">A Magic Key in the Forest</h4>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <span id="story-turn" class="text-xs bg-purple-950 text-purple-300 px-2.5 py-1 rounded-lg border border-purple-900">Turn 1/4</span>
+                            <button onclick="playSound('click'); finishStoryEarly()" class="bg-purple-600 hover:bg-purple-500 text-white px-3 py-1 rounded-lg font-semibold text-xs transition">Finish & Report</button>
+                        </div>
+                    </div>
+
+                    <div id="story-history" class="bg-slate-900/90 border border-slate-700 rounded-xl p-4 max-h-52 overflow-y-auto space-y-3 text-slate-300 text-sm leading-relaxed">
+                        <div class="p-3 bg-slate-800/60 rounded-xl border border-slate-700/60">
+                            <span class="text-purple-400 font-bold block text-xs mb-1">AI Narrator:</span>
+                            Once upon a time in a mysterious floating magical castle, a brave little robot found a glowing key.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="space-y-4">
+                    <div class="bg-slate-900/80 border border-slate-700 rounded-xl p-4">
+                        <p id="story-transcript" class="text-sm text-emerald-400 italic">"Your turn! Say the next sentence of the story..."</p>
+                    </div>
+
+                    <div class="flex flex-col items-center justify-center space-y-3">
+                        <button id="story-mic-btn" onclick="playSound('click'); toggleSpeechRecognition('story')" class="w-16 h-16 bg-purple-600 hover:bg-purple-500 text-white rounded-full flex items-center justify-center text-2xl shadow-xl transition transform active:scale-95">
+                            <i id="story-mic-icon" class="fa-solid fa-microphone"></i>
+                        </button>
+                        <span id="story-status-text" class="text-xs font-semibold text-slate-400 uppercase tracking-widest">Tap to Speak Your Sentence</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Game View: Roleplay Scenarios -->
+        <div id="view-roleplay" class="hidden flex-1 flex flex-col justify-between max-w-3xl mx-auto w-full space-y-6 my-auto">
+            <div class="flex items-center justify-between">
+                <button onclick="playSound('click'); openTopicBrowser('roleplay')" class="text-slate-400 hover:text-white flex items-center text-sm font-medium">
+                    <i class="fa-solid fa-arrow-left mr-2"></i> Topic List
+                </button>
+                <div class="flex items-center space-x-3">
+                    <div class="bg-slate-800 px-4 py-1.5 rounded-xl text-pink-300 text-sm font-bold border border-slate-700">
+                        <i class="fa-solid fa-comments text-pink-400 mr-1.5"></i> <span id="roleplay-nav-title">Restaurant Order</span>
+                    </div>
+                    <button onclick="playSound('click'); finishRoleplayEarly()" class="bg-pink-600 hover:bg-pink-500 text-white px-3 py-1.5 rounded-xl font-semibold text-xs transition">Finish & Report</button>
+                </div>
+            </div>
+
+            <div class="bg-slate-800/70 border border-slate-700 rounded-2xl p-5 md:p-6 flex-1 flex flex-col justify-between shadow-2xl backdrop-blur-md space-y-4">
+                <div id="roleplay-chat" class="bg-slate-900/90 border border-slate-700 rounded-xl p-4 h-64 overflow-y-auto space-y-4 text-sm">
+                    <div class="flex items-start space-x-3">
+                        <div class="w-8 h-8 rounded-full bg-pink-600/30 border border-pink-500/50 flex items-center justify-center text-pink-300 font-bold text-xs shrink-0">AI</div>
+                        <div class="bg-slate-800 border border-slate-700 rounded-2xl p-3.5 text-slate-200 max-w-md shadow-sm">
+                            <p id="roleplay-initial-msg">Welcome! How can I help you today?</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="ai-feedback-box" class="hidden bg-indigo-950/80 border border-indigo-700/60 rounded-xl p-3 flex items-center justify-between text-xs text-indigo-200">
+                    <div class="flex items-center space-x-2">
+                        <i class="fa-solid fa-robot text-pink-400 text-lg"></i>
+                        <div>
+                            <span class="font-bold text-white block">AI Grammar & Pronunciation Review:</span>
+                            <span id="ai-feedback-text">Good sentence structure!</span>
+                        </div>
+                    </div>
+                    <span id="ai-score-badge" class="bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 px-2.5 py-1 rounded-lg font-bold">Score: 95%</span>
+                </div>
+
+                <div class="space-y-3 pt-2 border-t border-slate-700/60">
+                    <div class="bg-slate-900/80 border border-slate-700 rounded-xl p-3">
+                        <p id="roleplay-transcript" class="text-sm text-emerald-400 italic">"Tap microphone to reply to the character..."</p>
+                    </div>
+
+                    <div class="flex items-center justify-between">
+                        <span id="roleplay-status" class="text-xs text-slate-400">Ready for speech input</span>
+                        <button id="roleplay-mic-btn" onclick="playSound('click'); toggleSpeechRecognition('roleplay')" class="bg-pink-600 hover:bg-pink-500 text-white px-6 py-2.5 rounded-xl font-semibold shadow-lg transition flex items-center space-x-2 active:scale-95">
+                            <i id="roleplay-mic-icon" class="fa-solid fa-microphone"></i>
+                            <span id="roleplay-mic-label">Tap to Speak</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Correction & Task Complete Report View -->
+        <div id="view-correction" class="hidden flex-1 flex flex-col justify-center max-w-3xl mx-auto w-full space-y-6 my-auto py-4">
+            <div class="bg-slate-800/90 border border-slate-700 rounded-3xl p-6 md:p-8 shadow-2xl backdrop-blur-md space-y-6">
+                <div class="text-center space-y-2">
+                    <div class="w-16 h-16 bg-gradient-to-tr from-emerald-500 to-teal-500 rounded-2xl mx-auto flex items-center justify-center text-3xl text-white shadow-lg">
+                        <i class="fa-solid fa-award"></i>
+                    </div>
+                    <h3 class="text-2xl md:text-3xl font-extrabold text-white">Task Completed!</h3>
+                    <p class="text-slate-300 text-sm">Here is your comprehensive speech analysis and correction report.</p>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 text-center">
+                    <div class="bg-slate-900/80 border border-slate-700/80 p-4 rounded-2xl">
+                        <span class="text-xs text-slate-400 uppercase tracking-wider block mb-1">Task Score</span>
+                        <span id="report-score" class="text-3xl font-black text-amber-400">95</span>
+                    </div>
+                    <div class="bg-slate-900/80 border border-slate-700/80 p-4 rounded-2xl">
+                        <span class="text-xs text-slate-400 uppercase tracking-wider block mb-1">Fluency Rating</span>
+                        <span id="report-fluency" class="text-3xl font-black text-emerald-400">Excellent</span>
+                    </div>
+                    <div class="bg-slate-900/80 border border-slate-700/80 p-4 rounded-2xl">
+                        <span class="text-xs text-slate-400 uppercase tracking-wider block mb-1">Topic</span>
+                        <span id="report-topic" class="text-sm font-bold text-indigo-300 truncate block mt-2">Animals in Africa</span>
+                    </div>
+                </div>
+
+                <div class="space-y-4">
+                    <div class="bg-slate-900/90 border border-slate-700 rounded-2xl p-4 space-y-2">
+                        <h4 class="font-bold text-white text-sm flex items-center">
+                            <i class="fa-solid fa-microphone-lines text-indigo-400 mr-2"></i> Your Spoken Transcript
+                        </h4>
+                        <p id="report-transcript-text" class="text-slate-300 text-sm italic bg-slate-800/80 p-3 rounded-xl border border-slate-700/60">"Lion, elephant, giraffe running in the savanna."</p>
+                    </div>
+
+                    <div class="bg-slate-900/90 border border-slate-700 rounded-2xl p-4 space-y-3">
+                        <h4 class="font-bold text-white text-sm flex items-center">
+                            <i class="fa-solid fa-wand-magic-sparkles text-pink-400 mr-2"></i> AI Correction & Grammar Insights
+                        </h4>
+                        <div id="report-corrections-list" class="space-y-2 text-xs md:text-sm text-slate-300">
+                            <!-- Populated dynamically -->
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex flex-col sm:flex-row gap-3 pt-2">
+                    <button onclick="playSound('click'); switchView('dashboard')" class="flex-1 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold py-3 rounded-xl text-sm transition shadow-lg">
+                        <i class="fa-solid fa-house mr-2"></i> Return to Dashboard
+                    </button>
+                    <button onclick="playSound('click'); restartCurrentTask()" class="flex-1 bg-slate-700 hover:bg-slate-600 text-white font-semibold py-3 rounded-xl text-sm transition shadow-lg">
+                        <i class="fa-solid fa-rotate-right mr-2"></i> Try Again
+                    </button>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Badges Modal -->
+    <div id="badge-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-6 space-y-5 shadow-2xl">
+            <div class="flex justify-between items-center">
+                <h3 class="text-xl font-bold text-white flex items-center">
+                    <i class="fa-solid fa-trophy text-yellow-400 mr-2"></i> Achievement Badges
+                </h3>
+                <button onclick="playSound('click'); closeBadgeModal()" class="text-slate-400 hover:text-white text-lg"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            
+            <div class="grid grid-cols-2 gap-3" id="badge-grid">
+                <div class="bg-slate-800/80 border border-slate-700 rounded-xl p-3 flex flex-col items-center text-center space-y-2">
+                    <div class="w-12 h-12 bg-amber-500/20 text-amber-400 rounded-full flex items-center justify-center text-xl border border-amber-500/30">
+                        <i class="fa-solid fa-microphone-lines"></i>
+                    </div>
+                    <div>
+                        <h4 class="font-bold text-white text-sm">First Word</h4>
+                        <p class="text-slate-400 text-xs">Spoke your first English sentence.</p>
+                    </div>
+                </div>
+                <div class="bg-slate-800/80 border border-slate-700 rounded-xl p-3 flex flex-col items-center text-center space-y-2 opacity-50" id="badge-rapid">
+                    <div class="w-12 h-12 bg-indigo-500/20 text-indigo-400 rounded-full flex items-center justify-center text-xl border border-indigo-500/30">
+                        <i class="fa-solid fa-bolt"></i>
+                    </div>
+                    <div>
+                        <h4 class="font-bold text-white text-sm">Rapid Star</h4>
+                        <p class="text-slate-400 text-xs">Score 10+ words in Rapid Fire.</p>
+                    </div>
+                </div>
+                <div class="bg-slate-800/80 border border-slate-700 rounded-xl p-3 flex flex-col items-center text-center space-y-2 opacity-50" id="badge-story">
+                    <div class="w-12 h-12 bg-purple-500/20 text-purple-400 rounded-full flex items-center justify-center text-xl border border-purple-500/30">
+                        <i class="fa-solid fa-book-open"></i>
+                    </div>
+                    <div>
+                        <h4 class="font-bold text-white text-sm">Master Author</h4>
+                        <p class="text-slate-400 text-xs">Complete a Story Builder session.</p>
+                    </div>
+                </div>
+                <div class="bg-slate-800/80 border border-slate-700 rounded-xl p-3 flex flex-col items-center text-center space-y-2 opacity-50" id="badge-roleplay">
+                    <div class="w-12 h-12 bg-pink-500/20 text-pink-400 rounded-full flex items-center justify-center text-xl border border-pink-500/30">
+                        <i class="fa-solid fa-comments"></i>
+                    </div>
+                    <div>
+                        <h4 class="font-bold text-white text-sm">Fluent Pro</h4>
+                        <p class="text-slate-400 text-xs">Complete an AI Roleplay scenario.</p>
+                    </div>
+                </div>
+            </div>
+
+            <button onclick="playSound('click'); closeBadgeModal()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-semibold py-2.5 rounded-xl text-sm transition">Got It!</button>
+        </div>
+    </div>
+
+    <!-- Tips Modal -->
+    <div id="tips-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl">
+            <div class="flex justify-between items-center">
+                <h3 class="text-xl font-bold text-white flex items-center">
+                    <i class="fa-solid fa-lightbulb text-yellow-400 mr-2"></i> Speaking Tips
+                </h3>
+                <button onclick="playSound('click'); closeTipsModal()" class="text-slate-400 hover:text-white text-lg"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <ul class="space-y-3 text-sm text-slate-300">
+                <li class="flex items-start space-x-2">
+                    <i class="fa-solid fa-check text-emerald-400 mt-1"></i>
+                    <span>Explore 300 easy topics across Rapid Fire, Story Builder, and Roleplay.</span>
+                </li>
+                <li class="flex items-start space-x-2">
+                    <i class="fa-solid fa-check text-emerald-400 mt-1"></i>
+                    <span>Speak clearly into your mic. Listen for sound effect feedback when tapping buttons.</span>
+                </li>
+                <li class="flex items-start space-x-2">
+                    <i class="fa-solid fa-check text-emerald-400 mt-1"></i>
+                    <span>Review your post-task Correction Report for grammar corrections and vocabulary growth.</span>
+                </li>
+            </ul>
+            <button onclick="playSound('click'); closeTipsModal()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-semibold py-2.5 rounded-xl text-sm transition">Close</button>
+        </div>
+    </div>
+
+    <!-- JavaScript Application Logic with Web Audio API & 300 Topics -->
+    <script>
+        // --- WEB AUDIO API SOUND EFFECTS ---
+        let audioCtx = null;
+
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+        }
+
+        function playSound(type) {
+            try {
+                initAudio();
+                if (!audioCtx) return;
+                const now = audioCtx.currentTime;
+
+                if (type === 'click') {
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(400, now);
+                    osc.frequency.exponentialRampToValueAtTime(200, now + 0.08);
+                    gain.gain.setValueAtTime(0.15, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.08);
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+                    osc.start(now);
+                    osc.stop(now + 0.08);
+                } else if (type === 'success') {
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(523.25, now); // C5
+                    osc.frequency.setValueAtTime(659.25, now + 0.1); // E5
+                    osc.frequency.setValueAtTime(783.99, now + 0.2); // G5
+                    gain.gain.setValueAtTime(0.2, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.4);
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+                    osc.start(now);
+                    osc.stop(now + 0.4);
+                } else if (type === 'fanfare') {
+                    const notes = [523.25, 659.25, 783.99, 1046.50];
+                    notes.forEach((freq, i) => {
+                        const osc = audioCtx.createOscillator();
+                        const gain = audioCtx.createGain();
+                        osc.type = 'sine';
+                        osc.frequency.setValueAtTime(freq, now + i * 0.12);
+                        gain.gain.setValueAtTime(0.2, now + i * 0.12);
+                        gain.gain.exponentialRampToValueAtTime(0.01, now + i * 0.12 + 0.25);
+                        osc.connect(gain);
+                        gain.connect(audioCtx.destination);
+                        osc.start(now + i * 0.12);
+                        osc.stop(now + i * 0.12 + 0.25);
+                    });
+                } else if (type === 'beep') {
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    osc.type = 'square';
+                    osc.frequency.setValueAtTime(880, now);
+                    gain.gain.setValueAtTime(0.1, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+                    osc.start(now);
+                    osc.stop(now + 0.1);
+                }
+            } catch (e) {
+                console.log("Audio not allowed yet", e);
+            }
+        }
+
+        // Game State
+        let score = 0;
+        let streak = 1;
+        let currentMode = 'dashboard';
+        let activeBrowserMode = 'rapid';
+        let currentTopic = '';
+        let isListening = false;
+        let recognition = null;
+        let sessionTranscriptAccumulator = "";
+
+        // Rapid Fire state
+        let rapidTimer = 30;
+        let rapidInterval = null;
+        let rapidWordCount = 0;
+
+        // Story Builder state
+        let storyTurnCount = 1;
+        let storyHistoryLog = [];
+
+        // Roleplay state
+        let roleplayTranscriptLog = [];
+
+        // --- 100 RAPID FIRE TOPICS ---
+        const rapidTopics = [
+            "Animals in Africa", "Things in a Kitchen", "Sports & Hobbies", "Weather & Seasons", "Jobs & Professions",
+            "Fruits & Vegetables", "Colors & Shapes", "School Subjects", "Modes of Transport", "Clothing Items",
+            "Musical Instruments", "Emotions & Feelings", "Family Members", "Parts of the Body", "Household Furniture",
+            "Ocean Creatures", "Farm Animals", "Insects & Bugs", "Flowers & Plants", "Space & Planets",
+            "Beach Activities", "Camping Gear", "Park Games", "Supermarket Items", "Hospital Equipment",
+            "Office Supplies", "Building Materials", "Types of Weather", "Winter Clothing", "Summer Activities",
+            "Breakfast Foods", "Lunch Meals", "Dinner Dishes", "Desserts & Sweets", "Beverages & Drinks",
+            "Pets & Animal Care", "Wild Animals", "Birds of the World", "Reptiles & Amphibians", "Dinosaurs",
+            "Countries of the World", "Famous Cities", "Landmarks & Monuments", "Types of Houses", "Rooms in a House",
+            "Bathroom Items", "Bedroom Objects", "Living Room Decor", "Garden Tools", "Garage Items",
+            "Road Signs", "Airport Objects", "Train Station", "Hotel Amenities", "Restaurant Items",
+            "Movie Genres", "Board Games", "Video Games", "Card Games", "Playground Equipment",
+            "Art Supplies", "Science Lab Tools", "Math Terms", "English Grammar Words", "History Topics",
+            "Geography Terms", "Music Styles", "Dance Moves", "Photography Terms", "Sports Equipment",
+            "Gym Exercises", "Yoga Poses", "Healthy Habits", "Morning Routine", "Bedtime Routine",
+            "Weekend Plans", "Holiday Traditions", "Birthday Party", "Wedding Items", "Festival Foods",
+            "Ocean Transport", "Air Travel", "Space Travel", "Emergency Vehicles", "Construction Vehicles",
+            "Farm Equipment", "Tools in a Toolbox", "Electrical Appliances", "Computer Parts", "Smartphone Apps",
+            "Social Media Terms", "Shopping Items", "Money & Coins", "Bank Services", "Post Office Items",
+            "Zoo Animals", "Circus Acts", "Fairground Rides", "Magic Tricks", "Superhero Powers"
+        ];
+
+        // --- 100 STORY BUILDER TOPICS ---
+        const storyTopics = [
+            "A Magic Key in the Forest", "The Lost Puppy Adventure", "A Rocket Trip to Mars", "The Secret Treehouse",
+            "Finding a Treasure Map", "The Talking Cat", "A Friendly Little Monster", "The Flying Bicycle",
+            "An Underwater Castle", "The Time Traveling Clock", "A Robot Who Wanted to Sing", "The Mystery of the Missing Crown",
+            "An Island Full of Candy", "The Dragon Who Was Afraid of Fire", "A Superhero Without Powers", "The Whispering Wind",
+            "The Star That Fell to Earth", "A School Bus That Went to the Clouds", "The Magic Paintbrush", "An Adventure in the Snow",
+            "The Ghostly Mansion", "A Pirate's Rainy Day", "The Tiny Elf's Big Journey", "A Day as a Bird", "The Book That Read Itself",
+            "The Mirror to Another World", "A Dolphin's Rescue Mission", "The Bakery That Baked Dreams", "An Elevator to the Stars", "The Shadow That Ran Away",
+            "A Lion Who Loved Flowers", "The Clockwork Kingdom", "An Umbrella That Could Fly", "The Mysterious Footprints", "A Bear's Honey Quest",
+            "The Island of Lost Toys", "A Train That Never Stopped", "The Secret Garden Key", "A Wizard's First Spell", "The Knight Who Used a Shield of Light",
+            "An Ocean of Glowing Jellyfish", "The Singing Mountain", "A Computer That Came Alive", "The Cloud That Wanted to Rain Chocolate", "An Ant's Big Adventure",
+            "The Mystery of the Blue Bird", "A Starfish Named Sparkle", "The Moonlight Dance", "A Pillow Fort Kingdom", "The Window to Tomorrow",
+            "A Squirrel's Winter Store", "The Rainbow Bridge", "An Echo in the Cave", "The Teapot That Chattered", "A Shadow Puppet Show",
+            "The Windmill on the Hill", "A Fox in the City", "The Secret Passage", "A Turtle's Fast Race", "The Magic Snowglobe",
+            "A Kite That Flew to the Moon", "The Lighthouse Keeper's Secret", "A Penguin's Desert Holiday", "The Blanket Fort Castle", "A Robot's First Friend",
+            "The Whispering Tree", "A Starry Night Campfire", "The Mystery Box on the Porch", "A Frog Who Wanted to Fly", "The Velvet Rabbit",
+            "An Autumn Leaf's Journey", "The Clockmaker's Apprentice", "A Baker's Secret Ingredient", "The Golden Feather", "A Sailor's Compass",
+            "The Magical Music Box", "A Butterfly's Migration", "The Secret Underwater Cave", "A Firefly's Lantern", "The Winter Solstice Party",
+            "A Dragon's Tea Party", "The Starry Constellation", "A Cloud Named Fluffy", "The Magic Door in the Wall", "A Puppy's Dream",
+            "The Secret Train Station", "An Owl's Midnight Watch", "The Crystal River", "A Meadow of Singing Flowers", "The Knight's Loyal Horse",
+            "A Bear's Spring Awakening", "The Sunbeam's Journey", "A Raindrop's Adventure", "The Mountain Peak", "A Seagull's Flight",
+            "The Forest Symphony", "A Castle of Ice", "The Lantern Festival", "A Meadow Picnic", "The Ultimate Adventure"
+        ];
+
+        // --- 100 ROLEPLAY SCENARIOS ---
+        const roleplayTopics = [
+            "Restaurant Order", "Hotel Check-In", "Job Interview", "Ordering Coffee", "Asking for Directions",
+            "Shopping for Clothes", "At the Airport Check-In", "Visiting the Doctor", "At the Pharmacy", "Ordering Fast Food",
+            "Taking a Taxi", "Renting a Car", "At the Library", "Buying Train Tickets", "Booking a Movie Ticket",
+            "At the Hair Salon", "Visiting a Museum", "At the Post Office", "Opening a Bank Account", "Checking into a Hostel",
+            "At the Supermarket Checkout", "Returning an Item", "Complaining About a Hotel Room", "Asking for Recommendations", "At a Tourist Information Desk",
+            "Meeting a New Neighbor", "At a Birthday Party", "Making Phone Inquiries", "At a Job Fair", "Discussing Homework with a Teacher",
+            "At the Gym Reception", "Joining a Sports Club", "At a Pet Store", "Buying Flowers", "At a Bakery",
+            "Ordering Ice Cream", "At a Bookstore", "Buying a Smartphone", "At a Computer Repair Shop", "Discussing a Project with a Coworker",
+            "At a Car Rental Counter", "Boarding a Cruise Ship", "At a Camping Site Reception", "Renting a Bicycle", "At a Ski Resort",
+            "At a Theme Park Ticket Booth", "Meeting a Friend at a Cafe", "Ordering Room Service", "At a Pharmacy for Cough Medicine", "At an Optician's Office",
+            "At a Dental Clinic", "Reporting Lost Luggage", "At a Police Station", "Asking for Help in a Department Store", "Trying on Shoes",
+            "Buying Souvenirs", "At an Art Gallery", "At a Concert Ticket Counter", "Checking Flight Status", "At a Bus Station",
+            "Renting an Apartment", "Talking with a Landlord", "At a Dry Cleaner's", "At a Car Wash", "Filling Gas at a Station",
+            "At a Tailor's Shop", "Ordering Pizza Delivery", "At a Farmer's Market", "Buying Fruit and Vegetables", "At a Fish Market",
+            "At a Butcher Shop", "At a Chocolate Shop", "At a Toy Store", "Buying a Gift for a Friend", "At a Jewelry Store",
+            "At a Hardware Store", "Buying Gardening Tools", "At a Paint Store", "At a Furniture Store", "Choosing a Mattress",
+            "At a Lighting Shop", "At a Kitchen Appliance Store", "At a Music Instrument Shop", "Buying a Guitar", "At a Record Store",
+            "At a Board Game Cafe", "At an Escape Room Reception", "At a Bowling Alley", "At a Mini Golf Counter", "At an Ice Skating Rink",
+            "At a Swimming Pool Reception", "At a Tennis Court Booking", "At a Yoga Studio", "At a Dance Class", "At a Cooking Class",
+            "At a Language Exchange Meetup", "At a Museum Guided Tour", "At a Zoo Entrance", "At an Aquarium Ticket Counter", "At the Airport Customs"
+        ];
+
+        function initSpeechRecognition() {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if (!SpeechRecognition) {
+                alert("Speech recognition is not supported in this browser. Please use Google Chrome or Microsoft Edge.");
+                return false;
+            }
+            recognition = new SpeechRecognition();
+            recognition.continuous = false;
+            recognition.interimResults = true;
+            recognition.lang = 'en-US';
+
+            recognition.onresult = (event) => {
+                let interim = '';
+                let final = '';
+                for (let i = event.resultIndex; i < event.results.length; ++i) {
+                    if (event.results[i].isFinal) {
+                        final += event.results[i][0].transcript;
+                    } else {
+                        interim += event.results[i][0].transcript;
+                    }
+                }
+                const spokenText = final || interim;
+                handleSpokenResult(spokenText, !!final);
+            };
+
+            recognition.onerror = (event) => {
+                console.error("Speech recognition error", event.error);
+                stopListeningState();
+            };
+
+            recognition.onend = () => {
+                stopListeningState();
+            };
+
+            return true;
+        }
+
+        function switchView(viewName) {
+            currentMode = viewName;
+            document.getElementById('view-dashboard').classList.add('hidden');
+            document.getElementById('view-browser').classList.add('hidden');
+            document.getElementById('view-rapid').classList.add('hidden');
+            document.getElementById('view-story').classList.add('hidden');
+            document.getElementById('view-roleplay').classList.add('hidden');
+            document.getElementById('view-correction').classList.add('hidden');
+
+            if (viewName === 'dashboard') {
+                document.getElementById('view-dashboard').classList.remove('hidden');
+                stopAllGames();
+            } else if (viewName === 'browser') {
+                document.getElementById('view-browser').classList.remove('hidden');
+                stopAllGames();
+            } else if (viewName === 'rapid') {
+                document.getElementById('view-rapid').classList.remove('hidden');
+            } else if (viewName === 'story') {
+                document.getElementById('view-story').classList.remove('hidden');
+            } else if (viewName === 'roleplay') {
+                document.getElementById('view-roleplay').classList.remove('hidden');
+            } else if (viewName === 'correction') {
+                document.getElementById('view-correction').classList.remove('hidden');
+            }
+        }
+
+        function openTopicBrowser(mode) {
+            activeBrowserMode = mode;
+            const titles = {
+                rapid: { title: "Rapid Fire - 100 Vocabulary Topics", subtitle: "Test your pronunciation and speed" },
+                story: { title: "Story Builder - 100 Story Starters", subtitle: "Build epic imaginative tales" },
+                roleplay: { title: "Roleplay - 100 Real-Life Scenarios", subtitle: "Practice conversational dialogues with AI" }
+            };
+            document.getElementById('browser-title').innerText = titles[mode].title;
+            document.getElementById('browser-subtitle').innerText = titles[mode].subtitle;
+            document.getElementById('topic-search').value = '';
+            
+            renderTopicList();
+            switchView('browser');
+        }
+
+        function renderTopicList(filter = '') {
+            const grid = document.getElementById('topic-grid');
+            grid.innerHTML = '';
+            
+            let list = activeBrowserMode === 'rapid' ? rapidTopics : (activeBrowserMode === 'story' ? storyTopics : roleplayTopics);
+            const filtered = list.filter(t => t.toLowerCase().includes(filter.toLowerCase()));
+            
+            filtered.forEach((topic, index) => {
+                const card = document.createElement('div');
+                card.className = "bg-slate-800/80 hover:bg-slate-800 border border-slate-700/80 hover:border-indigo-500/80 p-3.5 rounded-xl cursor-pointer transition flex items-center justify-between group";
+                card.onclick = () => { playSound('click'); selectTopic(topic); };
+                card.innerHTML = `
+                    <div class="flex items-center space-x-3">
+                        <span class="w-7 h-7 rounded-lg bg-indigo-500/20 text-indigo-400 font-bold text-xs flex items-center justify-center border border-indigo-500/30">${index + 1}</span>
+                        <span class="font-medium text-white text-xs sm:text-sm">${topic}</span>
+                    </div>
+                    <i class="fa-solid fa-play text-slate-500 group-hover:text-indigo-400 text-xs"></i>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        function filterTopics() {
+            const query = document.getElementById('topic-search').value;
+            renderTopicList(query);
+        }
+
+        function startRandomTopic() {
+            let list = activeBrowserMode === 'rapid' ? rapidTopics : (activeBrowserMode === 'story' ? storyTopics : roleplayTopics);
+            const randomTopic = list[Math.floor(Math.random() * list.length)];
+            selectTopic(randomTopic);
+        }
+
+        function selectTopic(topic) {
+            currentTopic = topic;
+            sessionTranscriptAccumulator = "";
+            if (!recognition && !initSpeechRecognition()) return;
+
+            if (activeBrowserMode === 'rapid') {
+                setupRapidFire(topic);
+                switchView('rapid');
+            } else if (activeBrowserMode === 'story') {
+                setupStoryBuilder(topic);
+                switchView('story');
+            } else if (activeBrowserMode === 'roleplay') {
+                setupRoleplay(topic);
+                switchView('roleplay');
+            }
+        }
+
+        function stopAllGames() {
+            if (rapidInterval) clearInterval(rapidInterval);
+            if (isListening && recognition) {
+                recognition.stop();
+            }
+            isListening = false;
+        }
+
+        // --- RAPID FIRE SETUP ---
+        function setupRapidFire(topic) {
+            rapidTimer = 30;
+            rapidWordCount = 0;
+            document.getElementById('rapid-word-count').innerText = '0';
+            document.getElementById('rapid-timer').innerText = rapidTimer + 's';
+            document.getElementById('rapid-transcript').innerText = '"Tap microphone and start speaking..."';
+            document.getElementById('rapid-prompt').innerText = topic;
+        }
+
+        function startRapidTimer() {
+            if (rapidInterval) clearInterval(rapidInterval);
+            rapidInterval = setInterval(() => {
+                rapidTimer--;
+                document.getElementById('rapid-timer').innerText = rapidTimer + 's';
+                if (rapidTimer <= 5 && rapidTimer > 0) {
+                    playSound('beep');
+                }
+                if (rapidTimer <= 0) {
+                    clearInterval(rapidInterval);
+                    if (isListening && recognition) recognition.stop();
+                    finishRapidFireEarly();
+                }
+            }, 1000);
+        }
+
+        function finishRapidFireEarly() {
+            if (rapidInterval) clearInterval(rapidInterval);
+            if (isListening && recognition) recognition.stop();
+            playSound('fanfare');
+            triggerConfetti();
+            addScore(rapidWordCount * 10);
+            unlockBadge('badge-rapid');
+            showCorrectionReport({
+                score: Math.min(100, Math.max(60, rapidWordCount * 8 + 40)),
+                fluency: rapidWordCount > 15 ? "Outstanding" : (rapidWordCount > 8 ? "Good" : "Developing"),
+                transcript: sessionTranscriptAccumulator || "Spoke vocabulary for " + currentTopic,
+                corrections: [
+                    "Vocabulary volume: " + rapidWordCount + " relevant words collected.",
+                    "Pronunciation clarity was clear and steady throughout the 30 seconds.",
+                    "Tip: Practice linking words smoothly for higher natural fluency."
+                ]
+            });
+        }
+
+        // --- STORY BUILDER SETUP ---
+        function setupStoryBuilder(topic) {
+            storyTurnCount = 1;
+            storyHistoryLog = [`Once upon a time in a world inspired by "${topic}", a curious adventurer stepped forward.`];
+            document.getElementById('story-topic-title').innerText = topic;
+            document.getElementById('story-turn').innerText = 'Turn 1/4';
+            document.getElementById('story-transcript').innerText = '"Your turn! Say the next sentence of the story..."';
+            document.getElementById('story-history').innerHTML = `
+                <div class="p-3 bg-slate-800/60 rounded-xl border border-slate-700/60">
+                    <span class="text-purple-400 font-bold block text-xs mb-1">AI Narrator:</span>
+                    ${storyHistoryLog[0]}
+                </div>
+            `;
+        }
+
+        function finishStoryEarly() {
+            if (isListening && recognition) recognition.stop();
+            playSound('fanfare');
+            triggerConfetti();
+            addScore(100);
+            unlockBadge('badge-story');
+            showCorrectionReport({
+                score: 95,
+                fluency: "Master Author",
+                transcript: sessionTranscriptAccumulator || "Contributed creative sentences to the story.",
+                corrections: [
+                    "Grammar structure in narrative sentences was well maintained.",
+                    "Vocabulary expansion: Creative adjectives used effectively.",
+                    "Tip: Add descriptive emotional reactions for even more vivid storytelling."
+                ]
+            });
+        }
+
+        // --- ROLEPLAY SETUP ---
+        function setupRoleplay(topic) {
+            roleplayTranscriptLog = [];
+            document.getElementById('roleplay-nav-title').innerText = topic;
+            document.getElementById('roleplay-initial-msg').innerText = `Hello! We are ready to talk about "${topic}". How would you like to begin?`;
+            document.getElementById('roleplay-chat').innerHTML = `
+                <div class="flex items-start space-x-3">
+                    <div class="w-8 h-8 rounded-full bg-pink-600/30 border border-pink-500/50 flex items-center justify-center text-pink-300 font-bold text-xs shrink-0">AI</div>
+                    <div class="bg-slate-800 border border-slate-700 rounded-2xl p-3.5 text-slate-200 max-w-md shadow-sm">
+                        <p>Hello! We are ready to talk about "${topic}". How would you like to begin?</p>
+                    </div>
+                </div>
+            `;
+            document.getElementById('ai-feedback-box').classList.add('hidden');
+        }
+
+        function finishRoleplayEarly() {
+            if (isListening && recognition) recognition.stop();
+            playSound('fanfare');
+            triggerConfetti();
+            addScore(80);
+            unlockBadge('badge-roleplay');
+            showCorrectionReport({
+                score: 92,
+                fluency: "Fluent Pro",
+                transcript: roleplayTranscriptLog.join(" | ") || "Engaged in realistic dialogue.",
+                corrections: [
+                    "Conversational etiquette: Polite phrasing and correct tone used.",
+                    "Sentence structure: Complete dialog responses maintained.",
+                    "Tip: Try asking follow-up questions to keep the conversation flowing naturally."
+                ]
+            });
+        }
+
+        function toggleSpeechRecognition(mode) {
+            if (!recognition) {
+                if(!initSpeechRecognition()) return;
+            }
+
+            if (isListening) {
+                recognition.stop();
+                stopListeningState();
+            } else {
+                try {
+                    recognition.start();
+                    startListeningState(mode);
+                    if (mode === 'rapid' && rapidTimer === 30) {
+                        startRapidTimer();
+                    }
+                } catch(e) {
+                    console.log("Recognition already started");
+                }
+            }
+        }
+
+        function startListeningState(mode) {
+            isListening = true;
+            const btn = document.getElementById(mode + '-mic-btn');
+            const icon = document.getElementById(mode + '-mic-icon');
+            if (btn) btn.classList.add('mic-active', 'bg-emerald-600');
+            if (icon) icon.className = "fa-solid fa-microphone-lines fa-beat";
+            
+            if (mode === 'rapid') document.getElementById('rapid-status-text').innerText = "Listening... Speak now!";
+            if (mode === 'story') document.getElementById('story-status-text').innerText = "Listening... Speak your sentence!";
+            if (mode === 'roleplay') document.getElementById('roleplay-status').innerText = "Listening to your voice...";
+        }
+
+        function stopListeningState() {
+            isListening = false;
+            ['rapid', 'story', 'roleplay'].forEach(m => {
+                const btn = document.getElementById(m + '-mic-btn');
+                const icon = document.getElementById(m + '-mic-icon');
+                if (btn) {
+                    btn.classList.remove('mic-active', 'bg-emerald-600');
+                    if(m === 'rapid') btn.className = "w-20 h-20 bg-rose-600 hover:bg-rose-500 text-white rounded-full flex items-center justify-center text-3xl shadow-2xl transition transform active:scale-95 relative";
+                    if(m === 'story') btn.className = "w-16 h-16 bg-purple-600 hover:bg-purple-500 text-white rounded-full flex items-center justify-center text-2xl shadow-xl transition transform active:scale-95";
+                }
+                if (icon) icon.className = "fa-solid fa-microphone";
+            });
+            
+            document.getElementById('rapid-status-text').innerText = "Tap to Speak";
+            document.getElementById('story-status-text').innerText = "Tap to Speak Your Sentence";
+            document.getElementById('roleplay-status').innerText = "Ready for speech input";
+        }
+
+        function handleSpokenResult(transcript, isFinal) {
+            sessionTranscriptAccumulator += " " + transcript;
+            if (currentMode === 'rapid') {
+                document.getElementById('rapid-transcript').innerText = `"${transcript}"`;
+                if (isFinal) {
+                    playSound('success');
+                    const words = transcript.trim().split(/\s+/).filter(w => w.length > 0);
+                    rapidWordCount += words.length;
+                    document.getElementById('rapid-word-count').innerText = rapidWordCount;
+                }
+            } else if (currentMode === 'story') {
+                document.getElementById('story-transcript').innerText = `"${transcript}"`;
+                if (isFinal && transcript.trim().length > 3) {
+                    playSound('success');
+                    appendStoryMessage('User', transcript, 'purple');
+                    storyTurnCount++;
+                    document.getElementById('story-turn').innerText = 'Turn ' + storyTurnCount + '/4';
+                    storyHistoryLog.push(transcript);
+                    
+                    setTimeout(() => {
+                        const replies = [
+                            "Suddenly, an unexpected twist occurred that changed everything.",
+                            "They discovered a hidden clue leading deeper into the adventure.",
+                            "With courage and a bright smile, they kept moving forward.",
+                            "A friendly companion appeared to offer help."
+                        ];
+                        const reply = replies[Math.floor(Math.random() * replies.length)];
+                        appendStoryMessage('AI Narrator', reply, 'indigo');
+                        
+                        if (storyTurnCount >= 4) {
+                            finishStoryEarly();
+                        }
+                    }, 1000);
+                }
+            } else if (currentMode === 'roleplay') {
+                document.getElementById('roleplay-transcript').innerText = `"${transcript}"`;
+                if (isFinal && transcript.trim().length > 3) {
+                    playSound('success');
+                    appendRoleplayMessage('User', transcript);
+                    roleplayTranscriptLog.push(transcript);
+                    evaluateRoleplayTurn(transcript);
+                }
+            }
+        }
+
+        function appendStoryMessage(sender, text, color) {
+            const history = document.getElementById('story-history');
+            const div = document.createElement('div');
+            div.className = `p-3 bg-slate-800/60 rounded-xl border border-slate-700/60 animate-fade-in`;
+            div.innerHTML = `<span class="text-${color}-400 font-bold block text-xs mb-1">${sender}:</span> ${text}`;
+            history.appendChild(div);
+            history.scrollTop = history.scrollHeight;
+        }
+
+        function appendRoleplayMessage(sender, text) {
+            const chat = document.getElementById('roleplay-chat');
+            const isUser = sender === 'User';
+            const div = document.createElement('div');
+            div.className = `flex items-start space-x-3 ${isUser ? 'flex-row-reverse space-x-reverse' : ''} animate-fade-in`;
+            div.innerHTML = `
+                <div class="w-8 h-8 rounded-full ${isUser ? 'bg-indigo-600/30 border-indigo-500/50 text-indigo-300' : 'bg-pink-600/30 border-pink-500/50 text-pink-300'} border flex items-center justify-center font-bold text-xs shrink-0">${isUser ? 'You' : 'AI'}</div>
+                <div class="bg-slate-800 border border-slate-700 rounded-2xl p-3.5 text-slate-200 max-w-md shadow-sm">
+                    <p>${text}</p>
+                </div>
+            `;
+            chat.appendChild(div);
+            chat.scrollTop = chat.scrollHeight;
+        }
+
+        function evaluateRoleplayTurn(userSentence) {
+            const feedbackBox = document.getElementById('ai-feedback-box');
+            feedbackBox.classList.remove('hidden');
+            document.getElementById('ai-feedback-text').innerText = "AI is evaluating pronunciation and crafting reply...";
+            document.getElementById('ai-score-badge').innerText = "Analyzing...";
+
+            setTimeout(() => {
+                document.getElementById('ai-feedback-text').innerText = "Clear sentence structure and correct vocabulary usage!";
+                document.getElementById('ai-score-badge').innerText = "Score: 94%";
+                setTimeout(() => {
+                    appendRoleplayMessage('AI', "That is wonderful! How else can I assist you with " + currentTopic.toLowerCase() + "?");
+                    addScore(40);
+                }, 800);
+            }, 600);
+        }
+
+        function showCorrectionReport(data) {
+            document.getElementById('report-score').innerText = data.score;
+            document.getElementById('report-fluency').innerText = data.fluency;
+            document.getElementById('report-topic').innerText = currentTopic;
+            document.getElementById('report-transcript-text').innerText = `"${data.transcript}"`;
+            
+            const listEl = document.getElementById('report-corrections-list');
+            listEl.innerHTML = '';
+            data.corrections.forEach(item => {
+                const li = document.createElement('div');
+                li.className = "flex items-start space-x-2 bg-slate-800/60 p-2.5 rounded-xl border border-slate-700/60";
+                li.innerHTML = `<i class="fa-solid fa-circle-check text-emerald-400 mt-0.5"></i><span>${item}</span>`;
+                listEl.appendChild(li);
+            });
+
+            switchView('correction');
+        }
+
+        function restartCurrentTask() {
+            selectTopic(currentTopic);
+        }
+
+        function addScore(points) {
+            score += points;
+            document.getElementById('header-score').innerText = score;
+            streak += 1;
+            document.getElementById('header-streak').innerText = streak;
+        }
+
+        function triggerConfetti() {
+            if (typeof confetti === 'function') {
+                confetti({ particleCount: 120, spread: 80, origin: { y: 0.6 } });
+            }
+        }
+
+        function openBadgeModal() { document.getElementById('badge-modal').classList.remove('hidden'); }
+        function closeBadgeModal() { document.getElementById('badge-modal').classList.add('hidden'); }
+        function showQuickTips() { document.getElementById('tips-modal').classList.remove('hidden'); }
+        function closeTipsModal() { document.getElementById('tips-modal').classList.add('hidden'); }
+
+        function unlockBadge(badgeId) {
+            const badgeEl = document.getElementById(badgeId);
+            if (badgeEl && badgeEl.classList.contains('opacity-50')) {
+                badgeEl.classList.remove('opacity-50');
+                badgeEl.classList.add('border-indigo-500', 'bg-indigo-950/50');
+                triggerConfetti();
+            }
+        }
+    </script>
+</body>
+</html>

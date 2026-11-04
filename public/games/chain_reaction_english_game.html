@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🔗 Chain Reaction - English Speaking Game</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #022338 0%, #0c4a6e 50%, #030712 100%);
+            color: #f8fafc;
+            overflow-x: hidden;
+        }
+        @keyframes pulse-link {
+            0%, 100% { transform: scale(1); filter: drop-shadow(0 0 10px rgba(56, 189, 248, 0.4)); }
+            50% { transform: scale(1.03); filter: drop-shadow(0 0 20px rgba(56, 189, 248, 0.8)); }
+        }
+        .animate-link-box {
+            animation: pulse-link 2.5s infinite ease-in-out;
+        }
+        @keyframes chain-drop {
+            0% { transform: translateY(-20px); opacity: 0; }
+            100% { transform: translateY(0); opacity: 1; }
+        }
+        .chain-item-animate {
+            animation: chain-drop 0.4s ease-out forwards;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col items-center justify-between p-4 md:p-6">
+
+    <header class="w-full max-w-5xl text-center my-3">
+        <h1 class="text-3xl md:text-5xl font-extrabold tracking-wide bg-gradient-to-r from-sky-400 via-teal-300 to-emerald-400 bg-clip-text text-transparent drop-shadow-md">
+            🔗 Chain Reaction 🗣️
+        </h1>
+        <p class="text-sm md:text-base text-sky-200 mt-1 font-medium">
+            Impromptu Topic Association & Transition Game for English Learners
+        </p>
+    </header>
+
+    <div id="setup-modal" class="fixed inset-0 bg-black/85 backdrop-blur-md z-50 flex items-center justify-center p-4">
+        <div class="bg-gradient-to-br from-slate-900 to-sky-950 border-4 border-sky-400 w-full max-w-md rounded-3xl p-6 md:p-8 shadow-2xl text-center flex flex-col items-center gap-5">
+            <div class="text-5xl">🔗🧭</div>
+            <h2 class="text-2xl font-extrabold text-sky-400">Configure Chain Reaction</h2>
+            <p class="text-sm text-slate-300">How many student teams are playing today? (Choose between 2 and 15 teams)</p>
+            
+            <div class="w-full flex flex-col gap-3">
+                <label for="team-count-input" class="text-xs font-semibold text-sky-300 text-left">Number of Teams (2 - 15):</label>
+                <input type="number" id="team-count-input" min="2" max="15" value="5" class="w-full bg-slate-800 border border-sky-500/50 rounded-xl px-4 py-3 text-white font-bold text-center text-lg focus:outline-none focus:border-sky-400">
+            </div>
+
+            <button onclick="initializeGame()" class="w-full bg-gradient-to-r from-sky-500 to-emerald-600 hover:from-sky-600 hover:to-emerald-700 text-slate-950 font-extrabold py-3.5 px-6 rounded-xl shadow-lg transition transform active:scale-95 text-base">
+                Start Chain Game! 🚀
+            </button>
+        </div>
+    </div>
+
+    <main class="w-full max-w-5xl grid grid-cols-1 lg:grid-cols-3 gap-6 items-start my-auto">
+
+        <!-- Left Sidebar: Teams & Leaderboard -->
+        <section class="lg:col-span-1 bg-slate-900/80 backdrop-blur-md border border-sky-500/30 p-5 rounded-2xl shadow-2xl flex flex-col gap-5">
+            <div class="flex items-center justify-between">
+                <h2 class="text-xl font-bold text-sky-400 flex items-center gap-2">
+                    <span>🏆</span> Teams (<span id="team-count-badge">5</span>)
+                </h2>
+                <button onclick="openSetupModal()" class="text-xs bg-sky-900/80 hover:bg-sky-800 text-white px-2.5 py-1.5 rounded-lg transition font-semibold shadow">
+                    Change Teams
+                </button>
+            </div>
+
+            <!-- Teams List -->
+            <div id="teams-container" class="flex flex-col gap-2.5 max-h-[280px] overflow-y-auto pr-1">
+                <!-- Dynamically populated -->
+            </div>
+
+            <div class="bg-slate-800/80 p-3 rounded-xl border border-slate-700 text-xs text-slate-300 space-y-1">
+                <p class="font-bold text-sky-400">💡 Game Rules:</p>
+                <p>1. Start with the seed topic.</p>
+                <p>2. Each student/team speaks for 20s, linking their idea to the previous one ("That reminds me of...").</p>
+                <p>3. Build the longest unbroken logical chain to win points!</p>
+            </div>
+        </section>
+
+        <!-- Center / Right: Game Arena -->
+        <section class="lg:col-span-2 bg-slate-900/90 backdrop-blur-md border border-sky-500/30 p-6 md:p-8 rounded-2xl shadow-2xl flex flex-col items-center text-center relative overflow-hidden gap-6">
+            
+            <!-- Active Team Banner -->
+            <div class="w-full flex items-center justify-between bg-sky-950/60 p-3 rounded-xl border border-sky-500/40">
+                <span class="text-xs font-semibold text-sky-300 uppercase tracking-wider">Current Link Speaker</span>
+                <div id="current-team-banner" class="text-sm md:text-base font-extrabold px-4 py-1.5 rounded-full bg-sky-600 text-white flex items-center gap-2 shadow-inner">
+                    <span class="w-2.5 h-2.5 rounded-full bg-white animate-pulse"></span>
+                    <span id="active-team-name">Team 1</span>
+                </div>
+            </div>
+
+            <!-- Seed Topic Card -->
+            <div class="w-full bg-gradient-to-br from-slate-950 to-sky-950 border-4 border-sky-500/80 p-6 rounded-3xl shadow-2xl flex flex-col items-center justify-center gap-4 animate-link-box">
+                <div class="text-xs font-bold uppercase tracking-widest text-emerald-400 flex items-center gap-1">
+                    <span>🌱</span> Seed Starting Topic (<span id="topics-remaining-count">100+</span>)
+                </div>
+                <div id="seed-topic-text" class="text-2xl md:text-3xl font-extrabold text-white tracking-wide uppercase drop-shadow">
+                    COFFEE
+                </div>
+                <button onclick="newSeedTopic()" class="text-xs bg-slate-800 hover:bg-slate-700 text-sky-300 font-bold py-1 px-3 rounded-lg border border-sky-500/30 transition">
+                    🎲 Randomize Seed Topic
+                </button>
+            </div>
+
+            <!-- Chain History Display -->
+            <div class="w-full bg-slate-950/80 border border-slate-700 p-4 rounded-2xl flex flex-col gap-2 max-h-[140px] overflow-y-auto text-left">
+                <div class="text-[11px] font-bold text-sky-400 uppercase tracking-wider">🔗 Active Chain History:</div>
+                <div id="chain-history-list" class="flex flex-wrap gap-2">
+                    <span class="bg-sky-950 border border-sky-600 text-sky-200 px-3 py-1 rounded-full text-xs font-semibold chain-item-animate">1. Coffee</span>
+                </div>
+            </div>
+
+            <!-- Timer & Controls -->
+            <div class="w-full flex flex-col items-center gap-3">
+                <div class="text-3xl font-extrabold text-sky-400 tracking-widest" id="round-timer">00:20</div>
+                
+                <div class="flex flex-wrap gap-3 w-full justify-center">
+                    <button id="start-turn-btn" onclick="startTurnTimer()" class="flex-1 min-w-[130px] bg-gradient-to-r from-sky-500 to-emerald-600 hover:from-sky-600 hover:to-emerald-700 text-slate-950 font-extrabold py-3 px-6 rounded-xl shadow-lg transition transform active:scale-95 text-base">
+                        Start Link! ⏱️
+                    </button>
+                    <button onclick="successLink()" id="success-btn" disabled class="flex-1 min-w-[130px] bg-emerald-700/50 text-slate-400 font-bold py-3 px-6 rounded-xl shadow transition text-base cursor-not-allowed">
+                        Successful Link! (+1) ✅
+                    </button>
+                    <button onclick="breakChain()" class="bg-rose-600 hover:bg-rose-700 text-white font-bold py-3 px-6 rounded-xl shadow transition text-base">
+                        Break Chain ❌
+                    </button>
+                </div>
+            </div>
+
+        </section>
+
+    </main>
+
+    <div id="winner-modal" class="fixed inset-0 bg-black/85 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-gradient-to-br from-slate-900 to-sky-950 border-4 border-amber-400 w-full max-w-md rounded-3xl p-8 shadow-2xl text-center flex flex-col items-center gap-5">
+            <div class="text-6xl animate-bounce">🏆🎉</div>
+            <h2 class="text-3xl font-extrabold text-amber-400">Chain Master!</h2>
+            <p id="winner-announcement" class="text-lg text-slate-200 font-semibold">
+                Team 1 built the longest unbroken conversational chain!
+            </p>
+            <button onclick="resetGame()" class="bg-gradient-to-r from-sky-500 to-emerald-600 text-slate-950 font-extrabold py-3 px-8 rounded-xl shadow-lg hover:scale-105 transition text-base">
+                Play Again 🔄
+            </button>
+        </div>
+    </div>
+
+    <script>
+        const colorPalette = [
+            { bg: "bg-sky-600", border: "border-sky-400" },
+            { bg: "bg-emerald-600", border: "border-emerald-400" },
+            { bg: "bg-amber-500", border: "border-amber-300" },
+            { bg: "bg-purple-600", border: "border-purple-400" },
+            { bg: "bg-pink-600", border: "border-pink-400" },
+            { bg: "bg-teal-600", border: "border-teal-400" },
+            { bg: "bg-indigo-600", border: "border-indigo-400" },
+            { bg: "bg-rose-600", border: "border-rose-400" },
+            { bg: "bg-cyan-600", border: "border-cyan-400" },
+            { bg: "bg-orange-600", border: "border-orange-400" },
+            { bg: "bg-yellow-500", border: "border-yellow-300" },
+            { bg: "bg-violet-600", border: "border-violet-400" },
+            { bg: "bg-blue-600", border: "border-blue-400" },
+            { bg: "bg-red-600", border: "border-red-400" },
+            { bg: "bg-lime-600", border: "border-lime-400" }
+        ];
+
+        let teams = [];
+        let currentTurnIndex = 0;
+        let isTimerRunning = false;
+        let timerInterval = null;
+        let timeLeft = 20;
+        let chainItems = [];
+
+        // 100+ Unique Seed Topics across multiple categories
+        const seedTopics = [
+            // Food & Drink
+            "Coffee", "Pizza", "Chocolate Cake", "Ice Cream", "Sushi", "Hamburger", "Spaghetti", "Pancakes", 
+            "Lemonade", "Barbecue", "Soup", "Cheese", "Popcorn", "Steak", "Fruit Salad", "Donuts", "Tea",
+            // Travel & Places
+            "Airport", "Beach Vacation", "Supermarket", "Library", "Museum", "Camping", "Space Travel", 
+            "Cinema", "Amusement Park", "Hotel", "Desert", "Mountain Hiking", "Subway Station", "Zoo", 
+            "Art Gallery", "Castle", "Island", "The Eiffel Tower", "Tokyo City", "New York", "Rainforest",
+            // Everyday Objects & Tech
+            "Smartphone", "Bicycle", "Robot", "Backpack", "Sunglasses", "Wristwatch", "Headphones", 
+            "Laptop", "Camera", "Umbrella", "Toothbrush", "Keyring", "Mirror", "Notebook", "Sneakers", 
+            "Pillow", "Water Bottle", "Jacket", "Wallet", "Electric Guitar", "Flashlight", "Compass",
+            // Nature & Weather
+            "Rainy Day", "Winter Morning", "Autumn Leaves", "Thunderstorm", "Rainbow", "Volcano", 
+            "Waterfall", "Ocean Waves", "Full Moon", "Desert Storm", "Snowflake", "Sunshine", "River", 
+            "Cactus", "Sunflower", "Coral Reef", "Forest", "Starry Night", "Earthquake", "Breeze",
+            // Fun, Fantasy & Pop Culture
+            "Superhero", "Birthday Party", "Music Festival", "Soccer Match", "Magic Wand", "Time Machine", 
+            "Treasure Chest", "Pirate Ship", "Dinosaur", "Detective", "Circus", "Wizard", "Knight", 
+            "Alien Spaceship", "Board Game", "Comic Book", "Virtual Reality", "Karaoke Night", "Haunted House", 
+            "Secret Agent", "Rollercoaster", "Costume Party", "Magic Show", "Dragon", "Fairy Tale", "Supervillain",
+            // Abstract Concepts & Emotions
+            "Friendship", "Curiosity", "Adventure", "Success", "Laughter", "Mystery", "Courage", 
+            "Creativity", "Memory", "Surprise", "Silence", "Patience", "Energy", "Imagination", "Freedom"
+        ];
+
+        let availableTopics = [...seedTopics];
+
+        function initializeGame() {
+            const inputVal = parseInt(document.getElementById('team-count-input').value) || 5;
+            const count = Math.max(2, Math.min(15, inputVal));
+            
+            teams = [];
+            for (let i = 0; i < count; i++) {
+                const palette = colorPalette[i % colorPalette.length];
+                teams.push({
+                    id: i,
+                    name: `Team ${i + 1}`,
+                    colorBg: palette.bg,
+                    colorBorder: palette.border,
+                    score: 0
+                });
+            }
+
+            currentTurnIndex = 0;
+            document.getElementById('team-count-badge').innerText = count;
+            document.getElementById('setup-modal').classList.add('hidden');
+            
+            renderTeams();
+            newSeedTopic();
+            resetTimerState();
+        }
+
+        function openSetupModal() {
+            document.getElementById('setup-modal').classList.remove('hidden');
+        }
+
+        function renderTeams() {
+            const container = document.getElementById('teams-container');
+            container.innerHTML = '';
+            teams.forEach((team, index) => {
+                const isCurrent = index === currentTurnIndex;
+                const card = document.createElement('div');
+                card.className = `flex items-center justify-between p-2.5 rounded-xl border transition ${
+                    isCurrent ? 'bg-sky-950/60 border-sky-400 shadow-md ring-1 ring-sky-400' : 'bg-slate-800/60 border-slate-700'
+                }`;
+                card.innerHTML = `
+                    <div class="flex items-center gap-2">
+                        <div class="w-3.5 h-3.5 rounded-full ${team.colorBg} shadow-sm border border-white/40"></div>
+                        <span class="font-bold text-xs ${isCurrent ? 'text-sky-300' : 'text-slate-200'}">${team.name}</span>
+                    </div>
+                    <div class="text-[11px] font-extrabold bg-slate-900 px-2.5 py-0.5 rounded-lg border border-slate-700 text-amber-400">
+                        ${team.score} links
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+
+            const banner = document.getElementById('current-team-banner');
+            const activeTeam = teams[currentTurnIndex];
+            banner.className = `text-sm md:text-base font-extrabold px-4 py-1.5 rounded-full shadow-inner ${activeTeam.colorBg} text-white flex items-center gap-2`;
+            banner.innerHTML = `<span class="w-2.5 h-2.5 rounded-full bg-white animate-pulse"></span><span>${activeTeam.name}'s Turn</span>`;
+        }
+
+        function newSeedTopic() {
+            if (availableTopics.length === 0) {
+                availableTopics = [...seedTopics]; // Reset pool if all 100+ used
+            }
+            const rand = Math.floor(Math.random() * availableTopics.length);
+            const topic = availableTopics.splice(rand, 1)[0];
+            
+            document.getElementById('seed-topic-text').innerText = topic;
+            document.getElementById('topics-remaining-count').innerText = `${availableTopics.length} left`;
+            
+            chainItems = [topic];
+            renderChainHistory();
+        }
+
+        function renderChainHistory() {
+            const historyList = document.getElementById('chain-history-list');
+            historyList.innerHTML = '';
+            chainItems.forEach((item, index) => {
+                const pill = document.createElement('span');
+                pill.className = "bg-sky-950 border border-sky-600 text-sky-200 px-3 py-1 rounded-full text-xs font-semibold chain-item-animate";
+                pill.innerText = `${index + 1}. ${item}`;
+                historyList.appendChild(pill);
+            });
+        }
+
+        function startTurnTimer() {
+            if (isTimerRunning) return;
+            isTimerRunning = true;
+
+            document.getElementById('start-turn-btn').disabled = true;
+            document.getElementById('start-turn-btn').classList.add('opacity-50', 'cursor-not-allowed');
+
+            const successBtn = document.getElementById('success-btn');
+            successBtn.disabled = false;
+            successBtn.classList.remove('cursor-not-allowed', 'opacity-50', 'bg-emerald-700/50');
+            successBtn.classList.add('bg-emerald-600', 'hover:bg-emerald-700');
+
+            timeLeft = 20;
+            updateTimerDisplay();
+
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                updateTimerDisplay();
+
+                if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    isTimerRunning = false;
+                    breakChain();
+                }
+            }, 1000);
+        }
+
+        function updateTimerDisplay() {
+            const secs = timeLeft < 10 ? `0${timeLeft}` : timeLeft;
+            document.getElementById('round-timer').innerText = `00:${secs}`;
+        }
+
+        function successLink() {
+            clearInterval(timerInterval);
+            isTimerRunning = false;
+
+            const team = teams[currentTurnIndex];
+            team.score += 1;
+
+            const nextIdea = prompt(`Great job, ${team.name}! What short keyword or idea did they link to the chain?`);
+            if (nextIdea && nextIdea.trim() !== "") {
+                chainItems.push(nextIdea.trim());
+                renderChainHistory();
+            } else {
+                chainItems.push(`Link #${chainItems.length + 1}`);
+                renderChainHistory();
+            }
+
+            renderTeams();
+
+            if (team.score >= 5) {
+                triggerWinner(team);
+            } else {
+                currentTurnIndex = (currentTurnIndex + 1) % teams.length;
+                renderTeams();
+                resetTimerState();
+            }
+        }
+
+        function breakChain() {
+            clearInterval(timerInterval);
+            isTimerRunning = false;
+
+            currentTurnIndex = (currentTurnIndex + 1) % teams.length;
+            renderTeams();
+            resetTimerState();
+        }
+
+        function resetTimerState() {
+            clearInterval(timerInterval);
+            isTimerRunning = false;
+            timeLeft = 20;
+            updateTimerDisplay();
+
+            const startBtn = document.getElementById('start-turn-btn');
+            startBtn.disabled = false;
+            startBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+
+            const successBtn = document.getElementById('success-btn');
+            successBtn.disabled = true;
+            successBtn.classList.add('cursor-not-allowed', 'opacity-50', 'bg-emerald-700/50');
+            successBtn.classList.remove('bg-emerald-600', 'hover:bg-emerald-700');
+        }
+
+        function triggerWinner(team) {
+            const modal = document.getElementById('winner-modal');
+            const announcement = document.getElementById('winner-announcement');
+            announcement.innerText = `${team.name} successfully built a chain of 5 connected links and won the game! 🎉`;
+            modal.classList.remove('hidden');
+        }
+
+        function resetGame() {
+            clearInterval(timerInterval);
+            isTimerRunning = false;
+            teams.forEach(t => t.score = 0);
+            currentTurnIndex = 0;
+            document.getElementById('winner-modal').classList.add('hidden');
+            renderTeams();
+            newSeedTopic();
+            resetTimerState();
+        }
+
+        window.onload = function() {
+            // Setup modal remains open until team count is configured
+        };
+    </script>
+</body>
+</html>

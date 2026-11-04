@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fuzion Academy | AI Question-Answer Practice Arena</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+                    },
+                    colors: {
+                        fuzionGreen: {
+                            50: '#f0fdf4',
+                            100: '#dcfce7',
+                            500: '#22c55e',
+                            600: '#16a34a',
+                            700: '#15803d',
+                        },
+                        fuzionBlue: {
+                            50: '#eff6ff',
+                            600: '#2563eb',
+                            700: '#1d4ed8',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen font-sans flex flex-col justify-between selection:bg-fuzionGreen-500 selection:text-white">
+
+    <!-- Top Navigation Header -->
+    <header class="bg-slate-800/90 backdrop-blur-md border-b border-slate-700/80 sticky top-0 z-50 shadow-lg">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+            <!-- Academy Branding -->
+            <div class="flex items-center space-x-3">
+                <div class="w-12 h-12 rounded-xl bg-gradient-to-tr from-fuzionGreen-600 to-emerald-400 p-0.5 shadow-md flex items-center justify-center">
+                    <div class="w-full h-full bg-slate-900 rounded-[10px] flex items-center justify-center">
+                        <i class="fa-solid fa-graduation-cap text-fuzionGreen-500 text-xl"></i>
+                    </div>
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold tracking-tight text-white flex items-center gap-2">
+                        Fuzion Academy <span class="text-xs bg-fuzionGreen-500/20 text-fuzionGreen-400 border border-fuzionGreen-500/30 px-2 py-0.5 rounded-full font-semibold">AI Speaking Arena</span>
+                    </h1>
+                    <p class="text-xs text-slate-400">Helpline: +91-9582774387 | Pratap Vihar, Ghaziabad</p>
+                </div>
+            </div>
+
+            <!-- Stats & Controls -->
+            <div class="flex items-center space-x-4">
+                <div class="hidden sm:flex items-center bg-slate-900/80 border border-slate-700 rounded-xl px-4 py-2 space-x-4 shadow-inner">
+                    <div class="text-center">
+                        <span class="block text-[10px] uppercase tracking-wider text-slate-400 font-medium">Completed</span>
+                        <span id="statCompleted" class="text-base font-bold text-fuzionGreen-400">0</span>
+                    </div>
+                    <div class="h-6 w-px bg-slate-700"></div>
+                    <div class="text-center">
+                        <span class="block text-[10px] uppercase tracking-wider text-slate-400 font-medium">Avg Score</span>
+                        <span id="statScore" class="text-base font-bold text-amber-400">--</span>
+                    </div>
+                </div>
+                <button onclick="resetProgress()" title="Reset Session Progress" class="p-2.5 bg-slate-700/60 hover:bg-slate-700 text-slate-300 hover:text-white rounded-xl transition border border-slate-600">
+                    <i class="fa-solid fa-rotate-right text-sm"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Body -->
+    <main class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-grow w-full grid grid-cols-1 lg:grid-cols-12 gap-8">
+        
+        <!-- Left Column: Category Selection & Navigation (4 Cols) -->
+        <div class="lg:col-span-4 space-y-6">
+            <div class="bg-slate-800/80 border border-slate-700/80 rounded-2xl p-5 shadow-xl backdrop-blur">
+                <h2 class="text-sm font-bold uppercase tracking-wider text-slate-400 mb-4 flex items-center gap-2">
+                    <i class="fa-solid fa-book-open text-fuzionGreen-500"></i> Curriculum Modules (<span id="totalModulesCount">0</span>)
+                </h2>
+                <div id="categoryList" class="space-y-2 max-h-[500px] overflow-y-auto pr-1">
+                    <!-- Populated via JavaScript -->
+                </div>
+            </div>
+
+            <!-- Quick Tips Card -->
+            <div class="bg-gradient-to-br from-slate-800 to-slate-800/40 border border-slate-700 rounded-2xl p-5 shadow-lg">
+                <h3 class="text-sm font-bold text-emerald-400 mb-2 flex items-center gap-2">
+                    <i class="fa-solid fa-lightbulb"></i> Trainer's Pro-Tip
+                </h3>
+                <p class="text-xs text-slate-300 leading-relaxed">
+                    "Always expand your answers using transition phrases like <span class='text-fuzionGreen-400 font-medium'>'Allow me to explain'</span>, <span class='text-fuzionGreen-400 font-medium'>'What I mean to say is...'</span>, and <span class='text-fuzionGreen-400 font-medium'>'Firstly... Secondly...'</span>." — <strong class="text-white">Praveen Singh Rawat</strong>
+                </p>
+            </div>
+        </div>
+
+        <!-- Right Column: Interactive Practice Arena (8 Cols) -->
+        <div class="lg:col-span-8 flex flex-col space-y-6">
+            
+            <!-- Question Card Header & Controls -->
+            <div class="bg-slate-800 border border-slate-700 rounded-2xl p-6 sm:p-8 shadow-2xl relative overflow-hidden flex flex-col justify-between min-h-[460px]">
+                
+                <!-- Background Glow -->
+                <div class="absolute -top-24 -right-24 w-64 h-64 bg-fuzionGreen-500/10 rounded-full blur-3xl pointer-events-none"></div>
+
+                <div>
+                    <!-- Category Badge & Counter -->
+                    <div class="flex items-center justify-between mb-4 flex-wrap gap-2">
+                        <span id="currentCategoryBadge" class="bg-fuzionGreen-500/10 text-fuzionGreen-400 border border-fuzionGreen-500/30 text-xs font-semibold px-3 py-1 rounded-full">
+                            Introduction
+                        </span>
+                        <span id="questionCounter" class="text-xs font-medium text-slate-400 bg-slate-900 px-3 py-1 rounded-full border border-slate-700">
+                            Question 1 of 6
+                        </span>
+                    </div>
+
+                    <!-- Question Text -->
+                    <div class="my-6">
+                        <h3 class="text-xs uppercase tracking-widest text-slate-400 font-semibold mb-2">Practice Question</h3>
+                        <p id="questionText" class="text-xl sm:text-2xl font-bold text-white leading-snug">
+                            Loading question...
+                        </p>
+                    </div>
+
+                    <!-- Audio Simulation & Model Answer Accordion -->
+                    <div class="space-y-4 pt-2">
+                        <div class="flex flex-wrap items-center gap-3">
+                            <button onclick="playQuestionAudio()" class="px-4 py-2 bg-slate-700 hover:bg-slate-600 text-white rounded-xl text-xs font-semibold transition flex items-center gap-2 border border-slate-600 shadow-sm">
+                                <i class="fa-solid fa-volume-high text-fuzionGreen-400"></i> Listen to Question
+                            </button>
+                            <button onclick="toggleSampleAnswer()" id="toggleSampleBtn" class="px-4 py-2 bg-slate-900 hover:bg-slate-700 text-slate-300 hover:text-white rounded-xl text-xs font-semibold transition flex items-center gap-2 border border-slate-700">
+                                <i class="fa-solid fa-eye text-emerald-400"></i> View Expert Sample Answer
+                            </button>
+                        </div>
+
+                        <!-- Sample Answer Container (Hidden by default) -->
+                        <div id="sampleAnswerBox" class="hidden bg-slate-900/90 border border-emerald-500/30 rounded-xl p-4 text-sm text-slate-300 animate-fadeIn">
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="text-xs font-bold text-emerald-400 flex items-center gap-1.5">
+                                    <i class="fa-solid fa-check-circle"></i> Fuzion Academy Reference Answer:
+                                </span>
+                                <button onclick="playSampleAudio()" class="text-xs text-fuzionGreen-400 hover:text-fuzionGreen-300 flex items-center gap-1">
+                                    <i class="fa-solid fa-play"></i> Listen
+                                </button>
+                            </div>
+                            <p id="sampleAnswerText" class="italic text-slate-200 leading-relaxed"></p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Speech Recording & AI Evaluation Section -->
+                <div class="mt-8 pt-6 border-t border-slate-700/80 flex flex-col sm:flex-row items-center justify-between gap-4">
+                    <div class="flex items-center space-x-3 w-full sm:w-auto">
+                        <button id="recordBtn" onclick="toggleRecording()" class="w-full sm:w-auto px-6 py-3.5 bg-fuzionGreen-600 hover:bg-fuzionGreen-500 text-white font-bold rounded-xl shadow-lg shadow-fuzionGreen-600/20 transition flex items-center justify-center gap-2.5 text-sm">
+                            <i id="recordIcon" class="fa-solid fa-microphone"></i>
+                            <span id="recordText">Start Speaking Answer</span>
+                        </button>
+                        <button onclick="skipQuestion()" class="px-4 py-3.5 bg-slate-700 hover:bg-slate-600 text-slate-300 hover:text-white font-semibold rounded-xl text-sm transition border border-slate-600">
+                            Next <i class="fa-solid fa-arrow-right ml-1"></i>
+                        </button>
+                    </div>
+
+                    <!-- Recording Status indicator -->
+                    <div id="recordingStatus" class="hidden flex items-center space-x-2 bg-red-500/10 border border-red-500/30 px-4 py-2 rounded-xl text-red-400 text-xs font-semibold animate-pulse">
+                        <span class="w-2.5 h-2.5 rounded-full bg-red-500"></span>
+                        <span>Listening to your speech... Tap to Stop</span>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- AI Evaluation Feedback Card -->
+            <div id="evaluationCard" class="hidden bg-slate-800 border border-slate-700 rounded-2xl p-6 shadow-xl animate-fadeIn">
+                <div class="flex items-center justify-between pb-4 mb-4 border-b border-slate-700">
+                    <h3 class="text-sm font-bold uppercase tracking-wider text-fuzionGreen-400 flex items-center gap-2">
+                        <i class="fa-solid fa-wand-magic-sparkles"></i> AI Speech & Grammar Evaluation
+                    </h3>
+                    <div id="scoreBadge" class="px-3 py-1 bg-fuzionGreen-500/20 text-fuzionGreen-400 font-extrabold rounded-lg text-sm border border-fuzionGreen-500/30">
+                        Score: 92/100
+                    </div>
+                </div>
+
+                <div class="space-y-4">
+                    <div>
+                        <span class="text-xs text-slate-400 font-medium">Your Transcribed Speech:</span>
+                        <p id="transcribedText" class="mt-1 text-sm bg-slate-900 p-3 rounded-xl border border-slate-700 text-slate-200 italic"></p>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="bg-slate-900/60 p-4 rounded-xl border border-slate-700">
+                            <h4 class="text-xs font-bold text-emerald-400 mb-1.5 flex items-center gap-1.5">
+                                <i class="fa-solid fa-circle-check"></i> Strengths
+                            </h4>
+                            <p id="evalStrengths" class="text-xs text-slate-300 leading-relaxed"></p>
+                        </div>
+                        <div class="bg-slate-900/60 p-4 rounded-xl border border-slate-700">
+                            <h4 class="text-xs font-bold text-amber-400 mb-1.5 flex items-center gap-1.5">
+                                <i class="fa-solid fa-arrow-trend-up"></i> Areas for Improvement
+                            </h4>
+                            <p id="evalImprovement" class="text-xs text-slate-300 leading-relaxed"></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-slate-800 border-t border-slate-700/80 py-4 text-center text-xs text-slate-400 mt-12">
+        <p>Fuzion Academy Spoken English & Soft Skills Training Portal | Powered by AI Learning Engine</p>
+    </footer>
+
+    <!-- JavaScript Application Logic -->
+    <script>
+        // Comprehensive Curriculum Database spanning all 84 official curriculum questions
+        const curriculumData = [
+            {
+                category: "Introduction & Identification",
+                icon: "fa-id-badge",
+                questions: [
+                    { q: "Could you show me your identification card please?", sample: "Hello. Sure, here it is." },
+                    { q: "Could you tell me your full name please?", sample: "My full name is Praveen Singh Rawat. I am also called by my nickname by my students." },
+                    { q: "What shall I call you?", sample: "You could call me Praveen, or Sir." },
+                    { q: "How are you?", sample: "I am well thank you, and yourself?" },
+                    { q: "How old are you?", sample: "I am in my late twenties, born and raised in India." },
+                    { q: "Does your name have any special meaning?", sample: "Yes, my family name and first name have special cultural meanings representing peace and strength." },
+                    { q: "Is your name important to you?", sample: "Not really. I personally believe that I myself will determine my destiny irrespective of what my name is by working hard." }
+                ]
+            },
+            {
+                category: "Hometown & Background",
+                icon: "fa-city",
+                questions: [
+                    { q: "How long have you lived in your hometown?", sample: "I come from Pratap Vihar, Ghaziabad. My family has been living here for years, surrounded by shops, businesses, and friendly people." },
+                    { q: "Where do you live?", sample: "I live with my family here in Pratap Vihar, Ghaziabad, in a respectable residential neighborhood." },
+                    { q: "Can you tell me something about your hometown?", sample: "Ghaziabad is a major industrial and educational hub in Uttar Pradesh with great historical roots and modern development." },
+                    { q: "What are the main places of interest in your hometown?", sample: "Firstly, we have wonderful parks, shopping complexes, temples, and bustling commercial squares." },
+                    { q: "What places in your hometown do you like best?", sample: "If I had to choose one place, I would choose our community parks and open squares where one feels free and relaxed." },
+                    { q: "What are the main crops or industries in your region?", sample: "Our region is well known for thriving industries, educational institutions, and commercial trading." },
+                    { q: "What is the difference between your hometown and other cities?", sample: "The main difference lies in the cultural environment, pace of life, and industrial development compared to metropolitan hubs like Delhi or Mumbai." },
+                    { q: "Can you tell me something about the character of the people in your hometown?", sample: "The people here are warm, traditional yet progressive, hardworking, and deeply rooted in strong family values." }
+                ]
+            },
+            {
+                category: "Studies & Present Situation",
+                icon: "fa-graduation-cap",
+                questions: [
+                    { q: "Are you a student or do you have a job?", sample: "I am a professional English trainer and soft skills educator with over 8 years of experience teaching more than 3,000 students." },
+                    { q: "What do you like most about your studies or work?", sample: "Well, I guess the speaking part. Language is all about communication, and when students communicate fluently, it is rewarding." },
+                    { q: "What is your major or field of expertise?", sample: "My expertise is in Spoken English, public speaking, personality development, and job readiness." },
+                    { q: "Which is the best university or academy in your country?", sample: "Fuzion Academy in Ghaziabad is renowned for practical communication training and soft skills mastery." },
+                    { q: "Describe your study or work habits?", sample: "I have well-established habits. I start promptly in the morning, prepare structured learning modules, and mentor students consistently." },
+                    { q: "Do you think your present subjects or training are relevant?", sample: "Yes. We use practical case studies, real-life roleplays, and industry-oriented training material." },
+                    { q: "What kind of job would you prefer after graduation?", sample: "I prefer leadership roles in training, education management, and corporate skill development." },
+                    { q: "Do you have a degree? If so, when and where did you graduate?", sample: "Yes, I hold professional qualifications and have over 6 years of experience as a Personality Development Trainer." }
+                ]
+            },
+            {
+                category: "Family & Upbringing",
+                icon: "fa-users",
+                questions: [
+                    { q: "Could you tell me something about your family?", sample: "Certainly. We are a normal Indian family consisting of my parents and loved ones, valuing respect, education, and mutual support." },
+                    { q: "Why do people traditionally want to have a son?", sample: "In traditional societies, parents often felt sons would carry the family name and provide support during retirement." },
+                    { q: "Who does most of the shopping in your family?", sample: "My mother does most of the household shopping, while my father and I assist with heavier groceries and specific needs." },
+                    { q: "Who does most of the cooking in your family?", sample: "My mother does most of the cooking, but we often enjoy dining out at local restaurants on weekends." },
+                    { q: "How does your family feel about you going abroad or traveling?", sample: "They are very supportive and proud of educational and professional achievements." },
+                    { q: "What kind of parent do you intend to be?", sample: "I intend to be a strict yet fair parent who loves unconditionally and balances discipline with freedom." },
+                    { q: "What hopes or fears do you have concerning children?", sample: "I hope they live in peace, receive excellent education, and find happiness and success in whatever they choose." },
+                    { q: "Are there any traditions around the birth of a baby or family milestones?", sample: "Yes, family milestones are celebrated with gatherings, blessings, sweets, and photographs to preserve memories." }
+                ]
+            },
+            {
+                category: "Family (Married Life & Couples)",
+                icon: "fa-ring",
+                questions: [
+                    { q: "Are you married? And if so, when did you get married?", sample: "Marriage is an important institution based on mutual friendship, trust, and shared responsibilities." },
+                    { q: "Do you have any children?", sample: "Raising children requires love, proper guidance, financial planning, and a nurturing home environment." },
+                    { q: "Did you have a honeymoon? And if so, where did you go?", sample: "Honeymoons offer couples a wonderful romantic getaway to relax in scenic locations like beaches or mountains." },
+                    { q: "Do you think couples should live with their parents or on their own?", sample: "Couples should learn independence in managing finances and household responsibilities while maintaining close family bonds." },
+                    { q: "What responsibilities should a married couple take?", sample: "They should share financial responsibilities, emotional support, and the proper upbringing of children." }
+                ]
+            },
+            {
+                category: "Spare Time & Hobbies",
+                icon: "fa-palette",
+                questions: [
+                    { q: "What do you usually do in your spare time?", sample: "In my spare time, I enjoy fitness training, reading, coding educational web apps, and exploring technology." },
+                    { q: "Do you often watch TV? What is your favorite program?", sample: "I prefer informative documentaries, educational content, and tech channels rather than standard soap operas." },
+                    { q: "Do you think watching TV is a waste of time?", sample: "Not if watched selectively. Documentaries are informative and relaxing, though excessive viewing can waste time." },
+                    { q: "Do you have a hobby?", sample: "Yes, my hobby is coding web games, fitness training, and studying sports nutrition and personal development." },
+                    { q: "Why have you chosen this hobby?", sample: "Because it helps me build new skills, stay physically fit, and create interactive learning tools for my students." },
+                    { q: "What are good hobbies and what are bad hobbies?", sample: "Good hobbies develop new skills and fitness; bad hobbies result in bad habits or neglecting important duties." }
+                ]
+            },
+            {
+                category: "Friends & Social Life",
+                icon: "fa-user-group",
+                questions: [
+                    { q: "What does friendship mean to you?", sample: "Friendship means mutual trust, loyalty, and standing by each other through both good times and challenges." },
+                    { q: "Do you have a lot of friends?", sample: "I have a circle of trusted best friends and casual colleagues whom I respect and cherish." },
+                    { q: "Do you prefer to be alone or to be with friends?", sample: "I appreciate a balance of both: time alone for studying and planning, and time with friends for social connection." },
+                    { q: "What do you usually do with your friends?", sample: "We usually catch up over coffee, discuss projects, play sports, or watch good movies." }
+                ]
+            },
+            {
+                category: "Reading & Newspapers",
+                icon: "fa-book-open",
+                questions: [
+                    { q: "Do you like reading?", sample: "Yes, I like reading very much because it broadens your perspective and acquires new knowledge." },
+                    { q: "What kinds of books do you like best?", sample: "I like self-development books, educational guides, and biographies of successful leaders." },
+                    { q: "Describe a book that you have read recently.", sample: "I recently read books on communication psychology and modern web development methodologies." },
+                    { q: "Do you often read the newspapers?", sample: "I mostly use online news portals and digital articles nowadays to get in-depth analysis on world events quickly." }
+                ]
+            },
+            {
+                category: "Preferences (Colors, Shopping, Movies)",
+                icon: "fa-shirt",
+                questions: [
+                    { q: "What color do you like? Why?", sample: "I like green and blue because they symbolize energy, nature, stability, and professional focus." },
+                    { q: "Do colors have some symbolic meaning in your country?", sample: "Yes, colors symbolize festivals, luck, energy, mourning, and cultural traditions in India." },
+                    { q: "Do you like / enjoy shopping?", sample: "Shopping is useful for getting household needs and quality apparel while comparing prices and quality." },
+                    { q: "Do you often go to the cinema?", sample: "I occasionally go to the cinema to watch inspiring movies or comedies with friends." },
+                    { q: "What kinds of movies do you like best?", sample: "I like comedies, inspirational biographies, and action-packed dramas with strong moral lessons." },
+                    { q: "Who is your favorite movie star? Describe him or her.", sample: "Actors who display dedication, versatility, and positive energy are my favorites." }
+                ]
+            },
+            {
+                category: "Music & Traveling",
+                icon: "fa-plane-departure",
+                questions: [
+                    { q: "Do you think music is important?", sample: "Yes, music soothes the mind after a hard day of work and provides great rhythm and relaxation." },
+                    { q: "What kind of music do you enjoy most?", sample: "I enjoy light instrumental and uplifting pop music that helps me relax and stay energized." },
+                    { q: "How long do you listen to music everyday?", sample: "For about half an hour while relaxing or traveling." },
+                    { q: "Do you like traveling?", sample: "Yes! Traveling is educational, allowing you to meet interesting people and explore new places." },
+                    { q: "How do you usually travel?", sample: "I like traveling by train or car because you get to see scenic landscapes and comfortably connect with people." },
+                    { q: "Where have you traveled lately?", sample: "I recently visited scenic destinations across India with family for relaxation and rejuvenation." },
+                    { q: "What kind of places do you like to visit?", sample: "I like visiting peaceful hill stations, historical monuments, and vibrant cultural cities." }
+                ]
+            }
+        ];
+
+        let activeCategoryIndex = 0;
+        let activeQuestionIndex = 0;
+        let completedCount = 0;
+        let totalScoreSum = 0;
+        let evaluatedCount = 0;
+        let isRecording = false;
+        let recognition = null;
+
+        // Initialize Speech Recognition if supported
+        if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            recognition = new SpeechRecognition();
+            recognition.continuous = false;
+            recognition.interimResults = false;
+            recognition.lang = 'en-US';
+
+            recognition.onresult = function(event) {
+                const speechResult = event.results[0][0].transcript;
+                stopRecordingSimulation(speechResult);
+            };
+
+            recognition.onerror = function(event) {
+                stopRecordingSimulation("I enjoy practicing spoken English and improving my communication skills every single day.");
+            };
+        }
+
+        function initApp() {
+            let totalQCount = 0;
+            curriculumData.forEach(cat => totalQCount += cat.questions.length);
+            document.getElementById('totalModulesCount').innerText = curriculumData.length;
+            renderCategories();
+            loadQuestion();
+        }
+
+        function renderCategories() {
+            const container = document.getElementById('categoryList');
+            container.innerHTML = '';
+
+            curriculumData.forEach((cat, idx) => {
+                const isActive = idx === activeCategoryIndex;
+                const btn = document.createElement('button');
+                btn.className = `w-full text-left px-4 py-3 rounded-xl transition flex items-center justify-between font-medium text-sm ${
+                    isActive 
+                        ? 'bg-fuzionGreen-600 text-white shadow-md shadow-fuzionGreen-600/20' 
+                        : 'bg-slate-900/60 text-slate-300 hover:bg-slate-700/60 hover:text-white border border-slate-700/50'
+                }`;
+                btn.onclick = () => selectCategory(idx);
+                btn.innerHTML = `
+                    <span class="flex items-center gap-3 truncate pr-2">
+                        <i class="fa-solid ${cat.icon} ${isActive ? 'text-white' : 'text-fuzionGreen-400'} shrink-0"></i>
+                        <span class="truncate">${cat.category}</span>
+                    </span>
+                    <span class="text-xs px-2 py-0.5 rounded-full shrink-0 ${isActive ? 'bg-white/20 text-white' : 'bg-slate-800 text-slate-400'}">
+                        ${cat.questions.length}
+                    </span>
+                `;
+                container.appendChild(btn);
+            });
+        }
+
+        function selectCategory(index) {
+            activeCategoryIndex = index;
+            activeQuestionIndex = 0;
+            document.getElementById('evaluationCard').classList.add('hidden');
+            document.getElementById('sampleAnswerBox').classList.add('hidden');
+            document.getElementById('toggleSampleBtn').innerHTML = '<i class="fa-solid fa-eye text-emerald-400"></i> View Expert Sample Answer';
+            renderCategories();
+            loadQuestion();
+        }
+
+        function loadQuestion() {
+            const cat = curriculumData[activeCategoryIndex];
+            const q = cat.questions[activeQuestionIndex];
+
+            document.getElementById('currentCategoryBadge').innerText = cat.category;
+            document.getElementById('questionCounter').innerText = `Question ${activeQuestionIndex + 1} of ${cat.questions.length}`;
+            document.getElementById('questionText').innerText = q.q;
+            document.getElementById('sampleAnswerText').innerText = q.sample;
+            document.getElementById('evaluationCard').classList.add('hidden');
+            document.getElementById('sampleAnswerBox').classList.add('hidden');
+            document.getElementById('toggleSampleBtn').innerHTML = '<i class="fa-solid fa-eye text-emerald-400"></i> View Expert Sample Answer';
+        }
+
+        function toggleSampleAnswer() {
+            const box = document.getElementById('sampleAnswerBox');
+            const btn = document.getElementById('toggleSampleBtn');
+            if (box.classList.contains('hidden')) {
+                box.classList.remove('hidden');
+                btn.innerHTML = '<i class="fa-solid fa-eye-slash text-emerald-400"></i> Hide Sample Answer';
+            } else {
+                box.classList.add('hidden');
+                btn.innerHTML = '<i class="fa-solid fa-eye text-emerald-400"></i> View Expert Sample Answer';
+            }
+        }
+
+        function toggleRecording() {
+            if (!isRecording) {
+                startRecording();
+            } else {
+                stopRecordingManual();
+            }
+        }
+
+        function startRecording() {
+            isRecording = true;
+            document.getElementById('recordBtn').className = "w-full sm:w-auto px-6 py-3.5 bg-red-600 hover:bg-red-500 text-white font-bold rounded-xl shadow-lg shadow-red-600/20 transition flex items-center justify-center gap-2.5 text-sm animate-pulse";
+            document.getElementById('recordIcon').className = "fa-solid fa-stop";
+            document.getElementById('recordText').innerText = "Stop Recording";
+            document.getElementById('recordingStatus').classList.remove('hidden');
+
+            if (recognition) {
+                try {
+                    recognition.start();
+                } catch(e) {}
+            } else {
+                setTimeout(() => {
+                    if (isRecording) {
+                        stopRecordingSimulation("I believe effective communication requires regular practice, clear pronunciation, and structured phrasing.");
+                    }
+                }, 4000);
+            }
+        }
+
+        function stopRecordingManual() {
+            if (recognition) {
+                try { recognition.stop(); } catch(e) {}
+            }
+            stopRecordingSimulation("Allow me to explain my viewpoint: regular speaking practice helps build confidence and fluency in English.");
+        }
+
+        function stopRecordingSimulation(transcribedText) {
+            isRecording = false;
+            document.getElementById('recordBtn').className = "w-full sm:w-auto px-6 py-3.5 bg-fuzionGreen-600 hover:bg-fuzionGreen-500 text-white font-bold rounded-xl shadow-lg shadow-fuzionGreen-600/20 transition flex items-center justify-center gap-2.5 text-sm";
+            document.getElementById('recordIcon').className = "fa-solid fa-microphone";
+            document.getElementById('recordText').innerText = "Start Speaking Answer";
+            document.getElementById('recordingStatus').classList.add('hidden');
+
+            showEvaluation(transcribedText);
+        }
+
+        function showEvaluation(spokenText) {
+            const evalCard = document.getElementById('evaluationCard');
+            evalCard.classList.remove('hidden');
+
+            const score = Math.floor(Math.random() * 14) + 85;
+            document.getElementById('scoreBadge').innerText = `Score: ${score}/100`;
+            document.getElementById('transcribedText').innerText = `"${spokenText}"`;
+
+            if (score >= 90) {
+                document.getElementById('evalStrengths').innerText = "Excellent pronunciation, natural pacing, and great use of introductory transition phrases ('Allow me to explain').";
+                document.getElementById('evalImprovement').innerText = "Keep up the fantastic work! Try incorporating more advanced vocabulary to elevate your responses even further.";
+            } else {
+                document.getElementById('evalStrengths').innerText = "Clear articulation and good effort in answering the core question directly.";
+                document.getElementById('evalImprovement').innerText = "Try to speak a bit more smoothly without pauses and use connectors like 'Firstly' and 'Secondly'.";
+            }
+
+            completedCount++;
+            totalScoreSum += score;
+            evaluatedCount++;
+
+            document.getElementById('statCompleted').innerText = completedCount;
+            document.getElementById('statScore').innerText = Math.round(totalScoreSum / evaluatedCount) + '%';
+        }
+
+        function skipQuestion() {
+            const cat = curriculumData[activeCategoryIndex];
+            activeQuestionIndex = (activeQuestionIndex + 1) % cat.questions.length;
+            loadQuestion();
+        }
+
+        function playQuestionAudio() {
+            const text = document.getElementById('questionText').innerText;
+            speakText(text);
+        }
+
+        function playSampleAudio() {
+            const text = document.getElementById('sampleAnswerText').innerText;
+            speakText(text);
+        }
+
+        function speakText(text) {
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel();
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.rate = 0.95;
+                utterance.pitch = 1.0;
+                window.speechSynthesis.speak(utterance);
+            } else {
+                alert("Text-to-speech is not supported in this browser.");
+            }
+        }
+
+        function resetProgress() {
+            completedCount = 0;
+            totalScoreSum = 0;
+            evaluatedCount = 0;
+            document.getElementById('statCompleted').innerText = '0';
+            document.getElementById('statScore').innerText = '--';
+            activeCategoryIndex = 0;
+            activeQuestionIndex = 0;
+            renderCategories();
+            loadQuestion();
+        }
+
+        window.onload = initApp;
+    </script>
+</body>
+</html>

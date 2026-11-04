@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JAM Topic Generator | Just-A-Minute Practice</title>
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --card-bg: #1e293b;
+            --border-color: #334155;
+            --accent: #38bdf8;
+            --accent-hover: #0284c7;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 650px;
+            width: 100%;
+            text-align: center;
+            margin: auto;
+            padding: 20px;
+        }
+
+        header h1 {
+            font-size: 2.2rem;
+            color: var(--accent);
+            margin-bottom: 8px;
+            font-weight: 800;
+        }
+
+        header p {
+            color: var(--text-muted);
+            font-size: 1rem;
+            margin-bottom: 25px;
+        }
+
+        .controls {
+            margin-bottom: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            align-items: center;
+        }
+
+        select {
+            background: var(--card-bg);
+            color: var(--text-main);
+            border: 2px solid var(--border-color);
+            padding: 10px 16px;
+            border-radius: 8px;
+            font-size: 1rem;
+            outline: none;
+            cursor: pointer;
+            width: 100%;
+            max-width: 320px;
+            transition: border-color 0.2s;
+        }
+
+        select:focus {
+            border-color: var(--accent);
+        }
+
+        .generate-btn {
+            background-color: var(--accent);
+            color: #0f172a;
+            border: none;
+            padding: 12px 28px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 12px rgba(56, 189, 248, 0.3);
+        }
+
+        .generate-btn:hover {
+            background-color: var(--accent-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(56, 189, 248, 0.4);
+        }
+
+        .card {
+            background: var(--card-bg);
+            border: 2px solid var(--border-color);
+            border-radius: 14px;
+            padding: 30px 20px;
+            margin: 25px 0;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+            position: relative;
+            transition: transform 0.2s;
+        }
+
+        .category-badge {
+            position: absolute;
+            top: -12px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--accent);
+            color: #0f172a;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            padding: 4px 12px;
+            border-radius: 20px;
+            letter-spacing: 0.5px;
+        }
+
+        .topic-display {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text-main);
+            margin: 10px 0 15px 0;
+            min-height: 70px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            word-break: break-word;
+        }
+
+        .structure-tip {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            background: rgba(15, 23, 42, 0.6);
+            padding: 10px;
+            border-radius: 6px;
+            border-left: 3px solid var(--accent);
+            text-align: left;
+        }
+
+        /* Timer Section */
+        .timer-section {
+            margin-top: 25px;
+            background: rgba(30, 41, 59, 0.5);
+            border: 1px solid var(--border-color);
+            padding: 15px;
+            border-radius: 10px;
+        }
+
+        .timer-display {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: var(--accent);
+            margin-bottom: 10px;
+            font-family: monospace;
+        }
+
+        .timer-controls {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .timer-btn {
+            background: transparent;
+            color: var(--text-main);
+            border: 1px solid var(--border-color);
+            padding: 6px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 600;
+            transition: background 0.2s;
+        }
+
+        .timer-btn:hover {
+            background: var(--border-color);
+        }
+
+        footer {
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <header>
+            <h1>JAM Topic Generator</h1>
+            <p>Master impromptu speaking with 100+ categorized prompts</p>
+        </header>
+
+        <div class="controls">
+            <select id="categorySelect">
+                <option value="all">🌟 All Categories (Master Mix)</option>
+                <option value="beginner">👶 Beginner (Primary Kids)</option>
+                <option value="elementary">📚 Elementary (Middle School)</option>
+                <option value="values">💡 Values & Character</option>
+                <option value="society">🌐 Current Affairs & Society</option>
+                <option value="fun">🎉 Fun & Light Activities</option>
+                <option value="motivation">🔥 Motivation & Self-Belief</option>
+                <option value="placements">💼 Placements & Career Mastery</option>
+            </select>
+
+            <button class="generate-btn" onclick="generateTopic()">Generate New Topic 🎲</button>
+        </div>
+
+        <div class="card">
+            <div id="categoryBadge" class="category-badge">Ready</div>
+            <div id="topicDisplay" class="topic-display">Click 'Generate New Topic' to start!</div>
+            <div class="structure-tip">
+                <strong>60-Sec Rule:</strong> No hesitation, repetition, or deviation.<br>
+                <em>Structure:</em> Hook ➔ Core Idea ➔ Example ➔ Conclusion
+            </div>
+        </div>
+
+        <div class="timer-section">
+            <div id="timerDisplay" class="timer-display">00:60</div>
+            <div class="timer-controls">
+                <button class="timer-btn" onclick="startTimer()">Start Timer</button>
+                <button class="timer-btn" onclick="pauseTimer()">Pause</button>
+                <button class="timer-btn" onclick="resetTimer()">Reset</button>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <p>© 2026 JAM Session Master Tool</p>
+    </footer>
+
+    <script>
+        const topicsData = {
+            beginner: [
+                { title: "My Best Friend", cat: "Beginner (Kids)" },
+                { title: "My Favourite Festival", cat: "Beginner (Kids)" },
+                { title: "A Day Without School", cat: "Beginner (Kids)" },
+                { title: "My Favourite Cartoon", cat: "Beginner (Kids)" },
+                { title: "Good Habits Everyone Should Follow", cat: "Beginner (Kids)" },
+                { title: "My Pet Animal", cat: "Beginner (Kids)" },
+                { title: "My Favourite Toy", cat: "Beginner (Kids)" },
+                { title: "My School", cat: "Beginner (Kids)" },
+                { title: "Importance of Cleanliness", cat: "Beginner (Kids)" },
+                { title: "My Favourite Food", cat: "Beginner (Kids)" },
+                { title: "My Family", cat: "Beginner (Kids)" },
+                { title: "My Favourite Season", cat: "Beginner (Kids)" },
+                { title: "My Favourite Colour", cat: "Beginner (Kids)" },
+                { title: "Morning Walk Benefits", cat: "Beginner (Kids)" },
+                { title: "A Visit to the Park", cat: "Beginner (Kids)" }
+            ],
+            elementary: [
+                { title: "Importance of Time Management", cat: "Elementary School" },
+                { title: "My Favourite Subject", cat: "Elementary School" },
+                { title: "Books vs TV", cat: "Elementary School" },
+                { title: "Impact of Mobile Phones on Students", cat: "Elementary School" },
+                { title: "Value of Hard Work", cat: "Elementary School" },
+                { title: "Importance of Sports in Student Life", cat: "Elementary School" },
+                { title: "Role of Teachers in Our Lives", cat: "Elementary School" },
+                { title: "My Dream Job", cat: "Elementary School" },
+                { title: "Honesty is the Best Policy", cat: "Elementary School" },
+                { title: "Discipline in Daily Life", cat: "Elementary School" },
+                { title: "My Role Model", cat: "Elementary School" },
+                { title: "Importance of Healthy Food", cat: "Elementary School" },
+                { title: "Festivals and Their Importance", cat: "Elementary School" },
+                { title: "Online Classes vs Classroom Learning", cat: "Elementary School" },
+                { title: "Friendship", cat: "Elementary School" },
+                { title: "Why saying 'thank you' changes your day", cat: "Elementary School" },
+                { title: "The best advice I ever got", cat: "Elementary School" },
+                { title: "A small habit that improved my life", cat: "Elementary School" },
+                { title: "Why reading is a superpower", cat: "Elementary School" },
+                { title: "Why kindness is free but priceless", cat: "Elementary School" }
+            ],
+            values: [
+                { title: "Honesty in small things", cat: "Values & Character" },
+                { title: "Why patience beats talent", cat: "Values & Character" },
+                { title: "Respect costs nothing and earns everything", cat: "Values & Character" },
+                { title: "Why discipline is freedom, not a cage", cat: "Values & Character" },
+                { title: "The courage to say 'I don't know'", cat: "Values & Character" },
+                { title: "Why we should keep our promises", cat: "Values & Character" },
+                { title: "Gratitude: the habit that changes everything", cat: "Values & Character" },
+                { title: "The strength in admitting a mistake", cat: "Values & Character" },
+                { title: "Punctuality is a form of respect", cat: "Values & Character" },
+                { title: "Choosing right when no one is watching", cat: "Values & Character" },
+                { title: "Why teamwork beats a lone hero", cat: "Values & Character" },
+                { title: "Why respect for elders still matters", cat: "Values & Character" }
+            ],
+            society: [
+                { title: "Digital India: convenience and its cost", cat: "Current Affairs & Society" },
+                { title: "Why voting matters at eighteen", cat: "Current Affairs & Society" },
+                { title: "Should smartphones be allowed in schools?", cat: "Current Affairs & Society" },
+                { title: "Is social media making us lonelier?", cat: "Current Affairs & Society" },
+                { title: "Why every Indian language deserves respect", cat: "Current Affairs & Society" },
+                { title: "The gig economy: freedom or insecurity?", cat: "Current Affairs & Society" },
+                { title: "Fake news: why we must pause before we share", cat: "Current Affairs & Society" },
+                { title: "Work from home: here to stay or a passing phase?", cat: "Current Affairs & Society" },
+                { title: "Why India's youth can't stay silent on climate", cat: "Current Affairs & Society" },
+                { title: "Is AI going to take our jobs or make new ones?", cat: "Current Affairs & Society" },
+                { title: "Why mental health is finally being talked about", cat: "Current Affairs & Society" }
+            ],
+            fun: [
+                { title: "Why Mondays are secretly underrated", cat: "Fun & Light" },
+                { title: "The one app I couldn't live without", cat: "Fun & Light" },
+                { title: "If I could have any superpower for a day", cat: "Fun & Light" },
+                { title: "Why street food beats fancy restaurants", cat: "Fun & Light" },
+                { title: "The best meal I've ever eaten", cat: "Fun & Light" },
+                { title: "If I could swap lives with anyone for a day", cat: "Fun & Light" },
+                { title: "Why cricket unites this country", cat: "Fun & Light" },
+                { title: "The joy of the first rain", cat: "Fun & Light" },
+                { title: "If my pet could talk for one minute", cat: "Fun & Light" },
+                { title: "Why weekends never feel long enough", cat: "Fun & Light" }
+            ],
+            motivation: [
+                { title: "Why comparison steals your happiness", cat: "Motivation & Self-Belief" },
+                { title: "How discipline beats motivation on hard days", cat: "Motivation & Self-Belief" },
+                { title: "Why failure is a better teacher than success", cat: "Motivation & Self-Belief" },
+                { title: "Learning to say no without guilt", cat: "Motivation & Self-Belief" },
+                { title: "The magic of starting before you feel ready", cat: "Motivation & Self-Belief" },
+                { title: "Why asking for help is a strength", cat: "Motivation & Self-Belief" },
+                { title: "Turning 'I can't' into 'I can't yet'", cat: "Motivation & Self-Belief" },
+                { title: "Why every expert was once a beginner", cat: "Motivation & Self-Belief" }
+            ],
+            placements: [
+                { title: "Is remote work the future of jobs?", cat: "Placements & Career" },
+                { title: "Communication matters more than technical skill", cat: "Placements & Career" },
+                { title: "Should college teach financial literacy?", cat: "Placements & Career" },
+                { title: "Is a degree still worth it in 2026?", cat: "Placements & Career" },
+                { title: "Startups vs. a stable job: what would you choose?", cat: "Placements & Career" },
+                { title: "Why soft skills decide your career", cat: "Placements & Career" },
+                { title: "Can you learn leadership, or are you born with it?", cat: "Placements & Career" },
+                { title: "Should freshers negotiate their first salary?", cat: "Placements & Career" },
+                { title: "Why English speaking confidence changes your placement odds", cat: "Placements & Career" }
+            ]
+        };
+
+        // Flatten all topics for the "all" category choice
+        function getAllTopics() {
+            let combined = [];
+            for (let key in topicsData) {
+                combined = combined.concat(topicsData[key]);
+            }
+            return combined;
+        }
+
+        function generateTopic() {
+            const selectedCategory = document.getElementById('categorySelect').value;
+            let pool = [];
+
+            if (selectedCategory === 'all') {
+                pool = getAllTopics();
+            } else {
+                pool = topicsData[selectedCategory] || getAllTopics();
+            }
+
+            const randomIndex = Math.floor(Math.random() * pool.length);
+            const chosen = pool[randomIndex];
+
+            document.getElementById('topicDisplay').innerText = chosen.title;
+            document.getElementById('categoryBadge').innerText = chosen.cat;
+
+            resetTimer();
+        }
+
+        // Timer Logic
+        let timeLeft = 60;
+        let timerId = null;
+
+        function updateTimerDisplay() {
+            let seconds = timeLeft < 10 ? '0' + timeLeft : timeLeft;
+            document.getElementById('timerDisplay').innerText = `00:${seconds}`;
+        }
+
+        function startTimer() {
+            if (timerId !== null) return; // already running
+            timerId = setInterval(() => {
+                if (timeLeft > 0) {
+                    timeLeft--;
+                    updateTimerDisplay();
+                } else {
+                    clearInterval(timerId);
+                    timerId = null;
+                    alert("Time's up! Great job!");
+                }
+            }, 1000);
+        }
+
+        function pauseTimer() {
+            clearInterval(timerId);
+            timerId = null;
+        }
+
+        function resetTimer() {
+            pauseTimer();
+            timeLeft = 60;
+            updateTimerDisplay();
+        }
+    </script>
+</body>
+</html>

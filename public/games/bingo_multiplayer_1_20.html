@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Multiplayer Bingo Room (1-20) 🎯🌐</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        :root {
+            --primary: #6366f1;
+            --primary-hover: #4f46e5;
+            --secondary: #ec4899;
+            --background: #f8fafc;
+            --card-bg: #ffffff;
+            --text: #1e293b;
+            --success: #10b981;
+            --bingo-gold: #f59e0b;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #e0f2fe, #fce7f3);
+            color: var(--text);
+            margin: 0;
+            padding: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            background-color: var(--card-bg);
+            padding: 15px;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            max-width: 500px;
+            width: 100%;
+            text-align: center;
+        }
+
+        h1 {
+            color: var(--primary);
+            margin: 0 0 5px 0;
+            font-size: 1.4rem;
+        }
+
+        .subtitle {
+            font-size: 0.85rem;
+            color: #64748b;
+            margin-bottom: 12px;
+        }
+
+        /* Lobby Screen */
+        #lobby-screen {
+            background: #f1f5f9;
+            padding: 20px;
+            border-radius: 14px;
+        }
+
+        #lobby-screen input, #lobby-screen select {
+            width: 100%;
+            padding: 12px;
+            margin: 8px 0;
+            border: 2px solid #cbd5e1;
+            border-radius: 8px;
+            font-size: 1rem;
+            box-sizing: border-box;
+            background: #ffffff;
+        }
+
+        .btn {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            font-size: 1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        .btn:hover {
+            background-color: var(--primary-hover);
+        }
+
+        .hidden { display: none !important; }
+
+        /* Game Board Area */
+        .scoreboard-bar {
+            display: flex;
+            justify-content: space-between;
+            background: #f1f5f9;
+            padding: 8px 12px;
+            border-radius: 10px;
+            margin-bottom: 12px;
+            font-weight: bold;
+            font-size: 0.85rem;
+        }
+
+        /* Bingo 3x3 Grid */
+        .bingo-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            margin-bottom: 15px;
+        }
+
+        .bingo-cell {
+            background: #ffffff;
+            border: 2px solid #cbd5e1;
+            border-radius: 10px;
+            padding: 10px 4px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: center;
+            min-height: 110px;
+            text-align: center;
+        }
+
+        .bingo-cell:active {
+            transform: scale(0.96);
+        }
+
+        .bingo-cell.marked {
+            background: #ecfdf5;
+            border-color: var(--success);
+        }
+
+        .cell-prompt {
+            font-size: 0.73rem;
+            font-weight: bold;
+            color: #334155;
+            line-height: 1.2;
+        }
+
+        .cell-status {
+            font-size: 0.68rem;
+            font-weight: bold;
+            color: #94a3b8;
+            border-top: 1px dashed #e2e8f0;
+            width: 100%;
+            padding-top: 4px;
+            margin-top: 4px;
+        }
+
+        .bingo-cell.marked .cell-status {
+            color: var(--success);
+            border-top-color: #a7f3d0;
+        }
+
+        /* Modal Popup Styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s ease;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .modal-box {
+            background: white;
+            padding: 20px;
+            border-radius: 16px;
+            width: 90%;
+            max-width: 360px;
+            text-align: left;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+        }
+
+        .modal-box label {
+            display: block;
+            font-size: 0.85rem;
+            font-weight: bold;
+            margin: 8px 0 4px;
+            color: #475569;
+        }
+
+        .modal-box input {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #cbd5e1;
+            border-radius: 8px;
+            font-size: 1rem;
+            box-sizing: border-box;
+        }
+
+        .modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .btn-secondary {
+            background-color: #cbd5e1;
+            color: #334155;
+            width: auto;
+            margin-top: 0;
+            padding: 10px 15px;
+        }
+
+        /* Bingo Banner */
+        .bingo-banner {
+            display: none;
+            background: #fef3c7;
+            border: 2px solid var(--bingo-gold);
+            padding: 10px;
+            border-radius: 12px;
+            margin-top: 10px;
+            color: #92400e;
+            font-size: 1rem;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>🎯 Multiplayer Bingo (1-20) 🎯</h1>
+        <div class="subtitle">Choose your Room Code (1 to 20) & play!</div>
+
+        <!-- Lobby Screen -->
+        <div id="lobby-screen">
+            <h3>Join Game Room</h3>
+            <input type="text" id="player-name-input" placeholder="Your Name (e.g. Leo)..." autocomplete="off">
+            
+            <label for="room-select" style="text-align:left; font-size:0.85rem; font-weight:bold; color:#475569; margin-top:10px;">Select Room Number (1 - 20):</label>
+            <select id="room-select">
+                <!-- Dynamically populate options 1 to 20 -->
+            </select>
+
+            <button class="btn" onclick="joinRoom()">Enter Room 🚀</button>
+        </div>
+
+        <!-- Game Screen -->
+        <div id="game-screen" class="hidden">
+            <div class="scoreboard-bar">
+                <div>Player: <span id="display-player-name" style="color:var(--primary);"></span></div>
+                <div>Room: <span id="display-room-num" style="color:var(--secondary);"></span></div>
+                <div>Lines: <span id="bingo-count" style="color:var(--bingo-gold);">0</span> 🏆</div>
+            </div>
+
+            <!-- 3x3 Bingo Grid -->
+            <div class="bingo-grid" id="bingo-grid"></div>
+
+            <div class="bingo-banner" id="bingo-banner">
+                🎉 BINGO! Winning line completed! 🎉
+            </div>
+        </div>
+    </div>
+
+    <!-- Interview Modal -->
+    <div class="modal-overlay" id="modal-overlay">
+        <div class="modal-box">
+            <h3 id="modal-prompt-title" style="margin-top:0; font-size:1.0rem; color:var(--primary);">Find someone who...</h3>
+            <p style="font-size: 0.78rem; color: #6366f1; margin-bottom: 8px;" id="modal-question-hint"></p>
+            
+            <label for="peer-name">Classmate's Name:</label>
+            <input type="text" id="peer-name" placeholder="Type name here..." autocomplete="off">
+
+            <div class="modal-actions">
+                <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+                <button class="btn" style="width:auto; margin-top:0; padding:10px 15px;" onclick="saveCell()">Mark Cell ✅</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Populate Room dropdown 1 to 20
+        const roomSelect = document.getElementById('room-select');
+        for (let i = 1; i <= 20; i++) {
+            const opt = document.createElement('option');
+            opt.value = i;
+            opt.textContent = `Room ${i}`;
+            roomSelect.appendChild(opt);
+        }
+
+        let myName = '';
+        let roomNum = '';
+        let activeIndex = null;
+        let boardCells = [];
+
+        // Master pool of 12 unique traits
+        const masterPool = [
+            { prompt: "was born in February", q: "Were you born in February?" },
+            { prompt: "has traveled abroad", q: "Have you ever traveled abroad?" },
+            { prompt: "plays an instrument", q: "Do you play a musical instrument?" },
+            { prompt: "hates eating broccoli", q: "Do you dislike eating broccoli?" },
+            { prompt: "woke up before 6 AM", q: "Did you wake up early today?" },
+            { prompt: "speaks 3 languages", q: "Can you speak three languages?" },
+            { prompt: "has a pet cat or dog", q: "Do you have a pet cat or dog?" },
+            { prompt: "read a book last week", q: "Did you read a book last week?" },
+            { prompt: "loves swimming", q: "Do you like swimming?" },
+            { prompt: "has broken a bone", q: "Have you ever broken a bone?" },
+            { prompt: "can bake a cake", q: "Can you bake a cake by yourself?" },
+            { prompt: "has met a famous person", q: "Have you ever met a famous person?" }
+        ];
+
+        function joinRoom() {
+            myName = document.getElementById('player-name-input').value.trim();
+            roomNum = document.getElementById('room-select').value;
+
+            if (!myName) {
+                alert('Please enter your name!');
+                return;
+            }
+
+            document.getElementById('display-player-name').textContent = myName;
+            document.getElementById('display-room-num').textContent = `Room ${roomNum}`;
+            document.getElementById('lobby-screen').classList.add('hidden');
+            document.getElementById('game-screen').classList.remove('hidden');
+
+            // Use room number as seed or just shuffle unique cards per session
+            const shuffled = [...masterPool].sort(() => 0.5 - Math.random());
+            boardCells = shuffled.slice(0, 9).map(item => ({
+                prompt: item.prompt,
+                question: item.q,
+                marked: false,
+                name: ""
+            }));
+
+            renderBoard();
+        }
+
+        function renderBoard() {
+            const grid = document.getElementById('bingo-grid');
+            grid.innerHTML = '';
+
+            boardCells.forEach((cell, index) => {
+                const div = document.createElement('div');
+                div.className = `bingo-cell ${cell.marked ? 'marked' : ''}`;
+                div.onclick = () => openModal(index);
+
+                div.innerHTML = `
+                    <div class="cell-prompt">${cell.prompt}</div>
+                    <div class="cell-status">${cell.marked ? '👤 ' + cell.name : 'Tap to ask 💬'}</div>
+                `;
+                grid.appendChild(div);
+            });
+
+            checkBingo();
+        }
+
+        function openModal(index) {
+            activeIndex = index;
+            const cell = boardCells[index];
+            document.getElementById('modal-prompt-title').textContent = `Find someone who ${cell.prompt}`;
+            document.getElementById('modal-question-hint').textContent = `Ask: "${cell.question}"`;
+            document.getElementById('peer-name').value = cell.name;
+
+            document.getElementById('modal-overlay').classList.add('active');
+            document.getElementById('peer-name').focus();
+        }
+
+        function closeModal() {
+            document.getElementById('modal-overlay').classList.remove('active');
+            activeIndex = null;
+        }
+
+        function saveCell() {
+            const nameInput = document.getElementById('peer-name').value.trim();
+            if (nameInput) {
+                boardCells[activeIndex].marked = true;
+                boardCells[activeIndex].name = nameInput;
+                renderBoard();
+                closeModal();
+            } else {
+                alert("Please enter your classmate's name!");
+            }
+        }
+
+        function checkBingo() {
+            const lines = [
+                [0,1,2], [3,4,5], [6,7,8],
+                [0,3,6], [1,4,7], [2,5,8],
+                [0,4,8], [2,4,6]
+            ];
+
+            let bingoCount = 0;
+            lines.forEach(line => {
+                if (boardCells[line[0]].marked && boardCells[line[1]].marked && boardCells[line[2]].marked) {
+                    bingoCount++;
+                }
+            });
+
+            document.getElementById('bingo-count').textContent = bingoCount;
+            if (bingoCount > 0) {
+                document.getElementById('bingo-banner').style.display = 'block';
+            } else {
+                document.getElementById('bingo-banner').style.display = 'none';
+            }
+        }
+    </script>
+</body>
+</html>

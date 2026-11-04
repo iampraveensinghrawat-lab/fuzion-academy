@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Information Gap: 50 Scenarios Edition 🕵️‍♂️🔍</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        :root {
+            --primary: #0284c7;
+            --primary-hover: #0369a1;
+            --secondary: #ec4899;
+            --background: #f8fafc;
+            --card-bg: #ffffff;
+            --text: #1e293b;
+            --success: #10b981;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #e0f2fe, #fef3c7);
+            color: var(--text);
+            margin: 0;
+            padding: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            background-color: var(--card-bg);
+            padding: 15px;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            max-width: 520px;
+            width: 100%;
+            text-align: center;
+        }
+
+        h1 {
+            color: var(--primary);
+            margin: 0 0 5px 0;
+            font-size: 1.3rem;
+        }
+
+        .subtitle {
+            font-size: 0.8rem;
+            color: #64748b;
+            margin-bottom: 12px;
+        }
+
+        /* Role Select Screen */
+        #role-screen {
+            background: #f1f5f9;
+            padding: 20px;
+            border-radius: 14px;
+        }
+
+        .role-btn {
+            background: linear-gradient(135deg, #0284c7, #0369a1);
+            color: white;
+            border: none;
+            padding: 14px;
+            font-size: 1rem;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: bold;
+            width: 100%;
+            margin: 8px 0;
+            box-shadow: 0 4px 10px rgba(2, 132, 199, 0.3);
+        }
+
+        .role-btn.player-b {
+            background: linear-gradient(135deg, #10b981, #059669);
+            box-shadow: 0 4px 10px rgba(16, 185, 129, 0.3);
+        }
+
+        .hidden { display: none !important; }
+
+        /* Game Board Area */
+        .scoreboard-bar {
+            display: flex;
+            justify-content: space-between;
+            background: #f1f5f9;
+            padding: 8px 12px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            font-weight: bold;
+            font-size: 0.85rem;
+        }
+
+        /* Scene Canvas Box */
+        .scene-container {
+            position: relative;
+            width: 100%;
+            height: 280px;
+            background: #bae6fd;
+            border-radius: 12px;
+            overflow: hidden;
+            border: 3px solid #0284c7;
+            margin-bottom: 10px;
+        }
+
+        .scene-item {
+            position: absolute;
+            cursor: pointer;
+            font-size: 1.8rem;
+            transform: translate(-50%, -50%);
+            transition: transform 0.2s;
+        }
+
+        .scene-item:active {
+            transform: translate(-50%, -50%) scale(1.2);
+        }
+
+        .scene-item.found {
+            opacity: 0.3;
+            filter: grayscale(1);
+            pointer-events: none;
+        }
+
+        .helper-box {
+            background: #e0f2fe;
+            border: 1px dashed var(--primary);
+            padding: 8px;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            color: #0369a1;
+            margin-bottom: 10px;
+            text-align: left;
+        }
+
+        .btn-secondary {
+            background-color: #cbd5e1;
+            color: #334155;
+            border: none;
+            padding: 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            width: 100%;
+        }
+
+        /* Win Banner */
+        .win-banner {
+            display: none;
+            background: #ecfdf5;
+            border: 2px solid var(--success);
+            padding: 12px;
+            border-radius: 12px;
+            margin-top: 10px;
+            color: #065f46;
+            font-size: 1rem;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>🕵️‍♂️ Information Gap Detective 🔍</h1>
+        <div class="subtitle" id="theme-subtitle">50 Unique Interactive Scenarios</div>
+
+        <!-- Role Select Screen -->
+        <div id="role-screen">
+            <h3>Choose Your Detective Role</h3>
+            <p style="font-size:0.8rem; color:#64748b;">Work in pairs! Player A and Player B have different items in their secret scene. Ask questions and use prepositions to find the 3 hidden differences!</p>
+            <button class="role-btn" onclick="startRole('A')">Play as Player A (View 1)</button>
+            <button class="role-btn player-b" onclick="startRole('B')">Play as Player B (View 2)</button>
+        </div>
+
+        <!-- Game Screen -->
+        <div id="game-screen" class="hidden">
+            <div class="scoreboard-bar">
+                <div>Role: <span id="display-role" style="color:var(--primary);"></span></div>
+                <div>Differences Found: <span id="found-count" style="color:var(--success);">0</span> / 3</div>
+            </div>
+
+            <div class="helper-box" id="helper-text">
+                💡 <b>Task:</b> Talk to your partner. Describe what you see using prepositions (e.g., "in", "on", "near") to find the differences!
+            </div>
+
+            <!-- Interactive Scene Canvas -->
+            <div class="scene-container" id="scene-canvas"></div>
+
+            <button class="btn-secondary" onclick="resetGame()">New Random Scenario 🔄</button>
+
+            <div class="win-banner" id="win-banner">
+                🎉 Amazing teamwork! All differences found! 🎉
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Master bank of 50 unique situations
+        const masterScenarios = [
+            { theme: "Beach & Coast", a: { diff: "🐥", nameA: "yellow duck", diffB: "🦩", nameB: "pink flamingo" }, shared: ["🌴", "⛵"] },
+            { theme: "Beach & Coast", a: { diff: "🦀", nameA: "red crab", diffB: "⭐", nameB: "purple starfish" }, shared: ["🌴", "⛵"] },
+            { theme: "Beach & Coast", a: { diff: "🐦", nameA: "seagull", diffB: "☁️", nameB: "cloud" }, shared: ["🌴", "⛵"] },
+            { theme: "Jungle Safari", a: { diff: "🐵", nameA: "monkey", diffB: "🦥", nameB: "sloth" }, shared: ["🌴", "🌿"] },
+            { theme: "Jungle Safari", a: { diff: "🐆", nameA: "leopard", diffB: "🐅", nameB: "tiger" }, shared: ["🌴", "🌿"] },
+            { theme: "Jungle Safari", a: { diff: "🍌", nameA: "bananas", diffB: "🍓", nameB: "berries" }, shared: ["🌴", "🌿"] },
+            { theme: "Classroom", a: { diff: "🖊️", nameA: "pen", diffB: "✏️", nameB: "pencil" }, shared: ["💻", "📓"] },
+            { theme: "Classroom", a: { diff: "📖", nameA: "book", diffB: "📘", nameB: "dictionary" }, shared: ["💻", "📓"] },
+            { theme: "Classroom", a: { diff: "🧽", nameA: "eraser", diffB: "🖍️", nameB: "crayon" }, shared: ["💻", "📓"] },
+            { theme: "Space Station", a: { diff: "👨‍🚀", nameA: "astronaut", diffB: "🛸", nameB: "drone" }, shared: ["🪐", "⭐"] },
+            { theme: "Space Station", a: { diff: "👽", nameA: "alien", diffB: "🪨", nameB: "moon rock" }, shared: ["🪐", "⭐"] },
+            { theme: "Space Station", a: { diff: "🔴", nameA: "red button", diffB: "🟡", nameB: "yellow switch" }, shared: ["🪐", "⭐"] },
+            { theme: "Haunted Castle", a: { diff: "👻", nameA: "ghost", diffB: "🐈‍⬛", nameB: "black cat" }, shared: ["🕯️", "🏰"] },
+            { theme: "Haunted Castle", a: { diff: "🕯️", nameA: "candle", diffB: "💀", nameB: "skull" }, shared: ["🏰", "🦇"] },
+            { theme: "Haunted Castle", a: { diff: "⛓️", nameA: "iron chain", diffB: "🕰️", nameB: "clock" }, shared: ["🏰", "🦇"] },
+            { theme: "Under the Sea", a: { diff: "🐠", nameA: "clownfish", diffB: "🛟", nameB: "stingray" }, shared: ["🪸", "🐚"] },
+            { theme: "Under the Sea", a: { diff: "👑", nameA: "treasure chest", diffB: "🐚", nameB: "clam shell" }, shared: ["🪸", "🐙"] },
+            { theme: "Under the Sea", a: { diff: "🐢", nameA: "sea turtle", diffB: "🪼", nameB: "jellyfish" }, shared: ["🪸", "🐙"] },
+            { theme: "Farmyard", a: { diff: "🐖", nameA: "pig", diffB: "🐑", nameB: "sheep" }, shared: ["🌾", "🚜"] },
+            { theme: "Farmyard", a: { diff: "🚜", nameA: "tractor", diffB: "🚚", nameB: "truck" }, shared: ["🌾", "🐓"] },
+            { theme: "Farmyard", a: { diff: "🐓", nameA: "rooster", diffB: "🦃", nameB: "turkey" }, shared: ["🌾", "🐖"] },
+            { theme: "City Street", a: { diff: "🚕", nameA: "taxi", diffB: "🚌", nameB: "bus" }, shared: ["🚦", "🪧"] },
+            { theme: "City Street", a: { diff: "🚦", nameA: "traffic light", diffB: "🏮", nameB: "streetlamp" }, shared: ["🚕", "🪧"] },
+            { theme: "City Street", a: { diff: "📮", nameA: "mailbox", diffB: "♻️", nameB: "recycling bin" }, shared: ["🚕", "🚦"] },
+            { theme: "Winter Mountain", a: { diff: "🌲", nameA: "pine tree", diffB: "🪵", nameB: "wood stump" }, shared: ["⛄", "❄️"] },
+            { theme: "Winter Mountain", a: { diff: "🧣", nameA: "scarf", diffB: "🧢", nameB: "beanie" }, shared: ["⛄", "❄️"] },
+            { theme: "Winter Mountain", a: { diff: "🦌", nameA: "deer", diffB: "🐺", nameB: "wolf" }, shared: ["⛄", "❄️"] },
+            { theme: "Pirate Ship", a: { diff: "🏴‍☠️", nameA: "skull flag", diffB: "⛵", nameB: "torn sail" }, shared: ["⚓", "🔭"] },
+            { theme: "Pirate Ship", a: { diff: "⚓", nameA: "anchor", diffB: "🎡", nameB: "wheel" }, shared: ["🏴‍☠️", "🔭"] },
+            { theme: "Pirate Ship", a: { diff: "🔭", nameA: "telescope", diffB: "🧭", nameB: "compass" }, shared: ["🏴‍☠️", "⚓"] },
+            { theme: "Magic Forest", a: { diff: "🍄", nameA: "mushroom", diffB: "💎", nameB: "crystal" }, shared: ["🌳", "🧚"] },
+            { theme: "Magic Forest", a: { diff: "🧚", nameA: "fairy", diffB: "🦉", nameB: "owl" }, shared: ["🌳", "🍄"] },
+            { theme: "Magic Forest", a: { diff: "📖", nameA: "spell book", diffB: "🪄", nameB: "wizard staff" }, shared: ["🌳", "🍄"] },
+            { theme: "Kitchen & Bakery", a: { diff: "🎂", nameA: "cake", diffB: "🥧", nameB: "tart" }, shared: ["🥣", "☕"] },
+            { theme: "Kitchen & Bakery", a: { diff: "🥣", nameA: "bowl", diffB: "🥄", nameB: "whisk" }, shared: ["🎂", "☕"] },
+            { theme: "Kitchen & Bakery", a: { diff: "☕", nameA: "teacup", diffB: "🧃", nameB: "juice glass" }, shared: ["🎂", "🥣"] },
+            { theme: "Ancient Ruins", a: { diff: "🏛️", nameA: "pillar", diffB: "🗿", nameB: "statue" }, shared: ["🧱", "🏺"] },
+            { theme: "Ancient Ruins", a: { diff: "🐍", nameA: "snake artifact", diffB: "🗡️", nameB: "dagger" }, shared: ["🏛️", "🧱"] },
+            { theme: "Ancient Ruins", a: { diff: "🌿", nameA: "vine curtain", diffB: "🚪", nameB: "stone door" }, shared: ["🏛️", "🧱"] },
+            { theme: "Sports Stadium", a: { diff: "⚽", nameA: "football", diffB: "🎾", nameB: "tennis racket" }, shared: ["🏆", "🚰"] },
+            { theme: "Sports Stadium", a: { diff: "🏆", nameA: "trophy", diffB: "🏅", nameB: "medal" }, shared: ["⚽", "🚰"] },
+            { theme: "Sports Stadium", a: { diff: "🚰", nameA: "whistle", diffB: "💧", nameB: "water bottle" }, shared: ["⚽", "🏆"] },
+            { theme: "Toy Factory", a: { diff: "🤖", nameA: "robot", diffB: "🧸", nameB: "teddy bear" }, shared: ["🚂", "🧱"] },
+            { theme: "Toy Factory", a: { diff: "🪀", nameA: "spinning top", diffB: "🧩", nameB: "puzzle block" }, shared: ["🤖", "🚂"] },
+            { theme: "Toy Factory", a: { diff: "🚂", nameA: "toy train", diffB: "🏎️", nameB: "race car" }, shared: ["🤖", "🧸"] },
+            { theme: "Royal Palace", a: { diff: "👑", nameA: "throne", diffB: "🪑", nameB: "dining chair" }, shared: ["💎", "🛡️"] },
+            { theme: "Royal Palace", a: { diff: "💎", nameA: "crown", diffB: "📿", nameB: "necklace" }, shared: ["👑", "🛡️"] },
+            { theme: "Royal Palace", a: { diff: "🛡️", nameA: "shield", diffB: "⚔️", nameB: "sword" }, shared: ["👑", "💎"] },
+            { theme: "Pet Shop", a: { diff: "🐶", nameA: "bulldog", diffB: "🐱", nameB: "kitten" }, shared: ["🦜", "🦴"] },
+            { theme: "Pet Shop", a: { diff: "🦜", nameA: "parrot", diffB: "🐦", nameB: "canary" }, shared: ["🐶", "🦴"] }
+        ];
+
+        let currentScenario = null;
+        let currentRole = '';
+        let foundDifferences = 0;
+        let activeItems = [];
+
+        function getRandomScenario() {
+            const randomIndex = Math.floor(Math.random() * masterScenarios.length);
+            return masterScenarios[randomIndex];
+        }
+
+        function startRole(role) {
+            currentRole = role;
+            foundDifferences = 0;
+            currentScenario = getRandomScenario();
+
+            document.getElementById('theme-subtitle').textContent = `Theme: ${currentScenario.theme}`;
+            document.getElementById('display-role').textContent = `Player ${role}`;
+            document.getElementById('role-screen').classList.add('hidden');
+            document.getElementById('game-screen').classList.remove('hidden');
+            document.getElementById('win-banner').style.display = 'none';
+
+            setupItems();
+            renderScene();
+        }
+
+        function setupItems() {
+            // 3 differences + 2 shared items = 5 total items per view
+            // We'll place them at fixed coordinates
+            const coords = [
+                { x: 25, y: 35 },
+                { x: 75, y: 30 },
+                { x: 50, y: 70 },
+                { x: 80, y: 75 },
+                { x: 30, y: 20 }
+            ];
+
+            activeItems = [];
+
+            // Add 3 differences
+            for (let i = 0; i < 3; i++) {
+                let isA = currentRole === 'A';
+                activeItems.push({
+                    icon: isA ? currentScenario.a.diff : currentScenario.a.diffB,
+                    name: isA ? currentScenario.a.nameA : currentScenario.a.nameB,
+                    x: coords[i].x,
+                    y: coords[i].y,
+                    isDifference: true,
+                    found: false
+                });
+            }
+
+            // Add 2 shared items
+            for (let i = 3; i < 5; i++) {
+                activeItems.push({
+                    icon: currentScenario.shared[i - 3],
+                    name: "shared item",
+                    x: coords[i].x,
+                    y: coords[i].y,
+                    isDifference: false,
+                    found: false
+                });
+            }
+        }
+
+        function renderScene() {
+            const canvas = document.getElementById('scene-canvas');
+            canvas.innerHTML = '';
+
+            activeItems.forEach(item => {
+                const el = document.createElement('div');
+                el.className = `scene-item ${item.found ? 'found' : ''}`;
+                el.style.left = `${item.x}%`;
+                el.style.top = `${item.y}%`;
+                el.textContent = item.icon;
+
+                if (item.isDifference) {
+                    el.onclick = () => {
+                        if (!item.found) {
+                            item.found = true;
+                            foundDifferences++;
+                            document.getElementById('found-count').textContent = foundDifferences;
+                            renderScene();
+
+                            if (foundDifferences === 3) {
+                                document.getElementById('win-banner').style.display = 'block';
+                            }
+                        }
+                    };
+                } else {
+                    el.onclick = () => {
+                        alert(`That item matches! Talk to your partner to find the 3 hidden differences.`);
+                    };
+                }
+
+                canvas.appendChild(el);
+            });
+        }
+
+        function resetGame() {
+            document.getElementById('game-screen').classList.add('hidden');
+            document.getElementById('role-screen').classList.remove('hidden');
+        }
+    </script>
+</body>
+</html>

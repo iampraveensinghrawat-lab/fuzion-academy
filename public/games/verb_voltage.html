@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verb Voltage! - Interactive Classroom Game</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: radial-gradient(circle at 50% 20%, #1e1b4b 0%, #0f0c1b 100%);
+            color: #f3f4f6;
+            min-height: 100vh;
+        }
+        .neon-box {
+            background: rgba(20, 18, 38, 0.75);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(236, 72, 153, 0.25);
+            box-shadow: 0 0 25px rgba(236, 72, 153, 0.1), inset 0 0 15px rgba(79, 70, 229, 0.05);
+        }
+        .neon-card-active {
+            background: rgba(26, 21, 51, 0.9);
+            border: 2px solid rgba(236, 72, 153, 0.6);
+            box-shadow: 0 0 35px rgba(236, 72, 153, 0.25), inset 0 0 20px rgba(236, 72, 153, 0.1);
+        }
+        .neon-button-pink {
+            background: linear-gradient(135deg, #ec4899 0%, #8b5cf6 100%);
+            box-shadow: 0 4px 20px rgba(236, 72, 153, 0.4);
+            transition: all 0.2s ease;
+        }
+        .neon-button-pink:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 25px rgba(236, 72, 153, 0.6);
+        }
+        .neon-button-purple {
+            background: linear-gradient(135deg, #4f46e5 0%, #3b82f6 100%);
+            box-shadow: 0 4px 20px rgba(79, 70, 229, 0.4);
+            transition: all 0.2s ease;
+        }
+        .neon-button-purple:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 25px rgba(79, 70, 229, 0.6);
+        }
+        .pulse-glow {
+            animation: pulseGlow 2s infinite;
+        }
+        @keyframes pulseGlow {
+            0%, 100% { box-shadow: 0 0 15px rgba(236, 72, 153, 0.3); }
+            50% { box-shadow: 0 0 30px rgba(236, 72, 153, 0.6); }
+        }
+    </style>
+</head>
+<body class="h-full flex flex-col items-center justify-between p-4 md:p-6 overflow-x-hidden">
+
+    <header class="text-center mb-6 mt-2">
+        <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-pink-500/10 border border-pink-500/30 text-pink-300 text-sm font-semibold mb-3">
+            <span>⚡</span> English Grammar & Speed Challenge (A2 Elementary) <span>✨</span>
+        </div>
+        <h1 class="text-3xl md:text-5xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-pink-400 via-purple-300 to-indigo-400 drop-shadow-md">
+            Verb Voltage! ⚡
+        </h1>
+        <p class="text-xs md:text-sm text-indigo-200/70 mt-1">5 Lives per Team • Master 50 Irregular Past Simple Verbs</p>
+    </header>
+
+    <div id="start-screen" class="w-full max-w-2xl neon-box rounded-2xl p-8 text-center my-auto">
+        <div class="text-6xl mb-4">⚡🔋🎯</div>
+        <h2 class="text-2xl font-bold text-white mb-3">Ready to Power Up Your Verbs?</h2>
+        <p class="text-indigo-200 mb-6 leading-relaxed">
+            Test your classroom teams against 50 essential irregular past simple verbs! Each team starts with 5 energy bolts (⚡). Answer correctly to keep your energy, or lose a bolt on mistakes or timeouts!
+        </p>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8 text-left bg-black/20 p-4 rounded-xl border border-white/5">
+            <div>
+                <label class="block text-xs font-semibold text-pink-400 uppercase tracking-wider mb-1">Number of Teams</label>
+                <select id="team-count-select" class="w-full bg-indigo-950 border border-indigo-800 rounded-lg p-2.5 text-white font-medium focus:outline-none focus:border-pink-500">
+                    <option value="2">2 Teams</option>
+                    <option value="3">3 Teams</option>
+                    <option value="4">4 Teams</option>
+                    <option value="5" selected>5 Teams</option>
+                </select>
+            </div>
+            <div>
+                <label class="block text-xs font-semibold text-pink-400 uppercase tracking-wider mb-1">Timer per Turn</label>
+                <select id="timer-duration-select" class="w-full bg-indigo-950 border border-indigo-800 rounded-lg p-2.5 text-white font-medium focus:outline-none focus:border-pink-500">
+                    <option value="10">10 Seconds (Fast)</option>
+                    <option value="15" selected>15 Seconds (Standard)</option>
+                    <option value="25">25 Seconds (Relaxed)</option>
+                    <option value="0">No Timer (Practice)</option>
+                </select>
+            </div>
+        </div>
+        <button onclick="initGame()" class="neon-button-pink text-white font-bold text-lg px-8 py-3.5 rounded-xl w-full sm:w-auto">
+            🚀 Start Classroom Game
+        </button>
+    </div>
+
+    <div id="game-screen" class="w-full max-w-6xl grid grid-cols-1 lg:grid-cols-12 gap-6 my-auto hidden">
+        
+        <!-- Sidebar: Teams & Status -->
+        <div class="lg:col-span-4 neon-box rounded-2xl p-5 flex flex-col justify-between">
+            <div>
+                <div class="flex items-center justify-between mb-4 pb-3 border-b border-indigo-500/20">
+                    <div class="flex items-center gap-2">
+                        <span class="text-xl">🏆</span>
+                        <h2 class="font-bold text-lg text-white">Teams (<span id="active-team-count">5</span>)</h2>
+                    </div>
+                    <button onclick="returnToStart()" class="text-xs bg-white/5 hover:bg-white/10 text-indigo-300 px-3 py-1.5 rounded-lg border border-white/10 transition">
+                        Settings
+                    </button>
+                </div>
+                
+                <!-- Team List container -->
+                <div id="teams-container" class="space-y-3 mb-4 max-h-[340px] overflow-y-auto pr-1">
+                    <!-- Dynamic Team Cards inserted here -->
+                </div>
+            </div>
+
+            <!-- Mini How-To Box -->
+            <div class="bg-black/30 rounded-xl p-3.5 border border-pink-500/20 text-xs text-indigo-200">
+                <div class="font-bold text-pink-400 mb-1 flex items-center gap-1">
+                    <span>💡</span> Quick Rules:
+                </div>
+                <ol class="list-decimal list-inside space-y-1 text-indigo-100/80">
+                    <li>Teams take turns on active prompt.</li>
+                    <li>Type past simple form & submit.</li>
+                    <li>Correct = +1 Score, Wrong = Lose ⚡.</li>
+                    <li>Last team standing with ⚡ wins!</li>
+                </ol>
+            </div>
+        </div>
+
+        <!-- Main Prompt & Challenge Area -->
+        <div class="lg:col-span-8 flex flex-col gap-5">
+            
+            <!-- Turn Banner Header -->
+            <div class="neon-box rounded-2xl px-5 py-3.5 flex items-center justify-between">
+                <div class="text-xs md:text-sm font-semibold tracking-wider uppercase text-indigo-300">
+                    Current Speaker Turn
+                </div>
+                <div id="current-turn-badge" class="px-4 py-1.5 rounded-full bg-pink-500/20 border border-pink-500 text-pink-300 font-bold text-sm pulse-glow">
+                    Team 1's Turn
+                </div>
+            </div>
+
+            <!-- Prompt Card -->
+            <div class="neon-card-active rounded-2xl p-6 md:p-8 flex flex-col items-center text-center relative overflow-hidden">
+                
+                <!-- Category Badge & Verbs Remaining Counter -->
+                <div class="w-full flex items-center justify-between mb-6">
+                    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-md bg-indigo-900/60 border border-indigo-500/30 text-indigo-300 text-xs font-bold tracking-wide">
+                        <span>⚡</span> A2 IRREGULAR VERBS
+                    </div>
+                    <div class="text-xs font-semibold text-pink-300/80 bg-pink-500/10 px-3 py-1 rounded-md border border-pink-500/20">
+                        Verbs Mastered: <span id="mastered-count">0</span> / 50
+                    </div>
+                </div>
+
+                <!-- Timer Bar -->
+                <div id="timer-container" class="w-full bg-black/40 h-2.5 rounded-full mb-6 overflow-hidden border border-white/10">
+                    <div id="timer-bar" class="bg-gradient-to-r from-pink-500 to-purple-500 h-full w-full transition-all duration-1000"></div>
+                </div>
+
+                <!-- Verb Display -->
+                <div class="my-2">
+                    <div class="text-xs md:text-sm text-indigo-300 font-medium mb-1">What is the past simple form of:</div>
+                    <div id="base-verb-display" class="text-5xl md:text-7xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-white via-pink-200 to-purple-300 tracking-wider uppercase my-2">
+                        GO
+                    </div>
+                </div>
+
+                <!-- Input & Action Form -->
+                <form id="verb-form" onsubmit="submitAnswer(event)" class="w-full max-w-md mt-6 flex flex-col gap-4">
+                    <div class="relative">
+                        <input type="text" id="user-answer-input" autocomplete="off" autofocus placeholder="Type past simple form..."
+                            class="w-full bg-indigo-950/80 border-2 border-indigo-700/60 focus:border-pink-500 text-white placeholder-indigo-400 text-xl font-bold py-3.5 px-5 rounded-xl text-center shadow-inner outline-none transition-all">
+                    </div>
+                    <div class="flex gap-3">
+                        <button type="submit" class="flex-1 neon-button-pink text-white font-bold py-3.5 px-6 rounded-xl text-base flex items-center justify-center gap-2">
+                            <span>Submit Answer</span> <span>⚡</span>
+                        </button>
+                        <button type="button" onclick="handleWrongAction()" class="bg-red-500/20 hover:bg-red-500/30 border border-red-500/40 text-red-300 font-bold py-3.5 px-4 rounded-xl text-sm transition">
+                            Wrong / Lose ⚡
+                        </button>
+                    </div>
+                </form>
+
+                <!-- Feedback Display Box -->
+                <div id="feedback-box" class="mt-4 min-h-[36px] font-bold text-lg transition-all"></div>
+
+                <!-- Grammar Coach Tip Box -->
+                <div class="w-full mt-6 bg-indigo-950/60 border border-indigo-500/20 rounded-xl p-4 text-left">
+                    <div class="flex items-center gap-2 text-xs font-bold text-pink-400 mb-1">
+                        <span>🛡️</span> ESL Grammar Coach Tip:
+                    </div>
+                    <p id="grammar-tip" class="text-xs text-indigo-200/90 leading-relaxed">
+                        Tip: Irregular verbs don't use "-ed". You must memorize their unique past forms (e.g., go $\rightarrow$ went).
+                    </p>
+                </div>
+            </div>
+
+            <!-- Footer Action Controls -->
+            <div class="flex items-center justify-between gap-4">
+                <button onclick="skipVerb()" class="bg-white/5 hover:bg-white/10 text-indigo-300 font-semibold px-5 py-3 rounded-xl border border-white/10 text-sm transition flex items-center gap-2">
+                    <span>🔄</span> Pass / Next Verb
+                </button>
+                <div class="text-xs text-indigo-400 font-medium">
+                    Audio Sound FX: <span id="audio-status" class="text-green-400 font-bold">Active</span>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <div id="end-screen" class="w-full max-w-xl neon-box rounded-2xl p-8 text-center my-auto hidden">
+        <div class="text-6xl mb-3">🎉🏆⚡</div>
+        <h2 class="text-3xl font-extrabold text-white mb-2">Game Over!</h2>
+        <p id="winner-announcement" class="text-lg text-pink-300 font-bold mb-6">Team 1 is the Ultimate Verb Champion!</p>
+        
+        <div id="final-leaderboard" class="space-y-2 mb-8 text-left bg-black/30 p-4 rounded-xl border border-white/10 max-h-60 overflow-y-auto">
+            <!-- Final Scores inserted here -->
+        </div>
+
+        <div class="flex gap-4 justify-center">
+            <button onclick="initGame()" class="neon-button-pink text-white font-bold px-8 py-3.5 rounded-xl text-base">
+                🔄 Play Again
+            </button>
+            <button onclick="returnToStart()" class="bg-white/10 hover:bg-white/20 text-indigo-200 font-bold px-6 py-3.5 rounded-xl border border-white/10 text-sm transition">
+                Main Menu
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // --- SYNTHESIZED WEB AUDIO API ENGINE ---
+        let audioCtx = null;
+
+        function getAudioContext() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+            return audioCtx;
+        }
+
+        function playSound(type) {
+            try {
+                const ctx = getAudioContext();
+                const now = ctx.currentTime;
+
+                if (type === 'click') {
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(400, now);
+                    osc.frequency.exponentialRampToValueAtTime(200, now + 0.05);
+                    gain.gain.setValueAtTime(0.15, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.05);
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    osc.start(now);
+                    osc.stop(now + 0.05);
+                } 
+                else if (type === 'correct') {
+                    // Uplifting chime
+                    [523.25, 659.25, 783.99, 1046.50].forEach((freq, i) => {
+                        const osc = ctx.createOscillator();
+                        const gain = ctx.createGain();
+                        osc.type = 'triangle';
+                        osc.frequency.setValueAtTime(freq, now + i * 0.08);
+                        gain.gain.setValueAtTime(0.2, now + i * 0.08);
+                        gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.08 + 0.3);
+                        osc.connect(gain);
+                        gain.connect(ctx.destination);
+                        osc.start(now + i * 0.08);
+                        osc.stop(now + i * 0.08 + 0.3);
+                    });
+                }
+                else if (type === 'wrong') {
+                    // Buzz
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(140, now);
+                    osc.frequency.setValueAtTime(100, now + 0.15);
+                    gain.gain.setValueAtTime(0.25, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    osc.start(now);
+                    osc.stop(now + 0.3);
+                }
+                else if (type === 'tick') {
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(800, now);
+                    gain.gain.setValueAtTime(0.08, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.04);
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    osc.start(now);
+                    osc.stop(now + 0.04);
+                }
+                else if (type === 'gameover') {
+                    [440, 392, 349.23, 293.66].forEach((freq, i) => {
+                        const osc = ctx.createOscillator();
+                        const gain = ctx.createGain();
+                        osc.type = 'sawtooth';
+                        osc.frequency.setValueAtTime(freq, now + i * 0.2);
+                        gain.gain.setValueAtTime(0.2, now + i * 0.2);
+                        gain.gain.exponentialRampToValueAtTime(0.01, now + i * 0.2 + 0.35);
+                        osc.connect(gain);
+                        gain.connect(ctx.destination);
+                        osc.start(now + i * 0.2);
+                        osc.stop(now + i * 0.2 + 0.35);
+                    });
+                }
+            } catch (e) {
+                console.log("Audio playback note:", e);
+            }
+        }
+
+        // --- VERB DATA BANK (50 Irregular Verbs with sentences & tips) ---
+        const verbsData = [
+            { base: "be", past: "was / were", tip: "Use 'was' for I/he/she/it and 'were' for you/we/they." },
+            { base: "become", past: "became", tip: "Example: She became a famous doctor last year." },
+            { base: "begin", past: "began", tip: "Example: The English class began at 9:00 AM." },
+            { base: "bite", past: "bit", tip: "Example: The friendly puppy bit my shoe." },
+            { base: "blow", past: "blew", tip: "Example: He blew out the candles on his birthday cake." },
+            { base: "break", past: "broke", tip: "Example: Tom accidentally broke his ruler." },
+            { base: "bring", past: "brought", tip: "Example: Sarah brought cookies for everyone." },
+            { base: "build", past: "built", tip: "Example: They built a treehouse in the garden." },
+            { base: "buy", past: "bought", tip: "Example: Dad bought fresh fruit at the market." },
+            { base: "catch", past: "caught", tip: "Example: The player caught the baseball." },
+            { base: "choose", past: "chose", tip: "Example: Anna chose the blue notebook." },
+            { base: "come", past: "came", tip: "Example: Grandma came to visit us on Sunday." },
+            { base: "cost", past: "cost", tip: "Example: The new toy cost ten dollars." },
+            { base: "cut", past: "cut", tip: "Example: Mom cut the paper with safety scissors." },
+            { base: "do", past: "did", tip: "Example: I did all my homework before dinner." },
+            { base: "draw", past: "drew", tip: "Example: Leo drew a funny cartoon of a cat." },
+            { base: "drink", past: "drank", tip: "Example: The cat drank a bowl of cold milk." },
+            { base: "drive", past: "drove", tip: "Example: Uncle Mark drove us to the zoo." },
+            { base: "eat", past: "ate", tip: "Example: We ate delicious pizza for lunch." },
+            { base: "fall", past: "fell", tip: "Example: The red apple fell from the tree." },
+            { base: "feed", past: "fed", tip: "Example: Liam fed the rabbits in the yard." },
+            { base: "feel", past: "felt", tip: "Example: She felt very happy after winning." },
+            { base: "find", past: "found", tip: "Example: I found a shiny coin on the sidewalk." },
+            { base: "fly", past: "flew", tip: "Example: The eagle flew high across the blue sky." },
+            { base: "forget", past: "forgot", tip: "Example: I forgot my umbrella at home." },
+            { base: "get", past: "got", tip: "Example: He got a wonderful present for his birthday." },
+            { base: "give", past: "gave", tip: "Example: Emma gave her friend a colorful sticker." },
+            { base: "go", past: "went", tip: "Example: Last summer, we went to the beach." },
+            { base: "grow", past: "grew", tip: "Example: The sunflower grew very tall." },
+            { base: "have", past: "had", tip: "Example: We had a fantastic time at the party." },
+            { base: "hear", past: "heard", tip: "Example: I heard a funny noise outside." },
+            { base: "hide", past: "hid", tip: "Example: The kitten hid behind the sofa." },
+            { base: "hit", past: "hit", tip: "Example: He hit the tennis ball over the net." },
+            { base: "hold", past: "held", tip: "Example: She held her mother's hand tightly." },
+            { base: "hurt", past: "hurt", tip: "Example: He fell and hurt his knee." },
+            { base: "keep", past: "kept", tip: "Example: Please kept my secret safe." },
+            { base: "know", past: "knew", tip: "Example: She knew all the answers in the quiz." },
+            { base: "leave", past: "left", tip: "Example: School left at 3:00 PM yesterday." },
+            { base: "lend", past: "lent", tip: "Example: Mark lent me his colored pencils." },
+            { base: "let", past: "let", tip: "Example: Dad let us stay up late on Friday." },
+            { base: "lose", past: "lost", tip: "Example: I lost my favorite red pen." },
+            { base: "make", past: "made", tip: "Example: We made a paper airplane in art class." },
+            { base: "meet", past: "met", tip: "Example: I met my best friend at the park." },
+            { base: "pay", past: "paid", tip: "Example: He paid for the ice cream." },
+            { base: "put", past: "put", tip: "Example: She put her books in her backpack." },
+            { base: "read", past: "read", tip: "Note: Spelled the same, but pronounced like 'red'." },
+            { base: "ride", past: "rode", tip: "Example: We rode our bicycles around the block." },
+            { base: "ring", past: "rang", tip: "Example: The school bell rang loudly." },
+            { base: "run", past: "ran", tip: "Example: The dog ran fast after the ball." },
+            { base: "say", past: "said", tip: "Example: Teacher said goodbye to everyone." }
+        ];
+
+        // --- GAME STATE VARIABLES ---
+        let teams = [];
+        let currentTeamIndex = 0;
+        let shuffledVerbs = [];
+        let currentVerbIndex = 0;
+        let timerInterval = null;
+        let timeLeft = 15;
+        let timerDurationSetting = 15;
+        let masteredCount = 0;
+
+        // --- NAVIGATION & INIT ---
+        function initGame() {
+            playSound('click');
+            const teamCount = parseInt(document.getElementById('team-count-select').value);
+            timerDurationSetting = parseInt(document.getElementById('timer-duration-select').value);
+
+            // Initialize Teams
+            teams = [];
+            const colors = ['#ec4899', '#8b5cf6', '#3b82f6', '#10b981', '#f59e0b'];
+            for (let i = 1; i <= teamCount; i++) {
+                teams.push({
+                    id: i,
+                    name: `Team ${i}`,
+                    color: colors[(i - 1) % colors.length],
+                    lives: 5,
+                    score: 0
+                });
+            }
+
+            currentTeamIndex = 0;
+            shuffledVerbs = [...verbsData].sort(() => Math.random() - 0.5);
+            currentVerbIndex = 0;
+            masteredCount = 0;
+
+            document.getElementById('active-team-count').textContent = teamCount;
+            document.getElementById('start-screen').classList.add('hidden');
+            document.getElementById('end-screen').classList.add('hidden');
+            document.getElementById('game-screen').classList.remove('hidden');
+
+            renderTeams();
+            loadNextVerb();
+        }
+
+        function returnToStart() {
+            playSound('click');
+            clearInterval(timerInterval);
+            document.getElementById('game-screen').classList.add('hidden');
+            document.getElementById('end-screen').classList.add('hidden');
+            document.getElementById('start-screen').classList.remove('hidden');
+        }
+
+        // --- RENDER TEAMS UI ---
+        function renderTeams() {
+            const container = document.getElementById('teams-container');
+            container.innerHTML = '';
+
+            teams.forEach((team, index) => {
+                const isCurrent = (index === currentTeamIndex);
+                let boltsHtml = '';
+                for (let b = 1; b <= 5; b++) {
+                    if (b <= team.lives) {
+                        boltsHtml += `<span class="text-amber-400 drop-shadow">⚡</span>`;
+                    } else {
+                        boltsHtml += `<span class="text-gray-600">⚡</span>`;
+                    }
+                }
+
+                const teamCard = document.createElement('div');
+                teamCard.className = `p-3 rounded-xl border transition flex items-center justify-between ${
+                    isCurrent 
+                        ? 'bg-pink-500/15 border-pink-500/60 shadow-lg shadow-pink-500/10' 
+                        : 'bg-black/20 border-white/5 opacity-80'
+                }`;
+                teamCard.innerHTML = `
+                    <div>
+                        <div class="font-bold text-sm text-white flex items-center gap-2">
+                            <span class="w-2.5 h-2.5 rounded-full" style="background-color: ${team.color}"></span>
+                            ${team.name}
+                            ${isCurrent ? '<span class="text-[10px] bg-pink-500 text-white px-1.5 py-0.5 rounded uppercase font-extrabold tracking-wide">Active</span>' : ''}
+                        </div>
+                        <div class="text-xs text-indigo-300 mt-0.5">Score: <strong class="text-white">${team.score}</strong></div>
+                    </div>
+                    <div class="flex items-center gap-0.5 text-base tracking-tighter" title="Lives remaining">
+                        ${boltsHtml}
+                    </div>
+                `;
+                container.appendChild(teamCard);
+            });
+
+            // Update Turn Badge Header
+            const activeTeam = teams[currentTeamIndex];
+            const badge = document.getElementById('current-turn-badge');
+            badge.textContent = `${activeTeam.name}'s Turn`;
+        }
+
+        // --- LOAD VERB & TIMER ---
+        function loadNextVerb() {
+            if (currentVerbIndex >= shuffledVerbs.length) {
+                // Reshuffle if all 50 used
+                shuffledVerbs = [...verbsData].sort(() => Math.random() - 0.5);
+                currentVerbIndex = 0;
+            }
+
+            const verb = shuffledVerbs[currentVerbIndex];
+            document.getElementById('base-verb-display').textContent = verb.base;
+            document.getElementById('grammar-tip').textContent = verb.tip;
+            document.getElementById('user-answer-input').value = '';
+            document.getElementById('feedback-box').textContent = '';
+            document.getElementById('mastered-count').textContent = masteredCount;
+
+            resetTimer();
+        }
+
+        function resetTimer() {
+            clearInterval(timerInterval);
+            if (timerDurationSetting === 0) {
+                document.getElementById('timer-container').style.display = 'none';
+                return;
+            }
+            document.getElementById('timer-container').style.display = 'block';
+            timeLeft = timerDurationSetting;
+            updateTimerBar();
+
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                updateTimerBar();
+                if (timeLeft <= 3 && timeLeft > 0) {
+                    playSound('tick');
+                }
+                if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    handleTimeout();
+                }
+            }, 1000);
+        }
+
+        function updateTimerBar() {
+            if (timerDurationSetting === 0) return;
+            const pct = (timeLeft / timerDurationSetting) * 100;
+            const bar = document.getElementById('timer-bar');
+            bar.style.width = `${pct}%`;
+        }
+
+        function handleTimeout() {
+            playSound('wrong');
+            const team = teams[currentTeamIndex];
+            team.lives = Math.max(0, team.lives - 1);
+            
+            const fb = document.getElementById('feedback-box');
+            fb.className = 'mt-4 min-h-[36px] font-bold text-lg text-red-400';
+            fb.textContent = `⏰ Time's Up! Answer was: ${shuffledVerbs[currentVerbIndex].past}`;
+
+            checkGameOverConditions();
+            if (!isGameOver) {
+                setTimeout(() => {
+                    advanceTurn();
+                }, 2000);
+            }
+        }
+
+        // --- ANSWER VALIDATION ---
+        function submitAnswer(event) {
+            event.preventDefault();
+            clearInterval(timerInterval);
+
+            const userRaw = document.getElementById('user-answer-input').value.trim().toLowerCase();
+            const correctRaw = shuffledVerbs[currentVerbIndex].past.toLowerCase();
+
+            let isCorrect = false;
+            if (correctRaw.includes('/')) {
+                const options = correctRaw.split('/').map(s => s.trim());
+                isCorrect = options.includes(userRaw);
+            } else {
+                isCorrect = (userRaw === correctRaw);
+            }
+
+            const fb = document.getElementById('feedback-box');
+            const activeTeam = teams[currentTeamIndex];
+
+            if (isCorrect) {
+                playSound('correct');
+                activeTeam.score += 1;
+                masteredCount++;
+                fb.className = 'mt-4 min-h-[36px] font-bold text-lg text-emerald-400';
+                fb.textContent = `🎉 Correct! Great job ${activeTeam.name}!`;
+                
+                setTimeout(() => {
+                    currentVerbIndex++;
+                    advanceTurn();
+                }, 1500);
+            } else {
+                playSound('wrong');
+                activeTeam.lives = Math.max(0, activeTeam.lives - 1);
+                fb.className = 'mt-4 min-h-[36px] font-bold text-lg text-red-400';
+                fb.textContent = `❌ Incorrect! Answer: ${shuffledVerbs[currentVerbIndex].past}`;
+
+                checkGameOverConditions();
+                if (!isGameOver) {
+                    setTimeout(() => {
+                        currentVerbIndex++;
+                        advanceTurn();
+                    }, 2000);
+                }
+            }
+        }
+
+        function handleWrongAction() {
+            playSound('wrong');
+            clearInterval(timerInterval);
+            const activeTeam = teams[currentTeamIndex];
+            activeTeam.lives = Math.max(0, activeTeam.lives - 1);
+
+            const fb = document.getElementById('feedback-box');
+            fb.className = 'mt-4 min-h-[36px] font-bold text-lg text-red-400';
+            fb.textContent = `⚡ Point lost! Answer was: ${shuffledVerbs[currentVerbIndex].past}`;
+
+            checkGameOverConditions();
+            if (!isGameOver) {
+                setTimeout(() => {
+                    currentVerbIndex++;
+                    advanceTurn();
+                }, 2000);
+            }
+        }
+
+        function skipVerb() {
+            playSound('click');
+            clearInterval(timerInterval);
+            currentVerbIndex++;
+            advanceTurn();
+        }
+
+        function advanceTurn() {
+            // Find next team with lives > 0
+            let activeTeams = teams.filter(t => t.lives > 0);
+            if (activeTeams.length === 0) {
+                triggerGameOver();
+                return;
+            }
+
+            do {
+                currentTeamIndex = (currentTeamIndex + 1) % teams.length;
+            } while (teams[currentTeamIndex].lives <= 0);
+
+            renderTeams();
+            loadNextVerb();
+        }
+
+        let isGameOver = false;
+        function checkGameOverConditions() {
+            const aliveTeams = teams.filter(t => t.lives > 0);
+            if (aliveTeams.length <= 1) {
+                triggerGameOver();
+            }
+        }
+
+        function triggerGameOver() {
+            isGameOver = true;
+            clearInterval(timerInterval);
+            playSound('gameover');
+
+            // Sort teams by score then lives
+            const sorted = [...teams].sort((a, b) => b.score - a.score || b.lives - a.lives);
+            const winner = sorted[0];
+
+            document.getElementById('winner-announcement').textContent = `🏆 ${winner.name} wins with ${winner.score} correct verbs!`;
+
+            const lb = document.getElementById('final-leaderboard');
+            lb.innerHTML = '<div class="text-xs font-bold text-pink-400 uppercase tracking-wider mb-2">Final Leaderboard</div>';
+            
+            sorted.forEach((t, idx) => {
+                const row = document.createElement('div');
+                row.className = 'flex items-center justify-between bg-black/20 p-2.5 rounded-lg border border-white/5 text-sm';
+                row.innerHTML = `
+                    <div class="font-bold flex items-center gap-2">
+                        <span class="text-pink-400">#${idx + 1}</span>
+                        <span class="w-2.5 h-2.5 rounded-full" style="background-color: ${t.color}"></span>
+                        ${t.name}
+                    </div>
+                    <div class="text-indigo-200">Score: <strong class="text-white">${t.score}</strong> | Lives: <strong class="text-amber-400">${t.lives}⚡</strong></div>
+                `;
+                lb.appendChild(row);
+            });
+
+            document.getElementById('game-screen').classList.add('hidden');
+            document.getElementById('end-screen').classList.remove('hidden');
+            isGameOver = false; // reset flag
+        }
+    </script>
+</body>
+</html>

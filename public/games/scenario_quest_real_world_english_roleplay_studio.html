@@ -1,0 +1,841 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scenario Quest - Real-World English Roleplay Studio</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Plus Jakarta Sans', 'sans-serif'],
+                        display: ['Outfit', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#eef2ff',
+                            100: '#e0e7ff',
+                            500: '#6366f1',
+                            600: '#4f46e5',
+                            700: '#4338ca',
+                        }
+                    },
+                    animation: {
+                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'bounce-subtle': 'bounce 2s infinite',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(226, 232, 240, 0.8);
+        }
+        .dark .glass-card {
+            background: rgba(15, 23, 42, 0.85);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(51, 65, 85, 0.8);
+        }
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(148, 163, 184, 0.4);
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(148, 163, 184, 0.7);
+        }
+    </style>
+</head>
+<body class="h-full flex flex-col bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 transition-colors duration-200 overflow-hidden">
+
+    <!-- Top Navigation Header -->
+    <header class="glass-card border-b border-slate-200 dark:border-slate-800 px-6 py-4 flex items-center justify-between shrink-0 z-20">
+        <div class="flex items-center space-x-3">
+            <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-500 to-violet-600 flex items-center justify-center shadow-lg shadow-indigo-500/25">
+                <i class="fa-solid fa-comments text-white text-lg"></i>
+            </div>
+            <div>
+                <h1 class="font-display font-extrabold text-lg tracking-tight text-slate-900 dark:text-white">SCENARIO QUEST</h1>
+                <p class="text-xs text-indigo-600 dark:text-indigo-400 font-semibold">Real-World English Roleplay Studio</p>
+            </div>
+        </div>
+
+        <!-- Student Stats & Gamification Bar -->
+        <div class="hidden md:flex items-center space-x-4">
+            <div class="flex items-center space-x-2 bg-slate-100 dark:bg-slate-900 px-3.5 py-1.5 rounded-xl border border-slate-200 dark:border-slate-800">
+                <i class="fa-solid fa-bolt text-amber-500 text-xs"></i>
+                <span class="text-xs text-slate-500 dark:text-slate-400">XP:</span>
+                <span id="stat-xp" class="text-xs font-bold text-slate-900 dark:text-white">0</span>
+            </div>
+            <div class="flex items-center space-x-2 bg-slate-100 dark:bg-slate-900 px-3.5 py-1.5 rounded-xl border border-slate-200 dark:border-slate-800">
+                <i class="fa-solid fa-trophy text-indigo-500 text-xs"></i>
+                <span class="text-xs text-slate-500 dark:text-slate-400">Badges:</span>
+                <span id="stat-badges" class="text-xs font-bold text-slate-900 dark:text-white">0</span>
+            </div>
+            <div class="flex items-center space-x-2 bg-slate-100 dark:bg-slate-900 px-3.5 py-1.5 rounded-xl border border-slate-200 dark:border-slate-800">
+                <i class="fa-solid fa-layer-group text-emerald-500 text-xs"></i>
+                <span class="text-xs text-slate-500 dark:text-slate-400">Level:</span>
+                <span id="stat-level" class="text-xs font-bold text-slate-900 dark:text-white uppercase">B1 Intermediate</span>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="flex items-center space-x-2">
+            <button onclick="openApiKeyModal()" class="px-3 py-1.5 bg-slate-100 dark:bg-slate-900 hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-xl text-xs font-semibold border border-slate-200 dark:border-slate-800 transition flex items-center space-x-1.5" title="Gemini API Key Settings">
+                <i class="fa-solid fa-key text-indigo-500"></i>
+                <span class="hidden sm:inline">API Key</span>
+            </button>
+            <button onclick="toggleDarkMode()" class="p-2 rounded-xl bg-slate-100 dark:bg-slate-900 hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-800 transition" title="Toggle Theme">
+                <i class="fa-solid fa-moon dark:hidden"></i>
+                <i class="fa-solid fa-sun hidden dark:inline text-amber-400"></i>
+            </button>
+            <button onclick="resetToDashboard()" class="px-3 py-1.5 bg-slate-100 dark:bg-slate-900 hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-xl text-xs font-semibold border border-slate-200 dark:border-slate-800 transition flex items-center space-x-1.5">
+                <i class="fa-solid fa-house"></i>
+                <span class="hidden sm:inline">Dashboard</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="flex-1 flex flex-col overflow-hidden relative">
+
+        <!-- VIEW 1: SCENARIO SELECTOR DASHBOARD -->
+        <div id="view-dashboard" class="absolute inset-0 overflow-y-auto p-4 md:p-8 z-20 bg-slate-50 dark:bg-slate-950">
+            <div class="max-w-5xl mx-auto space-y-8">
+                
+                <!-- Welcome Banner -->
+                <div class="glass-card rounded-3xl p-6 md:p-8 border border-indigo-500/20 shadow-xl shadow-indigo-500/5 relative overflow-hidden">
+                    <div class="absolute right-0 top-0 translate-x-8 -translate-y-8 w-64 h-64 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none"></div>
+                    <div class="relative z-10 max-w-2xl">
+                        <span class="px-3 py-1 rounded-full bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 text-xs font-bold uppercase tracking-wider mb-3 inline-block">AI Speaking Studio</span>
+                        <h2 class="font-display text-2xl md:text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight mb-3">Master Real-World English Through Conversation</h2>
+                        <p class="text-slate-600 dark:text-slate-400 text-sm md:text-base leading-relaxed mb-6">Choose a real-world scenario below. Practice speaking with an AI counterpart, get instant grammar corrections, build natural phrasing, and earn Fluency XP!</p>
+                        
+                        <!-- Level selection -->
+                        <div class="flex flex-wrap items-center gap-3">
+                            <span class="text-xs font-semibold text-slate-500 dark:text-slate-400">Select Difficulty:</span>
+                            <div class="inline-flex rounded-xl bg-slate-200 dark:bg-slate-900 p-1 border border-slate-300 dark:border-slate-800">
+                                <button onclick="setGlobalLevel('A2')" id="lvl-a2" class="px-3 py-1 rounded-lg text-xs font-bold transition text-slate-700 dark:text-slate-400">A2 Basic</button>
+                                <button onclick="setGlobalLevel('B1')" id="lvl-b1" class="px-3 py-1 rounded-lg text-xs font-bold transition bg-white dark:bg-indigo-600 text-slate-900 dark:text-white shadow">B1 Inter.</button>
+                                <button onclick="setGlobalLevel('B2')" id="lvl-b2" class="px-3 py-1 rounded-lg text-xs font-bold transition text-slate-700 dark:text-slate-400">B2 Upper</button>
+                                <button onclick="setGlobalLevel('C1')" id="lvl-c1" class="px-3 py-1 rounded-lg text-xs font-bold transition text-slate-700 dark:text-slate-400">C1 Advanced</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Scenario Cards Grid -->
+                <div>
+                    <h3 class="font-display font-bold text-lg text-slate-900 dark:text-white mb-4 flex items-center space-x-2">
+                        <i class="fa-solid fa-map-location-dot text-indigo-500"></i>
+                        <span>Select a Mission Scenario</span>
+                    </h3>
+                    
+                    <div id="scenarios-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <!-- Populated dynamically -->
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- VIEW 2: ACTIVE ROLEPLAY CHAT STUDIO -->
+        <div id="view-chat" class="hidden absolute inset-0 flex flex-col md:flex-row overflow-hidden z-35 bg-slate-50 dark:bg-slate-950">
+            
+            <!-- Left Sidebar: Scenario Info & Real-Time Feedback -->
+            <div class="w-full md:w-80 glass-card border-r border-slate-200 dark:border-slate-800 p-5 flex flex-col justify-between shrink-0 overflow-y-auto">
+                <div class="space-y-6">
+                    <!-- Scenario Title & Persona -->
+                    <div>
+                        <button onclick="resetToDashboard()" class="text-xs font-semibold text-indigo-600 dark:text-indigo-400 hover:underline mb-3 flex items-center space-x-1">
+                            <i class="fa-solid fa-arrow-left"></i>
+                            <span>Back to Scenarios</span>
+                        </button>
+                        <div id="active-scenario-badge" class="px-2.5 py-1 rounded-lg bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 text-[10px] font-bold uppercase tracking-wider inline-block mb-2">Job Interview</div>
+                        <h3 id="active-scenario-title" class="font-display font-bold text-lg text-slate-900 dark:text-white">Tech Startup Interview</h3>
+                        <p id="active-scenario-desc" class="text-xs text-slate-600 dark:text-slate-400 mt-1">Convince the hiring manager about your qualifications and problem-solving skills.</p>
+                    </div>
+
+                    <!-- AI Counterpart Card -->
+                    <div class="p-4 rounded-2xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-center">
+                        <div class="w-16 h-16 rounded-2xl bg-gradient-to-tr from-indigo-500 to-violet-600 mx-auto flex items-center justify-center text-white text-2xl shadow-lg mb-3">
+                            <i id="ai-persona-icon" class="fa-solid fa-user-tie"></i>
+                        </div>
+                        <h4 id="ai-persona-name" class="font-display font-bold text-slate-900 dark:text-white text-sm">Mr. Vance (Hiring Manager)</h4>
+                        <div id="ai-status-indicator" class="mt-2 text-[11px] text-emerald-600 dark:text-emerald-400 font-semibold bg-emerald-500/10 py-1 px-3 rounded-full inline-flex items-center space-x-1.5 border border-emerald-500/20">
+                            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                            <span>Listening / Ready</span>
+                        </div>
+                    </div>
+
+                    <!-- Live Phrase Scaffolding / Hint Box -->
+                    <div class="p-4 rounded-2xl bg-indigo-500/5 dark:bg-indigo-500/10 border border-indigo-500/20">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-xs font-bold text-indigo-600 dark:text-indigo-400 flex items-center space-x-1.5">
+                                <i class="fa-solid fa-lightbulb"></i>
+                                <span>Suggested Expression</span>
+                            </span>
+                            <button onclick="fetchNewHint()" class="text-[10px] font-semibold text-indigo-500 hover:underline">New Hint</button>
+                        </div>
+                        <p id="hint-text" class="text-xs text-slate-600 dark:text-slate-300 italic">"Thank you for having me. I am very excited about..."</p>
+                    </div>
+
+                    <!-- Real-Time Evaluation Feedback Box -->
+                    <div id="realtime-feedback-box" class="hidden p-4 rounded-2xl bg-amber-500/10 border border-amber-500/20">
+                        <span class="text-xs font-bold text-amber-600 dark:text-amber-400 flex items-center space-x-1.5 mb-1">
+                            <i class="fa-solid fa-wand-magic-sparkles"></i>
+                            <span>Quick Tip</span>
+                        </span>
+                        <p id="realtime-feedback-text" class="text-xs text-slate-700 dark:text-slate-300">Try using past tense verbs when describing previous projects.</p>
+                    </div>
+                </div>
+
+                <!-- Progress / Turn Counter -->
+                <div class="pt-4 mt-4 border-t border-slate-200 dark:border-slate-800">
+                    <div class="flex justify-between text-xs text-slate-500 dark:text-slate-400 mb-1.5">
+                        <span>Mission Exchanges</span>
+                        <span id="turn-count-display">0 / 6 turns</span>
+                    </div>
+                    <div class="w-full bg-slate-200 dark:bg-slate-800 h-2 rounded-full overflow-hidden">
+                        <div id="progress-bar" class="bg-indigo-600 h-full w-0 transition-all duration-300"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Chat & Voice Studio Area -->
+            <div class="flex-1 flex flex-col bg-slate-100/50 dark:bg-slate-900/50 relative overflow-hidden">
+                
+                <!-- Messages Scroll Area -->
+                <div id="chat-messages" class="flex-1 p-4 md:p-6 overflow-y-auto space-y-4">
+                    <!-- Populated dynamically -->
+                </div>
+
+                <!-- Voice Recording Waveform Visualizer Overlay -->
+                <div id="voice-waveform-overlay" class="hidden absolute bottom-24 left-4 right-4 md:left-8 md:right-8 p-4 rounded-2xl bg-slate-900/90 backdrop-blur border border-indigo-500/40 text-white flex items-center justify-between shadow-2xl z-20">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-10 h-10 rounded-xl bg-rose-500/20 border border-rose-500 text-rose-400 flex items-center justify-center animate-pulse">
+                            <i class="fa-solid fa-microphone"></i>
+                        </div>
+                        <div>
+                            <div class="text-xs font-bold text-rose-400">Listening to your voice...</div>
+                            <div id="live-speech-transcript" class="text-sm text-slate-300 italic max-w-md truncate">Speak clearly into your microphone</div>
+                        </div>
+                    </div>
+                    <button onclick="stopVoiceRecognition()" class="px-4 py-2 bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold rounded-xl shadow-lg transition">Done Speaking</button>
+                </div>
+
+                <!-- Controls Bar -->
+                <div class="glass-card border-t border-slate-200 dark:border-slate-800 p-4 flex items-center justify-between gap-3 shrink-0">
+                    <div class="flex items-center space-x-2 w-full">
+                        <!-- Microphone Speech Button -->
+                        <button id="btn-mic" onclick="toggleVoiceInput()" class="flex-1 md:flex-none px-6 py-3.5 bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white font-display font-bold rounded-xl shadow-lg shadow-indigo-500/25 transition flex items-center justify-center space-x-2">
+                            <i id="mic-icon" class="fa-solid fa-microphone text-base"></i>
+                            <span id="mic-btn-text">Tap & Speak</span>
+                        </button>
+
+                        <!-- Toggle Text Input -->
+                        <button onclick="toggleTextInputBox()" class="p-3.5 bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-xl border border-slate-300 dark:border-slate-700 transition" title="Type message">
+                            <i class="fa-solid fa-keyboard"></i>
+                        </button>
+
+                        <!-- Repeat AI Audio -->
+                        <button onclick="repeatLastAiAudio()" class="hidden sm:flex items-center space-x-1.5 px-4 py-3.5 bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-xl border border-slate-300 dark:border-slate-700 text-xs font-semibold transition" title="Repeat Audio">
+                            <i class="fa-solid fa-volume-high text-indigo-500"></i>
+                            <span>Repeat</span>
+                        </button>
+                    </div>
+
+                    <!-- Finish Mission Button -->
+                    <button onclick="completeMission()" class="px-4 py-3.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-xl shadow-lg shadow-emerald-500/20 transition whitespace-nowrap">
+                        Finish & Debrief
+                    </button>
+                </div>
+
+                <!-- Text Input Drawer (hidden by default) -->
+                <div id="text-input-drawer" class="hidden p-3 bg-slate-200/80 dark:bg-slate-900/80 border-t border-slate-300 dark:border-slate-800 flex items-center space-x-2">
+                    <input type="text" id="user-typed-input" placeholder="Type your response here..." class="flex-1 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl px-4 py-2.5 text-sm text-slate-900 dark:text-white focus:outline-none focus:border-indigo-500" onkeydown="if(event.key==='Enter') sendTypedMessage()">
+                    <button onclick="sendTypedMessage()" class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl text-sm transition">Send</button>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- VIEW 3: MISSION DEBRIEF & REPORT CARD -->
+        <div id="view-debrief" class="hidden absolute inset-0 overflow-y-auto p-4 md:p-8 z-40 bg-slate-50 dark:bg-slate-950">
+            <div class="max-w-2xl mx-auto space-y-6">
+                <div class="glass-card rounded-3xl p-8 border border-indigo-500/30 shadow-2xl relative overflow-hidden text-center">
+                    <div class="w-20 h-20 rounded-3xl bg-gradient-to-tr from-amber-400 to-amber-600 mx-auto flex items-center justify-center text-white text-3xl shadow-xl shadow-amber-500/20 mb-4 animate-bounce-subtle">
+                        <i class="fa-solid fa-award"></i>
+                    </div>
+                    <span id="debrief-badge-label" class="px-3 py-1 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 text-xs font-bold uppercase tracking-wider mb-2 inline-block">Mission Accomplished</span>
+                    <h2 class="font-display text-3xl font-extrabold text-slate-900 dark:text-white mb-2">Fluency Debrief Report</h2>
+                    <p class="text-slate-600 dark:text-slate-400 text-sm mb-6">Here is your AI evaluation for this scenario practice session.</p>
+
+                    <!-- Score Grid -->
+                    <div class="grid grid-cols-3 gap-4 mb-8">
+                        <div class="p-4 rounded-2xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
+                            <div class="text-xs text-slate-500 dark:text-slate-400 mb-1">Fluency Score</div>
+                            <div id="debrief-score" class="font-display text-2xl md:text-3xl font-bold text-indigo-600 dark:text-indigo-400">92%</div>
+                        </div>
+                        <div class="p-4 rounded-2xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
+                            <div class="text-xs text-slate-500 dark:text-slate-400 mb-1">XP Earned</div>
+                            <div id="debrief-xp" class="font-display text-2xl md:text-3xl font-bold text-amber-500">+150</div>
+                        </div>
+                        <div class="p-4 rounded-2xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
+                            <div class="text-xs text-slate-500 dark:text-slate-400 mb-1">CEFR Level</div>
+                            <div id="debrief-cefr" class="font-display text-2xl md:text-3xl font-bold text-emerald-500">B1</div>
+                        </div>
+                    </div>
+
+                    <!-- Detailed AI Feedback -->
+                    <div class="text-left space-y-4 mb-8">
+                        <div class="p-5 rounded-2xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
+                            <h4 class="font-bold text-xs uppercase tracking-wider text-indigo-600 dark:text-indigo-400 mb-2 flex items-center space-x-2">
+                                <i class="fa-solid fa-comment-dots"></i>
+                                <span>Strengths & Key Highlights</span>
+                            </h4>
+                            <p id="debrief-strengths" class="text-sm text-slate-700 dark:text-slate-300 leading-relaxed">
+                                Great vocabulary usage and polite opening phrasing. You maintained a natural conversation flow throughout the roleplay.
+                            </p>
+                        </div>
+                        <div class="p-5 rounded-2xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
+                            <h4 class="font-bold text-xs uppercase tracking-wider text-amber-600 dark:text-amber-400 mb-2 flex items-center space-x-2">
+                                <i class="fa-solid fa-lightbulb"></i>
+                                <span>Grammar & Vocabulary Suggestions</span>
+                            </h4>
+                            <p id="debrief-improvements" class="text-sm text-slate-700 dark:text-slate-300 leading-relaxed">
+                                Watch out for subject-verb agreement in complex sentences. Try using transition words like "Furthermore" or "On the other hand".
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="flex space-x-4">
+                        <button onclick="resetToDashboard()" class="flex-1 py-4 bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white font-display font-bold rounded-2xl shadow-lg shadow-indigo-500/25 transition">
+                            Back to Scenarios
+                        </button>
+                        <button onclick="restartCurrentScenario()" class="px-6 py-4 bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 font-display font-bold rounded-2xl transition">
+                            Play Again
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- API Key Modal -->
+    <div id="modal-apikey" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+        <div class="glass-card max-w-md w-full p-6 rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800">
+            <div class="flex items-center justify-between mb-4">
+                <div class="flex items-center space-x-2">
+                    <div class="w-8 h-8 rounded-xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 flex items-center justify-center font-bold">
+                        <i class="fa-solid fa-key"></i>
+                    </div>
+                    <h3 class="font-display font-bold text-lg text-slate-900 dark:text-white">Gemini API Key</h3>
+                </div>
+                <button onclick="closeApiKeyModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+            <p class="text-xs text-slate-600 dark:text-slate-400 mb-4 leading-relaxed">
+                By default, the built-in sandbox key is used. If you wish to use your own Gemini API key, enter it below. It is stored securely in your browser session.
+            </p>
+            <input type="password" id="input-api-key" placeholder="AIzaSy..." class="w-full bg-slate-100 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl px-4 py-3 text-sm text-slate-900 dark:text-white focus:outline-none focus:border-indigo-500 mb-4">
+            <div class="flex space-x-3">
+                <button onclick="saveApiKey()" class="flex-1 py-3 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl text-sm transition shadow-lg shadow-indigo-500/20">Save Key</button>
+                <button onclick="clearApiKey()" class="px-4 py-3 bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold rounded-xl text-sm transition">Clear</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript Application Logic -->
+    <script>
+        // Scenario Database
+        const scenarios = [
+            {
+                id: 'interview',
+                title: 'Tech Startup Job Interview',
+                category: 'Professional',
+                icon: 'fa-user-tie',
+                badgeBg: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400',
+                personaName: 'Mr. Vance',
+                personaRole: 'Hiring Manager',
+                description: 'Interview for a Software / Project Manager position. Discuss your experience and strengths.',
+                systemPrompt: 'You are Mr. Vance, a friendly yet professional tech startup hiring manager. The student is interviewing for a role. Keep responses natural, encouraging, and ask relevant interview follow-up questions suitable for the specified CEFR level. Keep replies under 3 sentences.'
+            },
+            {
+                id: 'coffee',
+                title: 'Busy Coffee Shop Order',
+                category: 'Daily Life',
+                icon: 'fa-mug-hot',
+                badgeBg: 'bg-amber-500/10 text-amber-600 dark:text-amber-400',
+                personaName: 'Barista Chloe',
+                personaRole: 'Cafe Staff',
+                description: 'Order your favorite specialty coffee, customize milk and syrup, and pay at the counter.',
+                systemPrompt: 'You are Chloe, a friendly barista at a busy downtown coffee shop. Greet the student, take their order, ask about milk preferences, size, or pastries, and total up the price. Keep replies short, conversational, and friendly.'
+            },
+            {
+                id: 'customs',
+                title: 'Airport Customs & Immigration',
+                category: 'Travel',
+                icon: 'fa-plane-departure',
+                badgeBg: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400',
+                personaName: 'Officer Davis',
+                personaRole: 'Customs Officer',
+                description: 'Answer questions about the purpose of your trip, length of stay, and accommodation.',
+                systemPrompt: 'You are Officer Davis, a strict yet polite airport immigration officer. Ask the student about the purpose of their visit, how long they plan to stay, and where they are staying. Keep replies professional.'
+            },
+            {
+                id: 'hotel',
+                title: 'Hotel Check-in & Complaint',
+                category: 'Travel',
+                icon: 'fa-hotel',
+                badgeBg: 'bg-purple-500/10 text-purple-600 dark:text-purple-400',
+                personaName: 'Receptionist Maya',
+                personaRole: 'Hotel Front Desk',
+                description: 'Check in for your reservation and politely report that your room air conditioning is not working.',
+                systemPrompt: 'You are Maya, a polite hotel receptionist. Greet the guest, check them in under their reservation, and handle their polite complaint about the AC unit. Keep responses helpful and professional.'
+            },
+            {
+                id: 'networking',
+                title: 'Professional Networking Mixer',
+                category: 'Business',
+                icon: 'fa-handshake',
+                badgeBg: 'bg-blue-500/10 text-blue-600 dark:text-blue-400',
+                personaName: 'Sarah Jenkins',
+                personaRole: 'Marketing Director',
+                description: 'Introduce yourself at a business mixer, exchange ideas, and discuss industry trends.',
+                systemPrompt: 'You are Sarah Jenkins, an outgoing marketing director at a networking mixer. Greet the student, introduce yourself, ask what industry they work in, and chat about professional interests.'
+            },
+            {
+                id: 'support',
+                title: 'Customer Support Gadget Return',
+                category: 'Shopping',
+                icon: 'fa-headset',
+                badgeBg: 'bg-rose-500/10 text-rose-600 dark:text-rose-400',
+                personaName: 'Support Agent Liam',
+                personaRole: 'Help Desk',
+                description: 'Explain why the electronic gadget you purchased is defective and request a full refund.',
+                systemPrompt: 'You are Liam, a polite customer support agent for an electronics store. Listen to the customer explain their defective product issue, ask for receipt details, and offer a store credit or refund option.'
+            }
+        ];
+
+        // Global State
+        let gameState = {
+            xp: 120,
+            badges: 2,
+            globalLevel: 'B1',
+            activeScenario: null,
+            turns: 0,
+            maxTurns: 6,
+            conversationHistory: [],
+            lastAiText: '',
+            isListening: false
+        };
+
+        // Speech APIs
+        let recognition = null;
+        let synthesis = window.speechSynthesis;
+
+        window.addEventListener('DOMContentLoaded', () => {
+            renderScenariosGrid();
+            initSpeechRecognition();
+            loadUserData();
+        });
+
+        function loadUserData() {
+            const savedXp = localStorage.getItem('sq_xp');
+            const savedBadges = localStorage.getItem('sq_badges');
+            if (savedXp) gameState.xp = parseInt(savedXp);
+            if (savedBadges) gameState.badges = parseInt(savedBadges);
+            updateStatsUI();
+        }
+
+        function saveUserData() {
+            localStorage.setItem('sq_xp', gameState.xp);
+            localStorage.setItem('sq_badges', gameState.badges);
+            updateStatsUI();
+        }
+
+        function updateStatsUI() {
+            document.getElementById('stat-xp').innerText = gameState.xp;
+            document.getElementById('stat-badges').innerText = gameState.badges;
+        }
+
+        function setGlobalLevel(level) {
+            gameState.globalLevel = level;
+            ['a2', 'b1', 'b2', 'c1'].forEach(l => {
+                const btn = document.getElementById(`lvl-${l}`);
+                if (btn) {
+                    if (l === level.toLowerCase()) {
+                        btn.className = "px-3 py-1 rounded-lg text-xs font-bold transition bg-white dark:bg-indigo-600 text-slate-900 dark:text-white shadow";
+                    } else {
+                        btn.className = "px-3 py-1 rounded-lg text-xs font-bold transition text-slate-700 dark:text-slate-400";
+                    }
+                }
+            });
+            document.getElementById('stat-level').innerText = `${level} ${level === 'A2' ? 'Basic' : level === 'B1' ? 'Intermediate' : level === 'B2' ? 'Upper' : 'Advanced'}`;
+        }
+
+        function renderScenariosGrid() {
+            const grid = document.getElementById('scenarios-grid');
+            grid.innerHTML = '';
+            scenarios.forEach(sc => {
+                const card = document.createElement('div');
+                card.className = "glass-card rounded-3xl p-6 border border-slate-200 dark:border-slate-800 hover:border-indigo-500/50 hover:shadow-xl hover:shadow-indigo-500/5 transition duration-300 flex flex-col justify-between cursor-pointer group";
+                card.onclick = () => startScenario(sc.id);
+
+                card.innerHTML = `
+                    <div>
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="w-12 h-12 rounded-2xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 flex items-center justify-center text-xl group-hover:scale-110 transition duration-300">
+                                <i class="fa-solid ${sc.icon}"></i>
+                            </div>
+                            <span class="px-3 py-1 rounded-full ${sc.badgeBg} text-[10px] font-bold uppercase tracking-wider">${sc.category}</span>
+                        </div>
+                        <h4 class="font-display font-bold text-lg text-slate-900 dark:text-white mb-2 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition">${sc.title}</h4>
+                        <p class="text-xs text-slate-600 dark:text-slate-400 leading-relaxed mb-4">${sc.description}</p>
+                    </div>
+                    <div class="flex items-center justify-between pt-4 border-t border-slate-200 dark:border-slate-800">
+                        <span class="text-xs font-semibold text-slate-500 flex items-center space-x-1">
+                            <i class="fa-solid fa-user text-indigo-500"></i>
+                            <span>${sc.personaName} (${sc.personaRole})</span>
+                        </span>
+                        <span class="text-xs font-bold text-indigo-600 dark:text-indigo-400 group-hover:translate-x-1 transition flex items-center space-x-1">
+                            <span>Start</span>
+                            <i class="fa-solid fa-arrow-right"></i>
+                        </span>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        async function startScenario(scenarioId) {
+            gameState.activeScenario = scenarios.find(s => s.id === scenarioId);
+            gameState.turns = 0;
+            gameState.conversationHistory = [];
+
+            // Update UI sidebar
+            document.getElementById('active-scenario-title').innerText = gameState.activeScenario.title;
+            document.getElementById('active-scenario-desc').innerText = gameState.activeScenario.description;
+            document.getElementById('ai-persona-name').innerText = `${gameState.activeScenario.personaName} (${gameState.activeScenario.personaRole})`;
+            document.getElementById('ai-persona-icon').className = `fa-solid ${gameState.activeScenario.icon}`;
+            document.getElementById('turn-count-display').innerText = `0 / ${gameState.maxTurns} turns`;
+            document.getElementById('progress-bar').style.width = '0%';
+            document.getElementById('chat-messages').innerHTML = '';
+            document.getElementById('realtime-feedback-box').classList.add('hidden');
+
+            // Switch view
+            document.getElementById('view-dashboard').classList.add('hidden');
+            document.getElementById('view-chat').classList.remove('hidden');
+
+            // Fetch opening line from AI
+            await triggerAiOpening();
+            fetchNewHint();
+        }
+
+        function resetToDashboard() {
+            if (synthesis) synthesis.cancel();
+            stopVoiceRecognition();
+            document.getElementById('view-chat').classList.add('hidden');
+            document.getElementById('view-debrief').classList.add('hidden');
+            document.getElementById('view-dashboard').classList.remove('hidden');
+        }
+
+        function restartCurrentScenario() {
+            if (gameState.activeScenario) {
+                startScenario(gameState.activeScenario.id);
+            }
+        }
+
+        function initSpeechRecognition() {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if (SpeechRecognition) {
+                recognition = new SpeechRecognition();
+                recognition.continuous = false;
+                recognition.interimResults = true;
+                recognition.lang = 'en-US';
+
+                recognition.onstart = () => {
+                    gameState.isListening = true;
+                    document.getElementById('voice-waveform-overlay').classList.remove('hidden');
+                    document.getElementById('mic-icon').classList.remove('fa-microphone');
+                    document.getElementById('mic-icon').classList.add('fa-stop');
+                    document.getElementById('mic-btn-text').innerText = 'Listening...';
+                };
+
+                recognition.onresult = (event) => {
+                    let transcript = '';
+                    for (let i = event.resultIndex; i < event.results.length; ++i) {
+                        transcript += event.results[i][0].transcript;
+                    }
+                    document.getElementById('live-speech-transcript').innerText = transcript;
+                    if (event.results[event.results.length - 1].isFinal) {
+                        stopVoiceRecognition();
+                        handleUserMessage(transcript);
+                    }
+                };
+
+                recognition.onerror = (event) => {
+                    console.error("Speech error", event.error);
+                    stopVoiceRecognition();
+                };
+
+                recognition.onend = () => {
+                    stopVoiceRecognition();
+                };
+            }
+        }
+
+        function toggleVoiceInput() {
+            if (!recognition) {
+                alert("Speech recognition is not supported in this browser. Please use the text input instead.");
+                toggleTextInputBox();
+                return;
+            }
+            if (gameState.isListening) {
+                recognition.stop();
+            } else {
+                try {
+                    recognition.start();
+                } catch(e) {
+                    console.error(e);
+                }
+            }
+        }
+
+        function stopVoiceRecognition() {
+            gameState.isListening = false;
+            document.getElementById('voice-waveform-overlay').classList.add('hidden');
+            document.getElementById('mic-icon').classList.remove('fa-stop');
+            document.getElementById('mic-icon').classList.add('fa-microphone');
+            document.getElementById('mic-btn-text').innerText = 'Tap & Speak';
+        }
+
+        function toggleTextInputBox() {
+            const drawer = document.getElementById('text-input-drawer');
+            drawer.classList.toggle('hidden');
+            if (!drawer.classList.contains('hidden')) {
+                document.getElementById('user-typed-input').focus();
+            }
+        }
+
+        function sendTypedMessage() {
+            const input = document.getElementById('user-typed-input');
+            const text = input.value.trim();
+            if (!text) return;
+            input.value = '';
+            document.getElementById('text-input-drawer').classList.add('hidden');
+            handleUserMessage(text);
+        }
+
+        function appendMessage(sender, text) {
+            const container = document.getElementById('chat-messages');
+            const isAi = sender === 'ai';
+            const div = document.createElement('div');
+            div.className = `flex ${isAi ? 'justify-start' : 'justify-end'} mb-4`;
+
+            div.innerHTML = `
+                <div class="max-w-[85%] md:max-w-[70%] rounded-2xl p-4 ${isAi ? 'glass-card border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-100' : 'bg-gradient-to-r from-indigo-600 to-violet-600 text-white shadow-lg'}">
+                    <div class="flex items-center space-x-2 mb-1">
+                        <span class="text-[10px] font-bold uppercase tracking-wider ${isAi ? 'text-indigo-600 dark:text-indigo-400' : 'text-indigo-200'}">${isAi ? gameState.activeScenario.personaName : 'You (Ambassador)'}</span>
+                    </div>
+                    <p class="text-sm leading-relaxed">${escapeHtml(text)}</p>
+                </div>
+            `;
+            container.appendChild(div);
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function escapeHtml(text) {
+            const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
+            return text.replace(/[&<>"']/g, function(m) { return map[m]; });
+        }
+
+        async function triggerAiOpening() {
+            const prompt = `${gameState.activeScenario.systemPrompt} The student's English level is CEFR ${gameState.globalLevel}. Give an opening greeting to start the scenario conversation. Keep it to 2 sentences.`;
+            const reply = await callGemini(prompt);
+            gameState.lastAiText = reply;
+            appendMessage('ai', reply);
+            speakText(reply);
+        }
+
+        async function handleUserMessage(userText) {
+            appendMessage('user', userText);
+            gameState.turns++;
+            
+            const pct = Math.round((gameState.turns / gameState.maxTurns) * 100);
+            document.getElementById('turn-count-display').innerText = `${gameState.turns} / ${gameState.maxTurns} turns`;
+            document.getElementById('progress-bar').style.width = `${pct}%`;
+
+            if (gameState.turns >= gameState.maxTurns) {
+                setTimeout(completeMission, 1500);
+                return;
+            }
+
+            // Quick live feedback check
+            fetchRealtimeFeedback(userText);
+
+            const prompt = `${gameState.activeScenario.systemPrompt}
+Conversation history:
+${gameState.conversationHistory.map(m => `${m.role}: ${m.text}`).join('\n')}
+Student: ${userText}
+Respond naturally in character, suitable for level ${gameState.globalLevel}, keeping reply under 3 sentences and asking a follow-up question.`;
+
+            gameState.conversationHistory.push({ role: 'Student', text: userText });
+            const aiReply = await callGemini(prompt);
+            gameState.conversationHistory.push({ role: gameState.activeScenario.personaName, text: aiReply });
+            gameState.lastAiText = aiReply;
+
+            appendMessage('ai', aiReply);
+            speakText(aiReply);
+            fetchNewHint();
+        }
+
+        async function fetchRealtimeFeedback(userText) {
+            const apiKey = localStorage.getItem('sq_api_key') || "";
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
+            const payload = {
+                contents: [{ parts: [{ text: `Provide one short, concise grammar or vocabulary tip for this English learner's sentence: "${userText}". Keep it under 15 words.` }] }]
+            };
+            try {
+                const res = await fetch(apiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+                const data = await res.json();
+                const tip = data.candidates?.[0]?.content?.parts?.[0]?.text;
+                if (tip) {
+                    document.getElementById('realtime-feedback-text').innerText = tip;
+                    document.getElementById('realtime-feedback-box').classList.remove('hidden');
+                }
+            } catch(e) {
+                console.warn(e);
+            }
+        }
+
+        async function fetchNewHint() {
+            const hintEl = document.getElementById('hint-text');
+            hintEl.innerText = "Generating phrase suggestion...";
+            const prompt = `Provide 1 polite, natural English sentence expression or phrase for a CEFR level ${gameState.globalLevel} student in this scenario: "${gameState.activeScenario.title}". Give only the sentence in quotes.`;
+            const hint = await callGemini(prompt);
+            if (hint) {
+                hintEl.innerText = hint;
+            } else {
+                hintEl.innerText = `"Could you please tell me more about..."`;
+            }
+        }
+
+        async function callGemini(prompt) {
+            const apiKey = localStorage.getItem('sq_api_key') || "";
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
+            const payload = {
+                contents: [{ parts: [{ text: prompt }] }],
+                systemInstruction: { parts: [{ text: "You are an AI roleplay assistant for English language learners." }] }
+            };
+
+            for (let attempt = 0; attempt < 3; attempt++) {
+                try {
+                    const response = await fetch(apiUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+                    const result = await response.json();
+                    const text = result.candidates?.[0]?.content?.parts?.[0]?.text;
+                    if (text) return text;
+                } catch(e) {
+                    await new Promise(r => setTimeout(r, 1000 * Math.pow(2, attempt)));
+                }
+            }
+            return "That is interesting. Let us continue our discussion.";
+        }
+
+        function speakText(text) {
+            if (!synthesis) return;
+            synthesis.cancel();
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.rate = gameState.globalLevel === 'A2' ? 0.85 : 1.0;
+            utterance.lang = 'en-US';
+            synthesis.speak(utterance);
+        }
+
+        function repeatLastAiAudio() {
+            if (gameState.lastAiText) speakText(gameState.lastAiText);
+        }
+
+        async function completeMission() {
+            if (synthesis) synthesis.cancel();
+            document.getElementById('view-chat').classList.add('hidden');
+            document.getElementById('view-debrief').classList.remove('hidden');
+
+            // Grant rewards
+            gameState.xp += 150;
+            gameState.badges += 1;
+            saveUserData();
+
+            document.getElementById('debrief-cefr').innerText = gameState.globalLevel;
+            document.getElementById('debrief-xp').innerText = "+150";
+
+            // Generate debrief evaluation
+            const prompt = `Evaluate the English speaking practice roleplay session for scenario "${gameState.activeScenario.title}" at level ${gameState.globalLevel}. Provide strengths and one improvement suggestion. Format output as JSON with keys "strengths" and "improvements".`;
+            const analysis = await callGemini(prompt);
+            
+            try {
+                // simple fallback cleaning
+                document.getElementById('debrief-strengths').innerText = analysis;
+                document.getElementById('debrief-improvements').innerText = "Keep practicing regularly to build conversational confidence and natural idioms!";
+            } catch(e) {
+                document.getElementById('debrief-strengths').innerText = "Great vocabulary range and smooth conversational flow!";
+            }
+        }
+
+        // Theme Toggle
+        function toggleDarkMode() {
+            document.documentElement.classList.toggle('dark');
+        }
+
+        // API Key Modal Controls
+        function openApiKeyModal() {
+            document.getElementById('input-api-key').value = localStorage.getItem('sq_api_key') || '';
+            document.getElementById('modal-apikey').classList.remove('hidden');
+        }
+        function closeApiKeyModal() {
+            document.getElementById('modal-apikey').classList.add('hidden');
+        }
+        function saveApiKey() {
+            const val = document.getElementById('input-api-key').value.trim();
+            if (val) {
+                localStorage.setItem('sq_api_key', val);
+                alert("API Key saved successfully!");
+                closeApiKeyModal();
+            }
+        }
+        function clearApiKey() {
+            localStorage.removeItem('sq_api_key');
+            document.getElementById('input-api-key').value = '';
+            alert("API Key cleared. Using built-in sandbox.");
+            closeApiKeyModal();
+        }
+    </script>
+</body>
+</html>

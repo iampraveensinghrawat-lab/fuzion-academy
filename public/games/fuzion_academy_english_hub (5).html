@@ -1,0 +1,941 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fuzion Academy English Hub</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Canvas Confetti for celebratory wins -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(226, 232, 240, 0.8);
+        }
+        .dark .glass-card {
+            background: rgba(30, 41, 59, 0.9);
+            border: 1px solid rgba(51, 65, 85, 0.8);
+        }
+        @keyframes pulseGlow {
+            0%, 100% { box-shadow: 0 0 15px rgba(99, 102, 241, 0.4); }
+            50% { box-shadow: 0 0 25px rgba(168, 85, 247, 0.7); }
+        }
+        .glow-effect { animation: pulseGlow 3s infinite; }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 dark:from-slate-900 dark:via-indigo-950 dark:to-slate-900 text-slate-800 dark:text-slate-100 min-h-full flex flex-col transition-colors duration-300">
+
+    <!-- Top Announcement & Helpline Banner -->
+    <div class="bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 text-white text-xs sm:text-sm py-2 px-4 shadow-md flex flex-wrap justify-between items-center gap-2 z-50">
+        <div class="flex items-center gap-2">
+            <span class="bg-white/20 px-2 py-0.5 rounded-full font-semibold"><i class="fa-solid fa-location-dot mr-1"></i> Sector-11, Pratap Vihar, Ghaziabad</span>
+            <span class="hidden md:inline">| Spoken English, Soft Skills & Confidence Building</span>
+        </div>
+        <div class="flex items-center gap-4">
+            <a href="tel:9582774387" class="hover:underline font-bold bg-white/10 px-3 py-1 rounded-full"><i class="fa-solid fa-phone-volume mr-1.5"></i> Helpline: 9582774387</a>
+            <button onclick="toggleDarkMode()" class="text-white hover:bg-white/20 p-1.5 rounded-full transition"><i id="themeIcon" class="fa-solid fa-moon"></i></button>
+        </div>
+    </div>
+
+    <!-- Main Header & Branding -->
+    <header class="sticky top-0 z-40 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 shadow-sm px-4 sm:px-8 py-4">
+        <div class="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-4">
+            <div class="flex items-center gap-3">
+                <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-indigo-600 to-pink-500 flex items-center justify-center text-white text-2xl font-black shadow-lg glow-effect">
+                    F
+                </div>
+                <div>
+                    <h1 class="text-2xl font-extrabold tracking-tight bg-gradient-to-r from-indigo-600 to-pink-600 bg-clip-text text-transparent">Fuzion Academy</h1>
+                    <p class="text-xs text-slate-500 dark:text-slate-400 font-medium">English Hub & Interactive Activity Portal</p>
+                </div>
+            </div>
+
+            <!-- Student Profile Summary / XP Widget -->
+            <div class="flex items-center gap-3 bg-slate-100 dark:bg-slate-800/80 p-2 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-inner">
+                <div class="relative">
+                    <img id="avatarImg" src="https://placehold.co/100x100/6366f1/ffffff?text=FA" alt="Student" class="w-10 h-10 rounded-xl object-cover border-2 border-indigo-500">
+                    <span class="absolute -bottom-1 -right-1 bg-emerald-500 text-white text-[10px] px-1 rounded-full font-bold" id="levelBadge">A2</span>
+                </div>
+                <div class="text-left pr-2">
+                    <div class="flex items-center gap-2">
+                        <span id="displayName" class="font-bold text-sm truncate max-w-[120px]">Student</span>
+                        <button onclick="openProfileModal()" class="text-indigo-600 dark:text-indigo-400 hover:underline text-xs"><i class="fa-solid fa-pen"></i></button>
+                    </div>
+                    <div class="flex items-center gap-3 text-xs text-slate-600 dark:text-slate-400 font-medium">
+                        <span><i class="fa-solid fa-bolt text-amber-500 mr-1"></i><strong id="headerXp">120</strong> XP</span>
+                        <span><i class="fa-solid fa-fire text-orange-500 mr-1"></i><strong id="headerStreak">5</strong> Days</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Navigation Tabs -->
+    <nav class="bg-white/60 dark:bg-slate-900/60 backdrop-blur border-b border-slate-200 dark:border-slate-800 px-4 overflow-x-auto">
+        <div class="max-w-7xl mx-auto flex gap-2 py-2 min-w-max">
+            <button onclick="switchTab('dashboard')" id="nav-dashboard" class="tab-btn px-4 py-2 rounded-xl text-sm font-semibold transition bg-indigo-600 text-white shadow-md"><i class="fa-solid fa-house mr-2"></i>Dashboard</button>
+            <button onclick="switchTab('activities')" id="nav-activities" class="tab-btn px-4 py-2 rounded-xl text-sm font-semibold transition text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-800"><i class="fa-solid fa-gamepad mr-2"></i>30+ Games & Hub</button>
+            <button onclick="switchTab('custom')" id="nav-custom" class="tab-btn px-4 py-2 rounded-xl text-sm font-semibold transition text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-800"><i class="fa-solid fa-cloud-arrow-up mr-2"></i>Custom HTML Loader</button>
+            <button onclick="switchTab('leaderboard')" id="nav-leaderboard" class="tab-btn px-4 py-2 rounded-xl text-sm font-semibold transition text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-800"><i class="fa-solid fa-trophy mr-2"></i>Leaderboard & Badges</button>
+        </div>
+    </nav>
+
+    <!-- Main Content Container -->
+    <main class="flex-grow max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8">
+
+        <!-- TAB 1: DASHBOARD -->
+        <section id="tab-dashboard" class="tab-content space-y-6">
+            <!-- Welcome Hero Banner -->
+            <div class="bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 rounded-3xl p-6 sm:p-8 text-white shadow-xl relative overflow-hidden flex flex-col md:flex-row justify-between items-center gap-6">
+                <div class="absolute -right-10 -bottom-10 w-64 h-64 bg-white/10 rounded-full blur-2xl pointer-events-none"></div>
+                <div class="space-y-3 z-10">
+                    <span class="bg-white/20 text-white px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider">Fuzion Academy Exclusive</span>
+                    <h2 class="text-3xl sm:text-4xl font-black">Welcome back, <span id="heroName">English Learner</span>!</h2>
+                    <p class="text-indigo-100 max-w-xl text-sm sm:text-base">Master Spoken English, conquer grammar obstacles, and boost your public speaking confidence with our 30+ interactive ESL games and activities.</p>
+                    <div class="flex flex-wrap gap-3 pt-2">
+                        <button onclick="switchTab('activities')" class="bg-white text-indigo-700 font-bold px-6 py-2.5 rounded-xl shadow-lg hover:bg-indigo-50 transition transform active:scale-95"><i class="fa-solid fa-play mr-2"></i>Explore Activities</button>
+                        <button onclick="launchGame('wordScramble')" class="bg-indigo-800/60 hover:bg-indigo-800 border border-indigo-400/40 text-white font-bold px-6 py-2.5 rounded-xl transition transform active:scale-95"><i class="fa-solid fa-bolt mr-2"></i>Play Word Sprint</button>
+                    </div>
+                </div>
+                <!-- Quick Stats Box -->
+                <div class="bg-white/10 backdrop-blur-md p-5 rounded-2xl border border-white/20 grid grid-cols-2 gap-4 text-center z-10 min-w-[260px]">
+                    <div>
+                        <div class="text-2xl sm:text-3xl font-black" id="statCompleted">14</div>
+                        <div class="text-xs text-indigo-200">Games Played</div>
+                    </div>
+                    <div>
+                        <div class="text-2xl sm:text-3xl font-black" id="statBadgeCount">5/12</div>
+                        <div class="text-xs text-indigo-200">Badges Unlocked</div>
+                    </div>
+                    <div class="col-span-2 pt-2 border-t border-white/20 flex justify-between items-center text-xs">
+                        <span>CEFR Level: <strong id="statLevel">Intermediate (B1)</strong></span>
+                        <span class="text-emerald-300 font-bold"><i class="fa-solid fa-circle-check"></i> On Track</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Play Featured Mini-Games -->
+            <div>
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-xl font-bold flex items-center gap-2"><i class="fa-solid fa-fire text-orange-500"></i> Featured Interactive Mini-Games</h3>
+                    <button onclick="switchTab('activities')" class="text-indigo-600 dark:text-indigo-400 font-semibold text-sm hover:underline">View All 30+ Activities <i class="fa-solid fa-arrow-right ml-1"></i></button>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <!-- Game Card 1 -->
+                    <div class="glass-card rounded-2xl p-5 shadow-sm hover:shadow-md transition flex flex-col justify-between border-t-4 border-indigo-500">
+                        <div>
+                            <div class="w-12 h-12 rounded-xl bg-indigo-100 dark:bg-indigo-900/60 text-indigo-600 dark:text-indigo-300 flex items-center justify-center text-xl mb-4 font-bold">
+                                <i class="fa-solid fa-shuffle"></i>
+                            </div>
+                            <h4 class="font-bold text-lg mb-1">Word Scramble Sprint</h4>
+                            <p class="text-xs text-slate-500 dark:text-slate-400 mb-4">Unscramble English vocabulary words before the timer runs out!</p>
+                        </div>
+                        <button onclick="launchGame('wordScramble')" class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-xl text-sm transition shadow-sm"><i class="fa-solid fa-play mr-2"></i>Play Now</button>
+                    </div>
+
+                    <!-- Game Card 2 -->
+                    <div class="glass-card rounded-2xl p-5 shadow-sm hover:shadow-md transition flex flex-col justify-between border-t-4 border-purple-500">
+                        <div>
+                            <div class="w-12 h-12 rounded-xl bg-purple-100 dark:bg-purple-900/60 text-purple-600 dark:text-purple-300 flex items-center justify-center text-xl mb-4 font-bold">
+                                <i class="fa-solid fa-bomb"></i>
+                            </div>
+                            <h4 class="font-bold text-lg mb-1">60-Sec Time Bomb</h4>
+                            <p class="text-xs text-slate-500 dark:text-slate-400 mb-4">Quick-fire general English & grammar questions under pressure!</p>
+                        </div>
+                        <button onclick="launchGame('timeBomb')" class="w-full py-2.5 bg-purple-600 hover:bg-purple-700 text-white font-semibold rounded-xl text-sm transition shadow-sm"><i class="fa-solid fa-play mr-2"></i>Play Now</button>
+                    </div>
+
+                    <!-- Game Card 3 -->
+                    <div class="glass-card rounded-2xl p-5 shadow-sm hover:shadow-md transition flex flex-col justify-between border-t-4 border-pink-500">
+                        <div>
+                            <div class="w-12 h-12 rounded-xl bg-pink-100 dark:bg-pink-900/60 text-pink-600 dark:text-pink-300 flex items-center justify-center text-xl mb-4 font-bold">
+                                <i class="fa-solid fa-earth-americas"></i>
+                            </div>
+                            <h4 class="font-bold text-lg mb-1">Grammar Galaxy Quiz</h4>
+                            <p class="text-xs text-slate-500 dark:text-slate-400 mb-4">Master tenses, prepositions, articles and sentence correction.</p>
+                        </div>
+                        <button onclick="launchGame('grammarGalaxy')" class="w-full py-2.5 bg-pink-600 hover:bg-pink-700 text-white font-semibold rounded-xl text-sm transition shadow-sm"><i class="fa-solid fa-play mr-2"></i>Play Now</button>
+                    </div>
+
+                    <!-- Game Card 4 -->
+                    <div class="glass-card rounded-2xl p-5 shadow-sm hover:shadow-md transition flex flex-col justify-between border-t-4 border-emerald-500">
+                        <div>
+                            <div class="w-12 h-12 rounded-xl bg-emerald-100 dark:bg-emerald-900/60 text-emerald-600 dark:text-emerald-300 flex items-center justify-center text-xl mb-4 font-bold">
+                                <i class="fa-solid fa-masks-theater"></i>
+                            </div>
+                            <h4 class="font-bold text-lg mb-1">Roleplay Prompt Generator</h4>
+                            <p class="text-xs text-slate-500 dark:text-slate-400 mb-4">Scenario-based speaking prompts for real-life fluency practice.</p>
+                        </div>
+                        <button onclick="launchGame('roleplayPrompt')" class="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-xl text-sm transition shadow-sm"><i class="fa-solid fa-play mr-2"></i>Launch Prompt</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Fuzion Academy Daily Motivation Tip -->
+            <div class="bg-gradient-to-r from-amber-500/10 via-orange-500/10 to-pink-500/1{-slate-200 dark:border-slate-800 p-6 rounded-3xl border border-amber-500/35 flex items-start gap-4">
+                <div class="text-amber-500 text-3xl"><i class="fa-solid fa-lightbulb"></i></div>
+                <div>
+                    <h4 class="font-bold text-base text-amber-700 dark:text-amber-400 mb-1">Daily Spoken English Tip from Fuzion Academy</h4>
+                    <p class="text-sm text-slate-600 dark:text-slate-300 italic" id="dailyTip">"Don't translate word-for-word from Hindi to English. Think in chunks and phrases! Practice speaking aloud for at least 15 minutes every day in front of a mirror."</p>
+                    <span class="text-xs text-slate-400 mt-2 block">— Fuzion Academy Faculty (Pratap Vihar, Ghaziabad)</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 2: 30+ GAMES & ACTIVITY HUB -->
+        <section id="tab-activities" class="tab-content hidden space-y-6">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                <div>
+                    <h2 class="text-2xl font-black">Fuzion Academy Activity Library (30+ Games)</h2>
+                    <p class="text-sm text-slate-500 dark:text-slate-400">Select a category or search through interactive ESL activities designed for all levels.</p>
+                </div>
+                <div class="flex flex-wrap gap-2 w-full md:w-auto">
+                    <div class="relative flex-grow md:w-64">
+                        <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400"><i class="fa-solid fa-search"></i></span>
+                        <input type="text" id="searchActivity" oninput="filterActivities()" placeholder="Search activities..." class="w-full pl-10 pr-4 py-2 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Category Filter Pills -->
+            <div class="flex flex-wrap gap-2 pb-2" id="categoryPills">
+                <button onclick="filterCategory('all')" class="cat-pill px-4 py-1.5 rounded-full text-xs font-semibold bg-indigo-600 text-white transition shadow-sm">All (32)</button>
+                <button onclick="filterCategory('vocab')" class="cat-pill px-4 py-1.5 rounded-full text-xs font-semibold bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 transition">Vocabulary & Idioms</button>
+                <button onclick="filterCategory('grammar')" class="cat-pill px-4 py-1.5 rounded-full text-xs font-semibold bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 transition">Grammar & Tenses</button>
+                <button onclick="filterCategory('speaking')" class="cat-pill px-4 py-1.5 rounded-full text-xs font-semibold bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 transition">Public Speaking & Roleplay</button>
+                <button onclick="filterCategory('pronunciation')" class="cat-pill px-4 py-1.5 rounded-full text-xs font-semibold bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 transition">Pronunciation & Fluency</button>
+                <button onclick="filterCategory('quick')" class="cat-pill px-4 py-1.5 rounded-full text-xs font-semibold bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 transition">60-Second Challenges</button>
+            </div>
+
+            <!-- Activity Cards Grid -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4" id="activityGrid">
+                <!-- Dynamically populated via JS -->
+            </div>
+        </section>
+
+        <!-- TAB 3: CUSTOM HTML LOADER -->
+        <section id="tab-custom" class="tab-content hidden space-y-6">
+            <div class="bg-gradient-to-r from-purple-600 to-indigo-600 p-6 sm:p-8 rounded-3xl text-white shadow-xl">
+                <h2 class="text-2xl font-black mb-2"><i class="fa-solid fa-code mr-2"></i>Custom Activity & HTML File Loader</h2>
+                <p class="text-sm text-purple-100 max-w-2xl">Have your own standalone HTML game or teacher-prepared activity file? Upload or paste the HTML code below to launch it instantly in the immersive Fuzion Academy sandbox player.</p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- Left: Paste HTML or Upload File -->
+                <div class="lg:col-span-1 glass-card p-6 rounded-3xl shadow-sm space-y-4">
+                    <h3 class="font-bold text-lg flex items-center gap-2"><i class="fa-solid fa-file-code text-indigo-500"></i> Activity Uploader / Editor</h3>
+                    
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-500 mb-1">Activity Title</label>
+                        <input type="text" id="customTitleInput" placeholder="e.g. Advanced Phrasal Verbs Quiz" class="w-full px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-500 mb-1">Select Local HTML File</label>
+                        <input type="file" id="htmlFileInput" accept=".html,.htm" onchange="loadHtmlFile(event)" class="w-full text-xs file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-indigo-50 file:text-indigo-700 dark:file:bg-indigo-950 dark:file:text-indigo-300 hover:file:bg-indigo-100">
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-500 mb-1">Or Paste HTML Code Directly</label>
+                        <textarea id="customCodeInput" rows="6" placeholder="<html>...</html>" class="w-full p-3 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-mono focus:outline-none focus:ring-2 focus:ring-indigo-500"></textarea>
+                    </div>
+
+                    <button onclick="launchCustomActivity()" class="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl text-sm transition shadow-md flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-rocket"></i> Launch Custom Activity
+                    </button>
+                </div>
+
+                <!-- Right: Pre-saved Fuzion Academy Activity Slots -->
+                <div class="lg:col-span-2 glass-card p-6 rounded-3xl shadow-sm space-y-4">
+                    <h3 class="font-bold text-lg flex items-center gap-2"><i class="fa-solid fa-folder-open text-purple-500"></i> Fuzion Academy Archived HTML Games Repository</h3>
+                    <p class="text-xs text-slate-500">Select any of the core 30 academy games to launch instantly:</p>
+                    
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-[360px] overflow-y-auto pr-1" id="savedHtmlList">
+                        <!-- Populated by JS -->
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 4: LEADERBOARD & BADGES -->
+        <section id="tab-leaderboard" class="tab-content hidden space-y-6">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- Left: Gamified Badges Showcase -->
+                <div class="lg:col-span-1 glass-card p-6 rounded-3xl shadow-sm space-y-4">
+                    <h2 class="text-xl font-bold flex items-center gap-2"><i class="fa-solid fa-award text-amber-500"></i> Achievement Badges</h2>
+                    <p class="text-xs text-slate-500">Complete challenges and win XP to unlock Fuzion Academy mastery badges.</p>
+                    
+                    <div class="grid grid-cols-2 gap-3 pt-2" id="badgeContainer">
+                        <!-- Populated by JS -->
+                    </div>
+                </div>
+
+                <!-- Right: Peer Leaderboard -->
+                <div class="lg:col-span-2 glass-card p-6 rounded-3xl shadow-sm space-y-4">
+                    <div class="flex justify-between items-center">
+                        <h2 class="text-xl font-bold flex items-center gap-2"><i class="fa-solid fa-trophy text-yellow-500"></i> Pratap Vihar Student Leaderboard</h2>
+                        <span class="text-xs bg-indigo-100 dark:bg-indigo-900 text-indigo-700 dark:text-indigo-300 px-3 py-1 rounded-full font-semibold">Weekly Ranking</span>
+                    </div>
+                    <p class="text-xs text-slate-500">Top ranking students at Fuzion Academy this week based on XP and activity streaks.</p>
+
+                    <div class="divide-y divide-slate-200 dark:divide-slate-800" id="leaderboardList">
+                        <!-- Populated by JS -->
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 py-6 px-4 mt-auto text-center text-xs text-slate-500">
+        <div class="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-4">
+            <div>
+                <p class="font-bold text-slate-700 dark:text-slate-300 text-sm">Fuzion Academy (Sector-11, Pratap Vihar, Ghaziabad)</p>
+                <p class="mt-1">Empowering students with Spoken English, Soft Skills & Confidence Building.</p>
+            </div>
+            <div>
+                <p><i class="fa-solid fa-phone text-indigo-500 mr-1"></i> Helpline: <a href="tel:9582774387" class="font-bold text-indigo-600 dark:text-indigo-400 hover:underline">9582774387</a></p>
+                <p class="mt-1">© 2026 Fuzion Academy English Hub. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- INTERACTIVE MINI-GAME / ACTIVITY MODAL PLAYER -->
+    <div id="gameModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md hidden flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-slate-900 rounded-3xl w-full max-w-3xl max-h-[90vh] overflow-hidden flex flex-col shadow-2xl border border-slate-200 dark:border-slate-800">
+            <!-- Modal Header -->
+            <div class="px-6 py-4 bg-gradient-to-r from-indigo-600 to-purple-600 text-white flex justify-between items-center">
+                <div class="flex items-center gap-3">
+                    <span id="modalGameIcon" class="text-2xl"><i class="fa-solid fa-gamepad"></i></span>
+                    <div>
+                        <h3 id="modalGameTitle" class="font-bold text-lg">Activity Player</h3>
+                        <p id="modalGameCategory" class="text-xs text-indigo-200">Fuzion Academy Interactive Module</p>
+                    </div>
+                </div>
+                <button onclick="closeGameModal()" class="w-8 h-8 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center text-white transition"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+
+            <!-- Modal Body (Dynamic Game or Iframe) -->
+            <div id="modalGameBody" class="p-6 overflow-y-auto flex-grow bg-slate-50 dark:bg-slate-950">
+                <!-- Rendered dynamically -->
+            </div>
+        </div>
+    </div>
+
+    <!-- PROFILE EDIT MODAL -->
+    <div id="profileModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md hidden flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-slate-900 rounded-3xl w-full max-w-md overflow-hidden flex flex-col shadow-2xl border border-slate-200 dark:border-slate-800 p-6 space-y-4">
+            <div class="flex justify-between items-center">
+                <h3 class="font-bold text-lg"><i class="fa-solid fa-user-pen mr-2 text-indigo-500"></i>Student Profile & Level</h3>
+                <button onclick="closeProfileModal()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <div class="space-y-3">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-500 mb-1">Your Full Name</label>
+                    <input type="text" id="inputStudentName" class="w-full px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-500 mb-1">CEFR English Level</label>
+                    <select id="inputStudentLevel" class="w-full px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                        <option value="A1">Beginner (A1 - Breakthrough)</option>
+                        <option value="A2">Elementary (A2 - Waystage)</option>
+                        <option value="B1">Intermediate (B1 - Threshold)</option>
+                        <option value="B2">Upper Intermediate (B2 - Vantage)</option>
+                        <option value="C1">Advanced (C1 - Effective Proficiency)</option>
+                        <option value="C2">Mastery (C2 - Native Fluency)</option>
+                    </select>
+                </div>
+            </div>
+            <button onclick="saveProfile()" class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl text-sm transition shadow-md">Save Profile</button>
+        </div>
+    </div>
+
+    <!-- JAVASCRIPT APP LOGIC -->
+    <script>
+        // --- State & App Data ---
+        let appState = {
+            name: "Rahul Sharma",
+            level: "B1",
+            xp: 320,
+            streak: 7,
+            completedCount: 14,
+            badges: [
+                { id: 1, name: "Vocabulary Ninja", icon: "fa-book-open", unlocked: true, desc: "Mastered 100+ new advanced idioms & words" },
+                { id: 2, name: "Sentence Wizard", icon: "fa-wand-magic-sparkles", unlocked: true, desc: "Completed 20 grammar galaxy challenges" },
+                { id: 3, name: "Fluency Master", icon: "fa-microphone-lines", unlocked: true, desc: "Finished 10 public speaking roleplay drills" },
+                { id: 4, name: "Speed Demon", icon: "fa-bolt", unlocked: true, desc: "Scored top in 60-Second Time Bomb" },
+                { id: 5, name: "Grammar Guru", icon: "fa-graduation-cap", unlocked: true, desc: "Achieved 100% accuracy in tenses test" },
+                { id: 6, name: "Fuzion Champion", icon: "fa-trophy", unlocked: false, desc: "Reach 1000 XP points on the leaderboard" }
+            ],
+            currentCategory: 'all'
+        };
+
+        // 30+ Fuzion Academy Activities & Games Database
+        const activitiesDB = [
+            { id: 1, title: "Word Scramble Sprint", cat: "vocab", icon: "fa-shuffle", color: "indigo", desc: "Unscramble essential English words against the clock.", type: "builtin", action: "wordScramble" },
+            { id: 2, title: "60-Second Time Bomb", cat: "quick", icon: "fa-bomb", color: "purple", desc: "Fast-paced grammar & vocabulary rapid-fire quiz.", type: "builtin", action: "timeBomb" },
+            { id: 3, title: "Grammar Galaxy Quiz", cat: "grammar", icon: "fa-earth-americas", color: "pink", desc: "Interactive questions on tenses, modals and clauses.", type: "builtin", action: "grammarGalaxy" },
+            { id: 4, title: "Roleplay Prompt Generator", cat: "speaking", icon: "fa-masks-theater", color: "emerald", desc: "Scenario prompts for interviews, hotel check-ins & meetings.", type: "builtin", action: "roleplayPrompt" },
+            { id: 5, title: "Idiom Mastermind", cat: "vocab", icon: "fa-puzzle-piece", color: "indigo", desc: "Learn and practice popular business & conversational idioms." },
+            { id: 6, title: "Preposition Pursuit", cat: "grammar", icon: "fa-compass", color: "pink", desc: "Master 'in', 'on', 'at', 'by' with real-world sentence drills." },
+            { id: 7, title: "Job Interview Simulation", cat: "speaking", icon: "fa-briefcase", color: "emerald", desc: "Common HR interview questions with spoken sample answers." },
+            { id: 8, title: "Pronunciation Minimal Pairs", cat: "pronunciation", icon: "fa-headphones", color: "amber", desc: "Practice tricky English sounds like /v/ vs /w/ and /th/." },
+            { id: 9, title: "Synonym Swap Challenge", cat: "vocab", icon: "fa-arrows-rotate", color: "indigo", desc: "Upgrade your vocabulary by replacing basic words with rich adjectives." },
+            { id: 10, title: "Active vs Passive Voice Duel", cat: "grammar", icon: "fa-exchange-alt", color: "pink", desc: "Transform sentences instantly in this rapid practice game." },
+            { id: 11, title: "Restaurant Ordering Roleplay", cat: "speaking", icon: "fa-utensils", color: "emerald", desc: "Practice polite requests, complaints, and dining vocabulary." },
+            { id: 12, title: "Tongue Twister Tornado", cat: "pronunciation", icon: "fa-tornado", color: "amber", desc: "Improve diction and speech clarity with classic tongue twisters." },
+            { id: 13, title: "Phrasal Verb Builder", cat: "vocab", icon: "fa-puzzle-piece", color: "indigo", desc: "Master high-frequency phrasal verbs like 'give up', 'look into'." },
+            { id: 14, title: "Direct to Indirect Speech", cat: "grammar", icon: "fa-comment-dots", color: "pink", desc: "Ace reporting speech rules with interactive quizzes." },
+            { id: 15, title: "Airport & Travel English", cat: "speaking", icon: "fa-plane", color: "emerald", desc: "Navigate check-ins, customs, and baggage claim with confidence." },
+            { id: 16, title: "Silent Letters Detective", cat: "pronunciation", icon: "fa-user-secret", color: "amber", desc: "Discover which letters remain unpronounced in tricky words." },
+            { id: 17, title: "Collocation Matcher", cat: "vocab", icon: "fa-link", color: "indigo", desc: "Learn words that naturally go together (e.g. 'heavy rain', 'make a decision')." },
+            { id: 18, title: "Conditional Sentences Arena", cat: "grammar", icon: "fa-code-branch", color: "pink", desc: "Master zero, first, second, and third conditionals." },
+            { id: 19, title: "Customer Service Dialogue", cat: "speaking", icon: "fa-headset", color: "emerald", desc: "Handle difficult customer calls with polite, professional English." },
+            { id: 20, title: "Intonation & Stress Trainer", cat: "pronunciation", icon: "fa-waveform", color: "amber", desc: "Learn how sentence stress changes the core meaning." },
+            { id: 21, title: "Business Email Etiquette", cat: "vocab", icon: "fa-envelope", color: "indigo", desc: "Draft professional corporate emails without sounding robotic." },
+            { id: 22, title: "Subject-Verb Agreement", cat: "grammar", icon: "fa-check-double", color: "pink", desc: "Never make agreement errors again with targeted drills." },
+            { id: 23, title: "Small Talk Masterclass", cat: "speaking", icon: "fa-comments", color: "emerald", desc: "Break the ice gracefully in social and networking settings." },
+            { id: 24, title: "Vowel Sound Explorer", cat: "pronunciation", icon: "fa-volume-high", color: "amber", desc: "Distinguish short and long vowel sounds accurately." },
+            { id: 25, title: "Prefix & Suffix Maker", cat: "vocab", icon: "fa-layer-group", color: "indigo", desc: "Multiply your vocabulary instantly using word roots." },
+            { id: 26, title: "Articles (A, An, The) Quiz", cat: "grammar", icon: "fa-font", color: "pink", desc: "Conquer the trickiest part of English grammar." },
+            { id: 27, title: "Debate Club & Opinions", cat: "speaking", icon: "fa-scale-balanced", color: "emerald", desc: "Learn phrases to agree, disagree, and justify arguments." },
+            { id: 28, title: "Connected Speech Drills", cat: "pronunciation", icon: "fa-link", color: "amber", desc: "Sound like a native speaker by blending words naturally." },
+            { id: 29, title: "Confusing Words (Affect vs Effect)", cat: "vocab", icon: "fa-triangle-exclamation", color: "indigo", desc: "Clear up commonly misused homophones and word pairs." },
+            { id: 30, title: "Rapid 60-Sec Synonym Rush", cat: "quick", icon: "fa-bolt", color: "purple", desc: "Fast-paced synonym matching challenge." },
+            { id: 31, title: "Rapid 60-Sec Antonym Blitz", cat: "quick", icon: "fa-bolt", color: "purple", desc: "Fast-paced antonym matching challenge." },
+            { id: 32, title: "Fuzion Final Proficiency Exam", cat: "quick", icon: "fa-award", color: "purple", desc: "Comprehensive assessment covering all CEFR levels." }
+        ];
+
+        // Simulated Peer Leaderboard
+        const leaderboardData = [
+            { rank: 1, name: "Priya Singh", level: "C1", xp: 980, streak: 21, avatar: "https://placehold.co/100x100/ec4899/ffffff?text=PS" },
+            { rank: 2, name: "Aman Verma", level: "B2", xp: 870, streak: 14, avatar: "https://placehold.co/100x100/6366f1/ffffff?text=AV" },
+            { rank: 3, name: "Rahul Sharma (You)", level: "B1", xp: 320, streak: 7, avatar: "https://placehold.co/100x100/8b5cf6/ffffff?text=RS", isUser: true },
+            { rank: 4, name: "Neha Gupta", level: "B1", xp: 690, streak: 9, avatar: "https://placehold.co/100x100/10b981/ffffff?text=NG" },
+            { rank: 5, name: "Deepak Kumar", level: "A2", xp: 540, streak: 5, avatar: "https://placehold.co/100x100/f59e0b/ffffff?text=DK" },
+            { rank: 6, name: "Simran Kaur", level: "B2", xp: 480, streak: 4, avatar: "https://placehold.co/100x100/3b82f6/ffffff?text=SK" }
+        ];
+
+        // Saved HTML repository samples
+        const savedHtmlTemplates = [
+            { id: 'h1', title: 'Interactive Flashcard Sprint', desc: 'Standalone HTML game with flip cards for advanced vocabulary.', code: '<div style="font-family:sans-serif; text-align:center; padding:40px; background:#e0e7ff; border-radius:16px;"><h2>Flashcard Sprint</h2><p>Tap card to flip</p><div onclick="this.innerText = this.innerText.includes(\'Eloquent\') ? \'Meaning: Fluent or persuasive in speaking\' : \'Eloquent\'" style="background:white; padding:40px; border-radius:12px; font-size:24px; font-weight:bold; cursor:pointer; box-shadow:0 4px 6px rgba(0,0,0,0.1); max-width:400px; margin:20px auto;">Eloquent</div></div>' },
+            { id: 'h2', title: 'Conversation Starter Roulette', desc: 'Random topic picker for spontaneous speaking practice.', code: '<div style="font-family:sans-serif; text-align:center; padding:40px; background:#fce7f3; border-radius:16px;"><h2>Conversation Roulette</h2><h3 id="topic" style="color:#db2777; margin:20px 0;">Describe your dream vacation!</h3><button onclick="const topics=[\'If you could meet any historical figure, who would it be?\', \'What is the biggest challenge you have overcome?\', \'Talk about your favorite book or movie for 1 minute.\']; document.getElementById(\'topic\').innerText = topics[Math.floor(Math.random()*topics.length)];" style="background:#db2777; color:white; border:none; padding:12px 24px; border-radius:8px; font-weight:bold; cursor:pointer;">Spin New Topic</button></div>' },
+            { id: 'h3', title: 'Phrasal Verb Memory Grid', desc: 'Match verbs with prepositions to form correct meanings.', code: '<div style="font-family:sans-serif; text-align:center; padding:30px; background:#ccfbf1; border-radius:16px;"><h2>Phrasal Verb Match</h2><p>Look up: To search for information.</p><button onclick="alert(\'Correct! You earned 20 XP.\')" style="background:#0d9488; color:white; border:none; padding:10px 20px; border-radius:8px; font-weight:bold; cursor:pointer; margin-top:10px;">Check Answer</button></div>' }
+        ];
+
+        // --- Initialization on Load ---
+        window.onload = function() {
+            updateUI();
+            renderActivities('all');
+            renderLeaderboard();
+            renderBadges();
+            renderSavedHtmlList();
+        };
+
+        // --- UI Updaters ---
+        function updateUI() {
+            document.getElementById('displayName').innerText = appState.name;
+            document.getElementById('heroName').innerText = appState.name;
+            document.getElementById('headerXp').innerText = appState.xp;
+            document.getElementById('headerStreak').innerText = appState.streak;
+            document.getElementById('statCompleted').innerText = appState.completedCount;
+            document.getElementById('levelBadge').innerText = appState.level;
+            document.getElementById('statLevel').innerText = getLevelFullName(appState.level);
+            
+            const unlockedBadges = appState.badges.filter(b => b.unlocked).length;
+            document.getElementById('statBadgeCount').innerText = `${unlockedBadges}/${appState.badges.length}`;
+            
+            document.getElementById('inputStudentName').value = appState.name;
+            document.getElementById('inputStudentLevel').value = appState.level;
+        }
+
+        function getLevelFullName(lvl) {
+            const map = { 'A1': 'Beginner (A1)', 'A2': 'Elementary (A2)', 'B1': 'Intermediate (B1)', 'B2': 'Upper Inter. (B2)', 'C1': 'Advanced (C1)', 'C2': 'Mastery (C2)' };
+            return map[lvl] || lvl;
+        }
+
+        // --- Tab Switching ---
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('bg-indigo-600', 'text-white', 'shadow-md');
+                btn.classList.add('text-slate-600', 'dark:text-slate-300', 'hover:bg-slate-200', 'dark:hover:bg-slate-800');
+            });
+
+            document.getElementById(`tab-${tabId}`).classList.remove('hidden');
+            const activeBtn = document.getElementById(`nav-${tabId}`);
+            activeBtn.classList.remove('text-slate-600', 'dark:text-slate-300', 'hover:bg-slate-200', 'dark:hover:bg-slate-800');
+            activeBtn.classList.add('bg-indigo-600', 'text-white', 'shadow-md');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // --- Dark Mode Toggle ---
+        function toggleDarkMode() {
+            const html = document.documentElement;
+            html.classList.toggle('dark');
+            const icon = document.getElementById('themeIcon');
+            if (html.classList.contains('dark')) {
+                icon.className = "fa-solid fa-sun";
+            } else {
+                icon.className = "fa-solid fa-moon";
+            }
+        }
+
+        // --- Render Activities ---
+        function renderActivities(filterCat) {
+            const grid = document.getElementById('activityGrid');
+            grid.innerHTML = "";
+
+            const filtered = filterCat === 'all' ? activitiesDB : activitiesDB.filter(a => a.cat === filterCat);
+
+            filtered.forEach(act => {
+                const colorClasses = {
+                    indigo: "border-indigo-500 bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400",
+                    purple: "border-purple-500 bg-purple-50 dark:bg-purple-950/40 text-purple-600 dark:text-purple-400",
+                    pink: "border-pink-500 bg-pink-50 dark:bg-pink-950/40 text-pink-600 dark:text-pink-400",
+                    emerald: "border-emerald-500 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400",
+                    amber: "border-amber-500 bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400"
+                }[act.color || 'indigo'];
+
+                const card = document.createElement('div');
+                card.className = `glass-card rounded-2xl p-5 shadow-sm hover:shadow-md transition flex flex-col justify-between border-t-4 ${colorClasses.split(' ')[0]}`;
+                card.innerHTML = `
+                    <div>
+                        <div class="flex justify-between items-start mb-3">
+                            <div class="w-10 h-10 rounded-xl ${colorClasses} flex items-center justify-center text-lg font-bold">
+                                <i class="fa-solid ${act.icon}"></i>
+                            </div>
+                            <span class="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-300">${act.cat}</span>
+                        </div>
+                        <h4 class="font-bold text-base mb-1">${act.title}</h4>
+                        <p class="text-xs text-slate-500 dark:text-slate-400 mb-4 line-clamp-2">${act.desc}</p>
+                    </div>
+                    <button onclick="launchActivityItem(${act.id})" class="w-full py-2 bg-slate-900 dark:bg-slate-800 hover:bg-indigo-600 dark:hover:bg-indigo-600 text-white font-semibold rounded-xl text-xs transition shadow-sm flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-play"></i> Launch Activity
+                    </button>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        function filterCategory(cat) {
+            appState.currentCategory = cat;
+            document.querySelectorAll('.cat-pill').forEach(btn => {
+                btn.className = "cat-pill px-4 py-1.5 rounded-full text-xs font-semibold bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 transition";
+            });
+            event.target.className = "cat-pill px-4 py-1.5 rounded-full text-xs font-semibold bg-indigo-600 text-white transition shadow-sm";
+            renderActivities(cat);
+        }
+
+        function filterActivities() {
+            const query = document.getElementById('searchActivity').value.toLowerCase();
+            const grid = document.getElementById('activityGrid');
+            grid.innerHTML = "";
+            const filtered = activitiesDB.filter(a => a.title.toLowerCase().includes(query) || a.desc.toLowerCase().includes(query));
+            
+            filtered.forEach(act => {
+                const card = document.createElement('div');
+                card.className = `glass-card rounded-2xl p-5 shadow-sm hover:shadow-md transition flex flex-col justify-between border-t-4 border-indigo-500`;
+                card.innerHTML = `
+                    <div>
+                        <div class="flex justify-between items-start mb-3">
+                            <div class="w-10 h-10 rounded-xl bg-indigo-100 dark:bg-indigo-900 text-indigo-600 flex items-center justify-center text-lg font-bold">
+                                <i class="fa-solid ${act.icon || 'fa-gamepad'}"></i>
+                            </div>
+                            <span class="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-slate-200 dark:bg-slate-800 text-slate-600">${act.cat}</span>
+                        </div>
+                        <h4 class="font-bold text-base mb-1">${act.title}</h4>
+                        <p class="text-xs text-slate-500 mb-4">${act.desc}</p>
+                    </div>
+                    <button onclick="launchActivityItem(${act.id})" class="w-full py-2 bg-slate-900 hover:bg-indigo-600 text-white font-semibold rounded-xl text-xs transition shadow-sm flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-play"></i> Launch Activity
+                    </button>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        function launchActivityItem(id) {
+            const act = activitiesDB.find(a => a.id === id);
+            if (!act) return;
+            if (act.action) {
+                launchGame(act.action);
+            } else {
+                openModalPlayer(act.title, act.cat, `<div class="text-center py-12 space-y-4"><i class="fa-solid fa-chalkboard-user text-5xl text-indigo-500 animate-bounce"></i><h3 class="text-xl font-bold">${act.title}</h3><p class="text-sm text-slate-500 max-w-md mx-auto">${act.desc}</p><div class="p-4 bg-indigo-50 dark:bg-indigo-950/50 rounded-2xl border border-indigo-200 dark:border-indigo-800 text-sm">Fuzion Academy interactive module loaded successfully. Practice this activity for 10 minutes to earn +30 XP!</div><button onclick="completeActivityReward(30)" class="px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl text-sm shadow-lg">Complete Activity & Claim XP</button></div>`);
+            }
+        }
+
+        // --- Render Leaderboard & Badges ---
+        function renderLeaderboard() {
+            const list = document.getElementById('leaderboardList');
+            list.innerHTML = "";
+            leaderboardData.sort((a,b) => b.xp - a.xp).forEach((item, index) => {
+                item.rank = index + 1;
+                const row = document.createElement('div');
+                row.className = `py-3 flex items-center justify-between ${item.isUser ? 'bg-indigo-50/80 dark:bg-indigo-950/40 px-3 rounded-2xl border border-indigo-200 dark:border-indigo-800' : ''}`;
+                row.innerHTML = `
+                    <div class="flex items-center gap-3">
+                        <span class="w-6 font-black text-sm text-slate-400">#${item.rank}</span>
+                        <img src="${item.avatar}" class="w-9 h-9 rounded-full object-cover border border-indigo-400">
+                        <div>
+                            <h4 class="font-bold text-sm flex items-center gap-2">${item.name} ${item.isUser ? '<span class="text-[10px] bg-indigo-600 text-white px-2 py-0.5 rounded-full font-bold">You</span>' : ''}</h4>
+                            <span class="text-[11px] text-slate-500">Level: ${item.level} • Streak: ${item.streak} days</span>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <span class="font-black text-indigo-600 dark:text-indigo-400 text-sm">${item.xp} XP</span>
+                    </div>
+                `;
+                list.appendChild(row);
+            });
+        }
+
+        function renderBadges() {
+            const container = document.getElementById('badgeContainer');
+            container.innerHTML = "";
+            appState.badges.forEach(b => {
+                const card = document.createElement('div');
+                card.className = `p-3 rounded-2xl border flex flex-col items-center text-center gap-1 ${b.unlocked ? 'bg-indigo-50/50 dark:bg-indigo-950/30 border-indigo-300 dark:border-indigo-800' : 'bg-slate-100 dark:bg-slate-800/40 border-slate-200 dark:border-slate-800 opacity-60 grayscale'}`;
+                card.innerHTML = `
+                    <div class="w-10 h-10 rounded-full ${b.unlocked ? 'bg-indigo-600 text-white' : 'bg-slate-400 text-white'} flex items-center justify-center text-base shadow-sm">
+                        <i class="fa-solid ${b.icon}"></i>
+                    </div>
+                    <h4 class="font-bold text-xs mt-1">${b.name}</h4>
+                    <p class="text-[10px] text-slate-500 leading-tight">${b.desc}</p>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function renderSavedHtmlList() {
+            const list = document.getElementById('savedHtmlList');
+            list.innerHTML = "";
+            savedHtmlTemplates.forEach(t => {
+                const item = document.createElement('div');
+                item.className = "p-4 rounded-2xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex flex-col justify-between gap-3";
+                item.innerHTML = `
+                    <div>
+                        <h4 class="font-bold text-sm mb-1">${t.title}</h4>
+                        <p class="text-xs text-slate-500">${t.desc}</p>
+                    </div>
+                    <button onclick="launchSavedHtml('${t.id}')" class="w-full py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-xl transition">Launch Template</button>
+                `;
+                list.appendChild(item);
+            });
+        }
+
+        function launchSavedHtml(id) {
+            const t = savedHtmlTemplates.find(x => x.id === id);
+            if (!t) return;
+            openModalPlayer(t.title, "Custom HTML Sandbox", `<div class="w-full h-full min-h-[350px] bg-white rounded-2xl overflow-hidden shadow-inner">${t.code}</div>`);
+        }
+
+        // --- Custom HTML Loader Logic ---
+        function loadHtmlFile(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            document.getElementById('customTitleInput').value = file.name.replace(/\.[^/.]+$/, "");
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                document.getElementById('customCodeInput').value = e.target.result;
+            };
+            reader.readAsText(file);
+        }
+
+        function launchCustomActivity() {
+            const title = document.getElementById('customTitleInput').value || "Custom Fuzion Activity";
+            const code = document.getElementById('customCodeInput').value;
+            if (!code.trim()) {
+                alert("Please paste or upload valid HTML code first.");
+                return;
+            }
+            openModalPlayer(title, "Custom HTML Activity", `<div class="w-full h-[450px] bg-white rounded-2xl overflow-hidden shadow-inner"><iframe srcdoc="${code.replace(/"/g, '&quot;')}" class="w-full h-full border-0"></iframe></div>`);
+        }
+
+        // --- Built-in Mini-Game Player Implementations ---
+        function launchGame(gameType) {
+            if (gameType === 'wordScramble') {
+                renderWordScrambleGame();
+            } else if (gameType === 'timeBomb') {
+                renderTimeBombGame();
+            } else if (gameType === 'grammarGalaxy') {
+                renderGrammarGalaxyGame();
+            } else if (gameType === 'roleplayPrompt') {
+                renderRoleplayPromptGame();
+            }
+        }
+
+        // 1. Word Scramble Sprint Game
+        const scrambleWords = [
+            { scrambled: "LOUQENT", answer: "ELOQUENT", hint: "Fluent or persuasive in speaking" },
+            { scrambled: "NFIDENCE", answer: "CONFIDENCE", hint: "Feeling of self-assurance" },
+            { scrambled: "ROCEDURE", answer: "PROCEDURE", hint: "An established official way of doing something" },
+            { scrambled: "NTHUSIASM", answer: "ENTHUSIASM", hint: "Intense and eager enjoyment" },
+            { scrambled: "RODUCTIVE", answer: "PRODUCTIVE", hint: "Achieving significant results" }
+        ];
+        let currentWordIdx = 0;
+        let gameScore = 0;
+
+        function renderWordScrambleGame() {
+            currentWordIdx = 0;
+            gameScore = 0;
+            openModalPlayer("Word Scramble Sprint", "Vocabulary & Idioms", getWordScrambleHTML());
+        }
+
+        function getWordScrambleHTML() {
+            const item = scrambleWords[currentWordIdx];
+            return `
+                <div class="text-center space-y-6 py-4">
+                    <div class="flex justify-between items-center text-xs font-bold text-slate-500 px-4">
+                        <span>Question ${currentWordIdx + 1} of ${scrambleWords.length}</span>
+                        <span>Score: <strong class="text-indigo-600">${gameScore}</strong> XP</span>
+                    </div>
+                    <div class="bg-indigo-50 dark:bg-indigo-950/50 p-6 rounded-3xl border border-indigo-200 dark:border-indigo-800 space-y-3">
+                        <span class="text-xs uppercase tracking-widest text-indigo-500 font-bold">Unscramble the Word</span>
+                        <div class="text-4xl sm:text-5xl font-black tracking-widest text-indigo-700 dark:text-indigo-300">${item.scrambled}</div>
+                        <p class="text-xs text-slate-500 italic">Hint: ${item.hint}</p>
+                    </div>
+                    <div class="max-w-md mx-auto flex gap-2">
+                        <input type="text" id="scrambleGuess" placeholder="Type correct spelling..." class="flex-grow px-4 py-3 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-indigo-500" onkeypress="if(event.key==='Enter') checkScramble('${item.answer}')">
+                        <button onclick="checkScramble('${item.answer}')" class="px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl text-sm transition shadow-md">Submit</button>
+                    </div>
+                    <div id="scrambleFeedback" class="text-sm font-semibold h-6"></div>
+                </div>
+            `;
+        }
+
+        function checkScramble(correctAnswer) {
+            const guess = document.getElementById('scrambleGuess').value.trim().toUpperCase();
+            const feedback = document.getElementById('scrambleFeedback');
+            if (guess === correctAnswer) {
+                gameScore += 20;
+                feedback.className = "text-sm font-bold text-emerald-600";
+                feedback.innerHTML = `<i class="fa-solid fa-circle-check mr-1"></i> Correct! +20 XP`;
+                setTimeout(() => {
+                    currentWordIdx++;
+                    if (currentWordIdx < scrambleWords.length) {
+                        document.getElementById('modalGameBody').innerHTML = getWordScrambleHTML();
+                    } else {
+                        triggerWinReward(gameScore, "Word Scramble Sprint");
+                    }
+                }, 1000);
+            } else {
+                feedback.className = "text-sm font-bold text-rose-600";
+                feedback.innerHTML = `<i class="fa-solid fa-circle-xmark mr-1"></i> Incorrect. Try again!`;
+            }
+        }
+
+        // 2. 60-Second Time Bomb Game
+        let bombTimer = 60;
+        let bombInterval = null;
+        let bombScore = 0;
+        const timeBombQuestions = [
+            { q: "What is the past participle of 'write'?", options: ["Wrote", "Written", "Writing"], correct: 1 },
+            { q: "Which word is a synonym for 'Abundant'?", options: ["Scarce",Plentiful = "Plentiful", "Tiny"], correct: 1 },
+            { q: "Choose the correct preposition: 'He is good ___ English.'", options: ["at", "in", "on"], correct: 0 },
+            { q: "What does the idiom 'Break the ice' mean?", options: ["To freeze water", "To start a conversation", "To break a glass"], correct: 1 }
+        ];
+        let bombQIdx = 0;
+
+        function renderTimeBombGame() {
+            bombTimer = 60;
+            bombScore = 0;
+            bombQIdx = 0;
+            if (bombInterval) clearInterval(bombInterval);
+            
+            const body = document.getElementById('modalGameBody');
+            body.innerHTML = getTimeBombHTML();
+            
+            bombInterval = setInterval(() => {
+                bombTimer--;
+                const timerEl = document.getElementById('bombTimerVal');
+                if (timerEl) timerEl.innerText = bombTimer;
+                if (bombTimer <= 0) {
+                    clearInterval(bombInterval);
+                    triggerWinReward(bombScore, "60-Second Time Bomb");
+                }
+            }, 1000);
+        }
+
+        function getTimeBombHTML() {
+            if (bombQIdx >= timeBombQuestions.length) {
+                clearInterval(bombInterval);
+                return `
+                    <div class="text-center py-12 space-y-4">
+                        <div class="text-5xl text-emerald-500"><i class="fa-solid fa-trophy"></i></div>
+                        <h3 class="text-2xl font-bold">Time Bomb Defused!</h3>
+                        <p class="text-sm text-slate-500">You scored ${bombScore} XP points in the rapid challenge.</p>
+                        <button onclick="triggerWinReward(${bombScore}, '60-Second Time Bomb')" class="px-6 py-3 bg-indigo-600 text-white font-bold rounded-xl text-sm shadow-md">Claim Reward & Exit</button>
+                    </div>
+                `;
+            }
+            const item = timeBombQuestions[bombQIdx];
+            return `
+                <div class="space-y-6 py-4">
+                    <div class="flex justify-between items-center bg-rose-50 dark:bg-rose-950/40 p-4 rounded-2xl border border-rose-200 dark:border-rose-800">
+                        <span class="text-rose-600 dark:text-rose-400 font-bold flex items-center gap-2"><i class="fa-solid fa-bomb fa-bounce"></i> Time Bomb Active</span>
+                        <span class="text-xl font-black text-rose-600"><span id="bombTimerVal">${bombTimer}</span>s</span>
+                    </div>
+                    <div class="text-center space-y-3">
+                        <span class="text-xs uppercase tracking-widest text-indigo-500 font-bold">Question ${bombQIdx + 1} of ${timeBombQuestions.length}</span>
+                        <h4 class="text-xl font-bold">${item.q}</h4>
+                    </div>
+                    <div class="grid grid-cols-1 gap-3 max-w-md mx-auto">
+                        ${item.options.map((opt, idx) => `
+                            <button onclick="answerBomb(${idx}, ${item.correct})" class="w-full p-3 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-indigo-50 dark:hover:bg-indigo-950 font-semibold text-sm transition shadow-sm">${opt}</button>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+        }
+
+        function answerBomb(selected, correct) {
+            if (selected === correct) {
+                bombScore += 25;
+            }
+            bombQIdx++;
+            document.getElementById('modalGameBody').innerHTML = getTimeBombHTML();
+        }
+
+        // 3. Grammar Galaxy Quiz
+        const grammarQuestions = [
+            { q: "If I _____ rich, I would travel the world.", options: ["am", "were", "had been"], correct: 1 },
+            { q: "She has been living in Ghaziabad _____ 5 years.", options: ["for", "since", "from"], correct: 0 },
+            { q: "Neither of the students _____ present yesterday.", options: ["was", "were", "are"], correct: 0 }
+        ];
+        let grammarQIdx = 0;
+        let grammarScore = 0;
+
+        function renderGrammarGalaxyGame() {
+            grammarQIdx = 0;
+            grammarScore = 0;
+            document.getElementById('modalGameBody').innerHTML = getGrammarHTML();
+        }
+
+        function getGrammarHTML() {
+            if (grammarQIdx >= grammarQuestions.length) {
+                return `
+                    <div class="text-center py-12 space-y-4">
+                        <div class="text-5xl text-pink-500"><i class="fa-solid fa-earth-americas"></i></div>
+                        <h3 class="text-2xl font-bold">Galaxy Explored!</h3>
+                        <p class="text-sm text-slate-500">You earned ${grammarScore} XP in Grammar Galaxy.</p>
+                        <button onclick="triggerWinReward(${grammarScore}, 'Grammar Galaxy')" class="px-6 py-3 bg-indigo-600 text-white font-bold rounded-xl text-sm shadow-md">Claim Reward</button>
+                    </div>
+                `;
+            }
+            const item = grammarQuestions[grammarQIdx];
+            return `
+                <div class="space-y-6 py-4">
+                    <div class="text-center space-y-2">
+                        <span class="text-xs uppercase tracking-widest text-pink-500 font-bold">Grammar Galaxy Quiz (${grammarQIdx + 1}/${grammarQuestions.length})</span>
+                        <h4 class="text-xl font-bold">${item.q}</h4>
+                    </div>
+                    <div class="grid grid-cols-1 gap-3 max-w-md mx-auto">
+                        ${item.options.map((opt, idx) => `
+                            <button onclick="answerGrammar(${idx}, ${item.correct})" class="w-full p-3 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-pink-50 dark:hover:bg-pink-950 font-semibold text-sm transition shadow-sm">${opt}</button>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+        }
+
+        function answerGrammar(selected, correct) {
+            if (selected === correct) grammarScore += 30;
+            grammarQIdx++;
+            document.getElementById('modalGameBody').innerHTML = getGrammarHTML();
+        }
+
+        // 4. Roleplay Prompt Generator
+        const roleplayPrompts = [
+            "Scenario: You are checking into a luxury hotel in Delhi but your room reservation cannot be found. Practice speaking politely with the receptionist to resolve the issue.",
+            "Scenario: You are attending a job interview at an MNC in Sector-62, Noida. Introduce yourself and explain your greatest professional strength in 60 seconds.",
+            "Scenario: You are returning a defective electronic gadget to a store manager and requesting a full cash refund."
+        ];
+
+        function renderRoleplayPromptGame() {
+            const randomPrompt = roleplayPrompts[Math.floor(Math.random() * roleplayPrompts.length)];
+            openModalPlayer("Roleplay Prompt Generator", "Public Speaking & Roleplay", `
+                <div class="text-center space-y-6 py-4">
+                    <div class="w-16 h-16 rounded-3xl bg-emerald-100 dark:bg-emerald-950 text-emerald-600 flex items-center justify-center text-3xl mx-auto shadow-inner">
+                        <i class="fa-solid fa-masks-theater"></i>
+                    </div>
+                    <div class="bg-emerald-50 dark:bg-emerald-950/50 p-6 rounded-3xl border border-emerald-200 dark:border-emerald-800">
+                        <p class="text-lg font-bold text-slate-800 dark:text-slate-200">${randomPrompt}</p>
+                    </div>
+                    <p class="text-xs text-slate-500">Record yourself or speak aloud for 1 minute using advanced vocabulary and formal tone.</p>
+                    <button onclick="triggerWinReward(40, 'Roleplay Prompt')" class="px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-sm shadow-md">Complete Speaking Drill (+40 XP)</button>
+                </div>
+            `);
+        }
+
+        // --- Celebratory Win & XP Rewards ---
+        function triggerWinReward(earnedXp, activityName) {
+            if (bombInterval) clearInterval(bombInterval);
+            appState.xp += earnedXp;
+            appState.completedCount++;
+            updateUI();
+            renderLeaderboard();
+
+            // Trigger confetti animation
+            confetti({
+                particleCount: 120,
+                spread: 70,
+                origin: { y: 0.6 }
+            });
+
+            document.getElementById('modalGameBody').innerHTML = `
+                <div class="text-center py-10 space-y-4">
+                    <div class="w-20 h-20 bg-gradient-to-tr from-amber-400 to-orange-500 text-white rounded-full flex items-center justify-center text-4xl mx-auto shadow-xl animate-bounce">
+                        <i class="fa-solid fa-trophy"></i>
+                    </div>
+                    <h3 class="text-2xl font-black">Fantastic Job!</h3>
+                    <p class="text-sm text-slate-500">You successfully completed <strong class="text-indigo-600">${activityName}</strong> and earned <strong class="text-emerald-500">+${earnedXp} XP</strong>!</p>
+                    <div class="pt-4 flex justify-center gap-3">
+                        <button onclick="closeGameModal()" class="px-6 py-2.5 bg-indigo-600 text-white font-bold rounded-xl text-sm shadow-md hover:bg-indigo-700">Back to Dashboard</button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function completeActivityReward(xp) {
+            triggerWinReward(xp, "Fuzion Academy Module");
+        }
+
+        // --- Modal Control Helpers ---
+        function openModalPlayer(title, cat, htmlContent) {
+            document.getElementById('modalGameTitle').innerText = title;
+            document.getElementById('modalGameCategory').innerText = cat;
+            document.getElementById('modalGameBody').innerHTML = htmlContent;
+            document.getElementById('gameModal').classList.remove('hidden');
+        }
+
+        function closeGameModal() {
+            if (bombInterval) clearInterval(bombInterval);
+            document.getElementById('gameModal').classList.add('hidden');
+        }
+
+        function openProfileModal() {
+            document.getElementById('profileModal').classList.remove('hidden');
+        }
+
+        function closeProfileModal() {
+            document.getElementById('profileModal').classList.add('hidden');
+        }
+
+        function saveProfile() {
+            appState.name = document.getElementById('inputStudentName').value || "Student";
+            appState.level = document.getElementById('inputStudentLevel').value;
+            updateUI();
+            closeProfileModal();
+        }
+    </script>
+</body>
+</html>

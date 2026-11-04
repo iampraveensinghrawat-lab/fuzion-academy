@@ -1,0 +1,1616 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Modifier Master: Adjective & Adverb Adventure</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Fredoka:wght@500;600;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Canvas Confetti -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        display: ['Fredoka', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#eef2ff',
+                            100: '#e0e7ff',
+                            500: '#6366f1',
+                            600: '#4f46e5',
+                            700: '#4338ca',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .font-display { font-family: 'Fredoka', cursive, sans-serif; }
+        @keyframes pulse-subtle {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.03); }
+        }
+        .animate-pulse-subtle { animation: pulse-subtle 2s infinite ease-in-out; }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(226, 232, 240, 0.8);
+        }
+        .dark .glass-card {
+            background: rgba(30, 41, 59, 0.95);
+            border: 1px solid rgba(51, 65, 85, 0.8);
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 dark:from-slate-900 dark:via-indigo-950 dark:to-slate-900 text-slate-800 dark:text-slate-100 min-h-full flex flex-col selection:bg-indigo-500 selection:text-white">
+
+    <!-- Header Navigation -->
+    <header class="w-full bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 sticky top-0 z-50 px-4 py-3">
+        <div class="max-w-6xl mx-auto flex justify-between items-center">
+            <div class="flex items-center space-x-3 cursor-pointer" onclick="goToHome()">
+                <div class="bg-gradient-to-tr from-indigo-600 to-violet-600 text-white p-2.5 rounded-2xl shadow-lg shadow-indigo-500/30">
+                    <i class="fa-solid fa-wand-magic-sparkles text-xl"></i>
+                </div>
+                <div>
+                    <h1 class="font-display font-bold text-lg md:text-xl tracking-wide bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">Modifier Master</h1>
+                    <p class="text-xs text-slate-500 dark:text-slate-400 font-medium">Adjective & Adverb Adventure</p>
+                </div>
+            </div>
+            
+            <div class="flex items-center space-x-4">
+                <button id="soundToggle" onclick="toggleSound()" class="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition" title="Toggle Sound">
+                    <i class="fa-solid fa-volume-high" id="soundIcon"></i>
+                </button>
+                <button onclick="openStatsModal()" class="hidden sm:flex items-center space-x-2 px-3 py-1.5 rounded-xl bg-indigo-50 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400 font-semibold text-sm border border-indigo-200 dark:border-indigo-800">
+                    <i class="fa-solid fa-trophy"></i>
+                    <span id="headerScore">Score: 0</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="flex-1 max-w-4xl w-full mx-auto p-4 md:p-6 flex flex-col justify-center">
+
+        <!-- VIEW 1: HOME / LEVEL SELECT -->
+        <div id="homeView" class="space-y-6 animate-fadeIn">
+            <!-- Hero Banner -->
+            <div class="bg-gradient-to-r from-indigo-600 via-violet-600 to-purple-600 text-white rounded-3xl p-6 md:p-10 shadow-2xl relative overflow-hidden">
+                <div class="absolute -right-10 -bottom-10 opacity-10 text-9xl">
+                    <i class="fa-solid fa-feather"></i>
+                </div>
+                <div class="relative z-10 max-w-xl">
+                    <span class="inline-block bg-white/20 backdrop-blur-md px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider mb-3">ESL Sentence Building Quest</span>
+                    <h2 class="font-display text-3xl md:text-4xl font-extrabold mb-3 leading-tight">Transform Short Sentences into Masterpieces!</h2>
+                    <p class="text-indigo-100 text-sm md:text-base mb-6 leading-relaxed">
+                        Are your sentences too short? Learn how to strategically use <span class="font-bold text-yellow-300">Adjectives</span> (describing nouns) and <span class="font-bold text-yellow-300">Adverbs</span> (modifying verbs & adjectives) across 100 exciting questions!
+                    </p>
+                    <div class="flex flex-wrap gap-3">
+                        <button onclick="startLevel(1)" class="bg-white text-indigo-600 font-display font-bold px-6 py-3 rounded-2xl shadow-lg hover:bg-indigo-50 transition transform hover:-translate-y-0.5 flex items-center space-x-2">
+                            <i class="fa-solid fa-play"></i>
+                            <span>Start Adventure</span>
+                        </button>
+                        <button onclick="openRulesModal()" class="bg-indigo-700/60 hover:bg-indigo-700 text-white font-semibold px-5 py-3 rounded-2xl backdrop-blur-md transition border border-indigo-400/30">
+                            <i class="fa-solid fa-book-open mr-2"></i> Grammar Guide
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Level Map / Grid -->
+            <div>
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="font-display font-bold text-lg md:text-xl text-slate-800 dark:text-slate-200">Select Quest Level</h3>
+                    <span class="text-xs font-semibold px-2.5 py-1 rounded-full bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-400">100 Questions Total</span>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4" id="levelGrid">
+                    <!-- Dynamic Levels Populated via JS -->
+                </div>
+            </div>
+        </div>
+
+        <!-- VIEW 2: GAMEPLAY QUIZ VIEW -->
+        <div id="gameView" class="hidden space-y-6">
+            <!-- Game Top Bar -->
+            <div class="glass-card rounded-2xl p-4 shadow-sm flex flex-wrap justify-between items-center gap-4">
+                <div class="flex items-center space-x-3">
+                    <button onclick="returnToHome()" class="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 transition">
+                        <i class="fa-solid fa-arrow-left"></i>
+                    </button>
+                    <div>
+                        <h4 id="currentLevelTitle" class="font-display font-bold text-sm md:text-base text-indigo-600 dark:text-indigo-400">Level 1: Spot the Adjective</h4>
+                        <div class="text-xs text-slate-500 dark:text-slate-400">Question <span id="currentQNum">1</span> of 20</div>
+                    </div>
+                </div>
+
+                <div class="flex items-center space-x-4">
+                    <!-- Lives / Hearts -->
+                    <div class="flex items-center space-x-1 text-rose-500 bg-rose-50 dark:bg-rose-950/40 px-3 py-1.5 rounded-xl border border-rose-200 dark:border-rose-900" id="heartsContainer" title="Lives Remaining">
+                        <i class="fa-solid fa-heart"></i>
+                        <span id="livesCount" class="font-bold text-sm">3</span>
+                    </div>
+                    <!-- Streak -->
+                    <div class="flex items-center space-x-1.5 text-amber-500 bg-amber-50 dark:bg-amber-950/40 px-3 py-1.5 rounded-xl border border-amber-200 dark:border-amber-900" title="Current Streak">
+                        <i class="fa-solid fa-fire"></i>
+                        <span id="streakCount" class="font-bold text-sm">0</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Progress Bar -->
+            <div class="w-full bg-slate-200 dark:bg-slate-800 h-2.5 rounded-full overflow-hidden">
+                <div id="progressBar" class="bg-gradient-to-r from-indigo-500 to-purple-500 h-full w-0 transition-all duration-300"></div>
+            </div>
+
+            <!-- Sentence Length Upgrade Meter -->
+            <div class="glass-card rounded-2xl p-4 shadow-sm border border-indigo-100 dark:border-indigo-900/50 bg-indigo-50/50 dark:bg-indigo-950/20">
+                <div class="flex justify-between items-center mb-2">
+                    <span class="text-xs font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400 flex items-center">
+                        <i class="fa-solid fa-chart-line mr-1.5"></i> Sentence Length & Richness Meter
+                    </span>
+                    <span id="meterScoreText" class="text-xs font-bold text-indigo-700 dark:text-indigo-300">Level 1 Beginner</span>
+                </div>
+                <div class="bg-white dark:bg-slate-900 rounded-xl p-3 border border-indigo-100 dark:border-slate-800">
+                    <p id="sentencePreview" class="text-sm md:text-base font-medium text-slate-700 dark:text-slate-200 italic">"The cat slept."</p>
+                </div>
+            </div>
+
+            <!-- Question Card -->
+            <div class="glass-card rounded-3xl p-6 md:p-8 shadow-xl space-y-6">
+                <!-- Question Prompt -->
+                <div class="space-y-2">
+                    <span id="questionTypeBadge" class="inline-block px-3 py-1 rounded-full text-xs font-bold bg-indigo-100 dark:bg-indigo-900/60 text-indigo-700 dark:text-indigo-300">Identify Adjective</span>
+                    <h3 id="questionText" class="font-display font-bold text-xl md:text-2xl text-slate-900 dark:text-white leading-snug">
+                        Loading question...
+                    </h3>
+                </div>
+
+                <!-- Options Grid -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3" id="optionsGrid">
+                    <!-- Populated via JS -->
+                </div>
+
+                <!-- Explanation Box (Hidden initially) -->
+                <div id="explanationBox" class="hidden rounded-2xl p-4 border transition-all animate-fadeIn">
+                    <div class="flex items-start space-x-3">
+                        <div id="explanationIcon" class="text-xl mt-0.5"></div>
+                        <div class="space-y-1 flex-1">
+                            <h5 id="explanationTitle" class="font-display font-bold text-base"></h5>
+                            <p id="explanationText" class="text-sm text-slate-600 dark:text-slate-300 leading-relaxed"></p>
+                        </div>
+                    </div>
+                    <div class="mt-4 flex justify-end">
+                        <button onclick="nextQuestion()" class="bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-display font-bold px-6 py-2.5 rounded-xl shadow-lg hover:opacity-90 transition flex items-center space-x-2">
+                            <span>Next Question</span>
+                            <i class="fa-solid fa-arrow-right"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- VIEW 3: LEVEL COMPLETE / VICTORY VIEW -->
+        <div id="resultView" class="hidden glass-card rounded-3xl p-8 md:p-12 shadow-2xl text-center space-y-6 animate-fadeIn max-w-xl mx-auto w-full">
+            <div class="w-20 h-20 bg-gradient-to-tr from-amber-400 to-yellow-500 text-white rounded-3xl mx-auto flex items-center justify-center text-3xl shadow-lg shadow-amber-500/30 animate-bounce">
+                <i class="fa-solid fa-trophy"></i>
+            </div>
+            <div class="space-y-2">
+                <h3 id="resultTitle" class="font-display font-extrabold text-2xl md:text-3xl text-slate-900 dark:text-white">Level Cleared!</h3>
+                <p id="resultSubtitle" class="text-slate-600 dark:text-slate-400 text-sm md:text-base">You mastered adjectives and adverbs for this stage.</p>
+            </div>
+
+            <!-- Stats Grid -->
+            <div class="grid grid-cols-3 gap-3 bg-slate-50 dark:bg-slate-800/50 p-4 rounded-2xl border border-slate-200 dark:border-slate-700">
+                <div>
+                    <div class="text-xs text-slate-500 dark:text-slate-400 font-medium">Correct</div>
+                    <div id="statCorrect" class="font-display font-bold text-lg text-emerald-600 dark:text-emerald-400">18/20</div>
+                </div>
+                <div>
+                    <div class="text-xs text-slate-500 dark:text-slate-400 font-medium">Accuracy</div>
+                    <div id="statAccuracy" class="font-display font-bold text-lg text-indigo-600 dark:text-indigo-400">90%</div>
+                </div>
+                <div>
+                    <div class="text-xs text-slate-500 dark:text-slate-400 font-medium">Score Earned</div>
+                    <div id="statScore" class="font-display font-bold text-lg text-purple-600 dark:text-purple-400">360</div>
+                </div>
+            </div>
+
+            <div class="flex flex-col sm:flex-row gap-3 pt-4">
+                <button onclick="returnToHome()" class="flex-1 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-display font-bold py-3 px-6 rounded-2xl transition">
+                    Level Select
+                </button>
+                <button id="nextLevelBtn" onclick="advanceToNextLevel()" class="flex-1 bg-gradient-to-r from-indigo-600 to-purple-600 hover:opacity-90 text-white font-display font-bold py-3 px-6 rounded-2xl shadow-lg transition flex items-center justify-center space-x-2">
+                    <span>Next Level</span>
+                    <i class="fa-solid fa-arrow-right"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- VIEW 4: GAME OVER VIEW -->
+        <div id="gameOverView" class="hidden glass-card rounded-3xl p-8 md:p-12 shadow-2xl text-center space-y-6 animate-fadeIn max-w-xl mx-auto w-full">
+            <div class="w-20 h-20 bg-gradient-to-tr from-rose-500 to-red-600 text-white rounded-3xl mx-auto flex items-center justify-center text-3xl shadow-lg shadow-rose-500/30">
+                <i class="fa-solid fa-heart-crack"></i>
+            </div>
+            <div class="space-y-2">
+                <h3 class="font-display font-extrabold text-2xl md:text-3xl text-slate-900 dark:text-white">Out of Hearts!</h3>
+                <p class="text-slate-600 dark:text-slate-400 text-sm md:text-base">Don't worry! Modifying sentences takes practice. Review the grammar guide and try again.</p>
+            </div>
+            <div class="flex flex-col sm:flex-row gap-3 pt-4">
+                <button onclick="returnToHome()" class="flex-1 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-display font-bold py-3 px-6 rounded-2xl transition">
+                    Level Select
+                </button>
+                <button onclick="restartCurrentLevel()" class="flex-1 bg-gradient-to-r from-rose-600 to-indigo-600 hover:opacity-90 text-white font-display font-bold py-3 px-6 rounded-2xl shadow-lg transition flex items-center justify-center space-x-2">
+                    <i class="fa-solid fa-rotate-right mr-2"></i> Try Level Again
+                </button>
+            </div>
+        </div>
+
+        <!-- VIEW 5: FINAL GRAND CERTIFICATE VIEW -->
+        <div id="certificateView" class="hidden glass-card rounded-3xl p-8 md:p-12 shadow-2xl text-center space-y-6 animate-fadeIn max-w-2xl mx-auto w-full border-4 border-amber-400/50 bg-gradient-to-b from-white to-amber-50/30 dark:from-slate-900 dark:to-indigo-950">
+            <div class="inline-block bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-400 px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider mb-2">
+                <i class="fa-solid fa-award mr-1.5"></i> Ultimate ESL Achievement
+            </div>
+            <h2 class="font-display font-extrabold text-3xl md:text-4xl text-slate-900 dark:text-white">Certificate of Master Modifier</h2>
+            <p class="text-slate-600 dark:text-slate-300 text-sm">This is proudly presented to ESL Champion for successfully conquering all 100 Adjective & Adverb Adventure questions!</p>
+            
+            <div class="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-inner border border-amber-200 dark:border-amber-900/50 space-y-4">
+                <div class="text-xs uppercase tracking-widest text-slate-400 font-semibold">Final Score & Statistics</div>
+                <div class="flex justify-around items-center">
+                    <div>
+                        <div class="text-2xl md:text-3xl font-display font-bold text-indigo-600 dark:text-indigo-400" id="certTotalScore">2000</div>
+                        <div class="text-xs text-slate-500">Total Points</div>
+                    </div>
+                    <div class="h-10 w-px bg-slate-200 dark:bg-slate-700"></div>
+                    <div>
+                        <div class="text-2xl md:text-3xl font-display font-bold text-emerald-600 dark:text-emerald-400" id="certRankTitle">Master Modifier</div>
+                        <div class="text-xs text-slate-500">Earned Rank</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex flex-col sm:flex-row gap-3 pt-2">
+                <button onclick="triggerConfetti()" class="flex-1 bg-amber-500 hover:bg-amber-600 text-white font-display font-bold py-3.5 px-6 rounded-2xl shadow-lg transition flex items-center justify-center space-x-2">
+                    <i class="fa-solid fa-wand-magic-sparkles"></i>
+                    <span>Celebrate Again!</span>
+                </button>
+                <button onclick="returnToHome()" class="flex-1 bg-slate-800 dark:bg-slate-700 hover:bg-slate-900 text-white font-display font-bold py-3.5 px-6 rounded-2xl shadow-lg transition">
+                    Return to Map
+                </button>
+            </div>
+        </div>
+    </main>
+
+    <!-- GRAMMAR GUIDE MODAL -->
+    <div id="rulesModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="glass-card rounded-3xl max-w-lg w-full p-6 md:p-8 space-y-5 shadow-2xl animate-fadeIn max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center">
+                <h3 class="font-display font-bold text-xl text-slate-900 dark:text-white flex items-center">
+                    <i class="fa-solid fa-book-bookmark text-indigo-600 mr-2.5"></i> Grammar Guide: Modifiers
+                </h3>
+                <button onclick="closeRulesModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 text-lg p-2">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            
+            <div class="space-y-4 text-sm text-slate-600 dark:text-slate-300">
+                <div class="bg-indigo-50 dark:bg-indigo-950/40 p-4 rounded-2xl border border-indigo-100 dark:border-indigo-900/50 space-y-1">
+                    <h4 class="font-bold text-indigo-700 dark:text-indigo-400 font-display">1. What is an Adjective?</h4>
+                    <p>An adjective modifies or describes a <strong>noun</strong> or pronoun (e.g., <em>The <span class="text-indigo-600 font-bold">fierce</span> lion roared</em>). It answers: What kind? Which one? How many?</p>
+                </div>
+                
+                <div class="bg-purple-50 dark:bg-purple-950/40 p-4 rounded-2xl border border-purple-100 dark:border-purple-900/50 space-y-1">
+                    <h4 class="font-bold text-purple-700 dark:text-purple-400 font-display">2. What is an Adverb?</h4>
+                    <p>An adverb modifies a <strong>verb</strong>, an <strong>adjective</strong>, or another <strong>adverb</strong> (e.g., <em>She ran <span class="text-purple-600 font-bold">quickly</span></em> or <em>It was <span class="text-purple-600 font-bold">extremely</span> cold</em>). Often ends in <em>-ly</em> and answers: How? When? Where? To what extent?</p>
+                </div>
+
+                <div class="bg-emerald-50 dark:bg-emerald-950/40 p-4 rounded-2xl border border-emerald-100 dark:border-emerald-900/50 space-y-1">
+                    <h4 class="font-bold text-emerald-700 dark:text-emerald-400 font-display">3. Lengthening Sentences</h4>
+                    <p>By adding descriptive adjectives and precise adverbs, you transform short, boring sentences into vivid, lengthy, professional English sentences!</p>
+                </div>
+            </div>
+
+            <div class="pt-2">
+                <button onclick="closeRulesModal()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-display font-bold py-3 rounded-2xl shadow-lg transition">
+                    Got it, Let's Play!
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="w-full text-center py-4 text-xs text-slate-400 dark:text-slate-500 border-t border-slate-200 dark:border-slate-800">
+        The Modifier Master • Designed for ESL Students to Master Adjectives & Adverbs
+    </footer>
+
+    <!-- Audio Synthesizer (Web Audio API) -->
+    <script>
+        let soundEnabled = true;
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+        function playSound(type) {
+            if (!soundEnabled) return;
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+
+            const now = audioCtx.currentTime;
+
+            if (type === 'success') {
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(523.25, now); // C5
+                osc.frequency.setValueAtTime(659.25, now + 0.1); // E5
+                osc.frequency.setValueAtTime(783.99, now + 0.2); // G5
+                gain.gain.setValueAtTime(0.15, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
+                osc.start(now);
+                osc.stop(now + 0.4);
+            } else if (type === 'error') {
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(200, now);
+                osc.frequency.setValueAtTime(150, now + 0.15);
+                gain.gain.setValueAtTime(0.15, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
+                osc.start(now);
+                osc.stop(now + 0.3);
+            } else if (type === 'click') {
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(400, now);
+                gain.gain.setValueAtTime(0.08, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
+                osc.start(now);
+                osc.stop(now + 0.08);
+            }
+        }
+
+        function toggleSound() {
+            soundEnabled = !soundEnabled;
+            const icon = document.getElementById('soundIcon');
+            if (soundEnabled) {
+                icon.className = 'fa-solid fa-volume-high';
+            } else {
+                icon.className = 'fa-solid fa-volume-xmark';
+            }
+        }
+    </script>
+
+    <!-- QUESTION BANK & GAME LOGIC -->
+    <script>
+        // 100 High-Quality Questions across 5 Levels (20 per level)
+        const levelsData = [
+            {
+                id: 1,
+                title: "Level 1: Spot the Adjective",
+                description: "Identify words that describe nouns and add color to basic sentences.",
+                badge: "Adjective Basics",
+                sentenceSeed: "The dog barked.",
+                meterName: "Level 1 Beginner",
+                questions: [
+                    {
+                        q: "Identify the adjective in this sentence: 'The fluffy cat slept on the mat.'",
+                        options: ["The", "fluffy", "slept", "mat"],
+                        answer: 1,
+                        explanation: "'Fluffy' is an adjective because it describes the noun 'cat', telling us what kind of cat it is."
+                    },
+                    {
+                        q: "Choose the adjective in: 'She wore a bright red dress to the party.'",
+                        options: ["wore", "party", "bright", "dress"],
+                        answer: 2,
+                        explanation: "'Bright' describes the color adjective 'red', intensifying how vivid the dress appeared."
+                    },
+                    {
+                        q: "Which word is an adjective? 'The tall building touched the clouds.'",
+                        options: ["tall", "building", "touched", "clouds"],
+                        answer: 0,
+                        explanation: "'Tall' describes the noun 'building', indicating its vertical height."
+                    },
+                    {
+                        q: "Find the adjective: 'He ate a delicious apple after lunch.'",
+                        options: ["ate", "delicious", "apple", "lunch"],
+                        answer: 1,
+                        explanation: "'Delicious' describes the noun 'apple', stating its tasty quality."
+                    },
+                    {
+                        q: "Identify the adjective: 'We walked through the dark forest at night.'",
+                        options: ["walked", "through", "dark", "night"],
+                        answer: 2,
+                        explanation: "'Dark' describes the noun 'forest', showing lack of light."
+                    },
+                    {
+                        q: "Which word is an adjective in: 'The brave firefighter saved the puppy.'",
+                        options: ["firefighter", "saved", "brave", "puppy"],
+                        answer: 2,
+                        explanation: "'Brave' describes the noun 'firefighter', showing courage."
+                    },
+                    {
+                        q: "Select the adjective: 'She bought a shiny new bicycle.'",
+                        options: ["shiny", "bought", "bicycle", "she"],
+                        answer: 0,
+                        explanation: "'Shiny' is an adjective modifying the noun 'bicycle'."
+                    },
+                    {
+                        q: "Identify the adjective: 'An old man sat on the wooden bench.'",
+                        options: ["sat", "old", "bench", "on"],
+                        answer: 1,
+                        explanation: "'Old' describes the noun 'man', telling us his age."
+                    },
+                    {
+                        q: "Find the adjective in: 'The cold wind chilled our faces.'",
+                        options: ["wind", "chilled", "cold", "faces"],
+                        answer: 2,
+                        explanation: "'Cold' describes the noun 'wind', indicating temperature."
+                    },
+                    {
+                        q: "Which word is an adjective? 'They live in a quiet neighborhood.'",
+                        options: ["live", "neighborhood", "quiet", "they"],
+                        answer: 2,
+                        explanation: "'Quiet' describes the noun 'neighborhood', meaning peaceful."
+                    },
+                    {
+                        q: "Select the adjective: 'The sweet melon was refreshing.'",
+                        options: ["sweet", "melon", "was", "refreshing"],
+                        answer: 0,
+                        explanation: "'Sweet' describes the flavor of the noun 'melon'."
+                    },
+                    {
+                        q: "Identify the adjective: 'He drove a fast sports car.'",
+                        options: ["drove", "car", "fast", "sports"],
+                        answer: 2,
+                        explanation: "'Fast' describes the noun 'car', indicating speed."
+                    },
+                    {
+                        q: "Find the adjective: 'The heavy box was hard to lift.'",
+                        options: ["heavy", "box", "lift", "hard"],
+                        answer: 0,
+                        explanation: "'Heavy' describes the weight of the noun 'box'."
+                    },
+                    {
+                        q: "Which word is an adjective in: 'Clear blue skies greeted us.'",
+                        options: ["greeted", "blue", "skies", "us"],
+                        answer: 1,
+                        explanation: "'Blue' describes the color of the noun 'skies'."
+                    },
+                    {
+                        q: "Select the adjective: 'She has a gentle voice.'",
+                        options: ["she", "has", "gentle", "voice"],
+                        answer: 2,
+                        explanation: "'Gentle' describes the noun 'voice', indicating softness."
+                    },
+                    {
+                        q: "Identify the adjective: 'The angry dog barked loudly.'",
+                        options: ["angry", "dog", "barked", "loudly"],
+                        answer: 0,
+                        explanation: "'Angry' describes the noun 'dog' (Note: 'loudly' is an adverb modifying barked!)."
+                    },
+                    {
+                        q: "Find the adjective: 'We found a hidden treasure chest.'",
+                        options: ["found", "treasure", "hidden", "chest"],
+                        answer: 2,
+                        explanation: "'Hidden' describes the noun 'chest', meaning concealed."
+                    },
+                    {
+                        q: "Which word is an adjective? 'The sharp knife cut the bread.'",
+                        options: ["knife", "sharp", "cut", "bread"],
+                        answer: 1,
+                        explanation: "'Sharp' describes the cutting edge of the noun 'knife'."
+                    },
+                    {
+                        q: "Select the adjective: 'Bright stars filled the night sky.'",
+                        options: ["stars", "bright", "filled", "sky"],
+                        answer: 1,
+                        explanation: "'Bright' describes the noun 'stars', telling how they shine."
+                    },
+                    {
+                        q: "Identify the adjective: 'He wore a muddy pair of boots.'",
+                        options: ["muddy", "wore", "pair", "boots"],
+                        answer: 0,
+                        explanation: "'Muddy' describes the noun 'boots', indicating covered in mud."
+                    }
+                ]
+            },
+            {
+                id: 2,
+                title: "Level 2: Spot the Adverb",
+                description: "Master words that modify verbs, adjectives, or other adverbs.",
+                badge: "Adverb Basics",
+                sentenceSeed: "The runner sprinted.",
+                meterName: "Level 2 Modifier",
+                questions: [
+                    {
+                        q: "Identify the adverb in: 'She sang the song beautifully.'",
+                        options: ["she", "sang", "song", "beautifully"],
+                        answer: 3,
+                        explanation: "'Beautifully' is an adverb modifying the verb 'sang', telling us *how* she sang."
+                    },
+                    {
+                        q: "Choose the adverb in: 'He ran very fast across the field.'",
+                        options: ["ran", "very", "across", "field"],
+                        answer: 1,
+                        explanation: "'Very' is an adverb modifying another adverb ('fast'), intensifying the speed."
+                    },
+                    {
+                        q: "Which word is an adverb? 'The children played outside in the yard.'",
+                        options: ["children", "played", "outside", "yard"],
+                        answer: 2,
+                        explanation: "'Outside' is an adverb of place, telling us *where* they played."
+                    },
+                    {
+                        q: "Find the adverb: 'She arrived early for the interview.'",
+                        options: ["she", "arrived", "early", "interview"],
+                        answer: 2,
+                        explanation: "'Early' is an adverb of time, telling us *when* she arrived."
+                    },
+                    {
+                        q: "Identify the adverb: 'He quietly opened the creaky door.'",
+                        options: ["quietly", "opened", "creaky", "door"],
+                        answer: 0,
+                        explanation: "'Quietly' modifies the verb 'opened', describing the manner of opening."
+                    },
+                    {
+                        q: "Which word is an adverb in: 'The sun shone brightly today.'",
+                        options: ["sun", "shone", "brightly", "today"],
+                        answer: 2,
+                        explanation: "'Brightly' modifies the verb 'shone', telling how the sun shone."
+                    },
+                    {
+                        q: "Select the adverb: 'Please speak softly in the library.'",
+                        options: ["please", "speak", "softly", "library"],
+                        answer: 2,
+                        explanation: "'Softly' modifies the verb 'speak', indicating manner."
+                    },
+                    {
+                        q: "Identify the adverb: 'They walked home slowly.'",
+                        options: ["walked", "home", "slowly", "they"],
+                        answer: 2,
+                        explanation: "'Slowly' modifies the verb 'walked', describing the speed."
+                    },
+                    {
+                        q: "Find the adverb in: 'I completely forgot about our meeting.'",
+                        options: ["completely", "forgot", "about", "meeting"],
+                        answer: 0,
+                        explanation: "'Completely' modifies the verb 'forgot', expressing degree or extent."
+                    },
+                    {
+                        q: "Which word is an adverb? 'She often reads books before bed.'",
+                        options: ["she", "often", "reads", "books"],
+                        answer: 1,
+                        explanation: "'Often' is an adverb of frequency, telling us *how frequently* she reads."
+                    },
+                    {
+                        q: "Select the adverb: 'The team played exceptionally well.'",
+                        options: ["team", "played", "exceptionally", "well"],
+                        answer: 2,
+                        explanation: "'Exceptionally' is an adverb modifying the adverb 'well'."
+                    },
+                    {
+                        q: "Identify the adverb: 'He always arrives on time.'",
+                        options: ["always", "arrives", "time", "he"],
+                        answer: 0,
+                        explanation: "'Always' is an adverb of frequency modifying 'arrives'."
+                    },
+                    {
+                        q: "Find the adverb: 'The cat jumped gracefully over the fence.'",
+                        options: ["cat", "jumped", "gracefully", "fence"],
+                        answer: 2,
+                        explanation: "'Gracefully' modifies the verb 'jumped', describing the style."
+                    },
+                    {
+                        q: "Which word is an adverb in: 'We will travel abroad this summer.'",
+                        options: ["travel", "abroad", "summer", "we"],
+                        answer: 1,
+                        explanation: "'Abroad' is an adverb of place modifying 'travel'."
+                    },
+                    {
+                        q: "Select the adverb: 'She looked everywhere for her keys.'",
+                        options: ["looked", "everywhere", "keys", "she"],
+                        answer: 1,
+                        explanation: "'Everywhere' is an adverb of place modifying 'looked'."
+                    },
+                    {
+                        q: "Identify the adverb: 'The test was surprisingly easy.'",
+                        options: ["test", "surprisingly", "easy", "was"],
+                        answer: 1,
+                        explanation: "'Surprisingly' is an adverb modifying the adjective 'easy'."
+                    },
+                    {
+                        q: "Find the adverb: 'He answered the question correctly.'",
+                        options: ["answered", "question", "correctly", "he"],
+                        answer: 2,
+                        explanation: "'Correctly' modifies the verb 'answered'."
+                    },
+                    {
+                        q: "Which word is an adverb? 'She never eats junk food.'",
+                        options: ["she", "never", "eats", "food"],
+                        answer: 1,
+                        explanation: "'Never' is an adverb of frequency modifying 'eats'."
+                    },
+                    {
+                        q: "Select the adverb: 'The weather is extremely hot today.'",
+                        options: ["weather", "extremely", "hot", "today"],
+                        answer: 1,
+                        explanation: "'Extremely' modifies the adjective 'hot', indicating high degree."
+                    },
+                    {
+                        q: "Identify the adverb: 'Please step inside out of the rain.'",
+                        options: ["please", "step", "inside", "rain"],
+                        answer: 2,
+                        explanation: "'Inside' is an adverb of place telling where to step."
+                    }
+                ]
+            },
+            {
+                id: 3,
+                title: "Level 3: Upgrade the Sentence",
+                description: "Transform simple sentences into rich, descriptive masterpieces using adjectives and adverbs.",
+                badge: "Sentence Expansion",
+                sentenceSeed: "The student read a book.",
+                meterName: "Level 3 Expanding",
+                questions: [
+                    {
+                        q: "Which upgraded sentence adds both a strong adjective and an adverb correctly? Base: 'The dog barked.'",
+                        options: [
+                            "The dog barked loud.",
+                            "The fierce dog barked furiously.",
+                            "The dog barked dog.",
+                            "Fierce dog barked."
+                        ],
+                        answer: 1,
+                        explanation: "'Fierce' (adjective) describes the dog, and 'furiously' (adverb) describes how it barked!"
+                    },
+                    {
+                        q: "Upgrade 'The girl painted.' with precise modifiers:",
+                        options: [
+                            "The talented girl painted beautifully.",
+                            "The painted girl talented.",
+                            "Girl painted beautifully talent.",
+                            "The paint girl beautifully."
+                        ],
+                        answer: 0,
+                        explanation: "'Talented' modifies the noun 'girl', and 'beautifully' modifies the verb 'painted'."
+                    },
+                    {
+                        q: "Choose the best upgraded version of 'The wind blew.'",
+                        options: [
+                            "The strong wind blew violently.",
+                            "Strongly wind blew violent.",
+                            "The wind blew wind.",
+                            "Wind strong blew violently."
+                        ],
+                        answer: 0,
+                        explanation: "'Strong' is the adjective for wind; 'violently' is the adverb for blew."
+                    },
+                    {
+                        q: "Enhance 'The chef cooked.' with rich vocabulary:",
+                        options: [
+                            "The chef cooked cook.",
+                            "The skilled chef cooked masterfully.",
+                            "Skilled chef cooked skill.",
+                            "The cook cooked skilled."
+                        ],
+                        answer: 1,
+                        explanation: "'Skilled' is an adjective and 'masterfully' is an adverb."
+                    },
+                    {
+                        q: "Upgrade 'The bird sang.' into a descriptive sentence:",
+                        options: [
+                            "The bird sang sweet.",
+                            "Sweet bird sang sweetly.",
+                            "The colorful bird sang melodiously.",
+                            "Colorful sang bird melodious."
+                        ],
+                        answer: 2,
+                        explanation: "'Colorful' (adjective) + 'melodiously' (adverb) makes the sentence vivid and lengthy."
+                    },
+                    {
+                        q: "Which is the correct modifier expansion for 'The car drove.'?",
+                        options: [
+                            "The sleek car drove swiftly.",
+                            "Sleekly car drove swift.",
+                            "Car drive sleek swiftly.",
+                            "The car drove sleek."
+                        ],
+                        answer: 0,
+                        explanation: "'Sleek' describes the car (noun); 'swiftly' describes how it drove (verb)."
+                    },
+                    {
+                        q: "Upgrade 'The fire burned.' with correct adjective & adverb:",
+                        options: [
+                            "The hot burned fiercely.",
+                            "The roaring fire burned brightly.",
+                            "Roaringly fire burned bright.",
+                            "Fire burned roaring bright."
+                        ],
+                        answer: 1,
+                        explanation: "'Roaring' (adjective) and 'brightly' (adverb) correctly lengthen and enrich the sentence."
+                    },
+                    {
+                        q: "Enhance 'The rain fell.'",
+                        options: [
+                            "The heavy rain fell steadily.",
+                            "Heavily rain fell steady.",
+                            "Rain heavy fell steady.",
+                            "The rain fell heavy."
+                        ],
+                        answer: 0,
+                        explanation: "'Heavy' is the adjective and 'steadily' is the adverb."
+                    },
+                    {
+                        q: "Upgrade 'The student studied.'",
+                        options: [
+                            "Studious student studied diligent.",
+                            "The diligent student studied thoroughly.",
+                            "The study student diligently.",
+                            "Diligent student studied study."
+                        ],
+                        answer: 1,
+                        explanation: "'Diligent' modifies student; 'thoroughly' modifies studied."
+                    },
+                    {
+                        q: "Choose the best upgrade for 'The river flowed.'",
+                        options: [
+                            "Flowing river flowed fast.",
+                            "The winding river flowed peacefully.",
+                            "Windingly river flowed peaceful.",
+                            "River flowed winding peaceful."
+                        ],
+                        answer: 1,
+                        explanation: "'Winding' is an adjective and 'peacefully' is an adverb."
+                    },
+                    {
+                        q: "Upgrade 'The sun rose.' with descriptive modifiers:",
+                        options: [
+                            "The golden sun rose majestically.",
+                            "Gold sun rose majestic.",
+                            "The sun rose gold majestically.",
+                            "Sun golden rose majesty."
+                        ],
+                        answer: 0,
+                        explanation: "'Golden' describes the sun; 'majestically' describes how it rose."
+                    },
+                    {
+                        q: "Enhance 'The actor spoke.'",
+                        options: [
+                            "The confident actor spoke clearly.",
+                            "Confidently actor spoke clear.",
+                            "Actor speak confident clearly.",
+                            "The actor spoke confident."
+                        ],
+                        answer: 0,
+                        explanation: "'Confident' is the adjective; 'clearly' is the adverb."
+                    },
+                    {
+                        q: "Upgrade 'The baby slept.'",
+                        options: [
+                            "The peaceful baby slept soundly.",
+                            "Peacefully baby slept sound.",
+                            "Baby sleep peaceful soundly.",
+                            "The baby slept peaceful."
+                        ],
+                        answer: 0,
+                        explanation: "'Peaceful' describes the baby; 'soundly' describes how the baby slept."
+                    },
+                    {
+                        q: "Choose the correct expansion for 'The clock ticked.'",
+                        options: [
+                            "The old clock ticked rhythmically.",
+                            "Oldly clock ticked rhythmic.",
+                            "Clock tick old rhythm.",
+                            "The clock ticked old."
+                        ],
+                        answer: 0,
+                        explanation: "'Old' is the adjective and 'rhythmically' is the adverb."
+                    },
+                    {
+                        q: "Upgrade 'The athlete jumped.'",
+                        options: [
+                            "The agile athlete jumped high.",
+                            "Agilely athlete jumped highly.",
+                            "Athlete jump agile high.",
+                            "The athlete jumped agile."
+                        ],
+                        answer: 0,
+                        explanation: "'Agile' modifies athlete; 'high' functions as an adverb of manner here."
+                    },
+                    {
+                        q: "Enhance 'The storm approached.'",
+                        options: [
+                            "The fierce storm approached menacingly.",
+                            "Fiercely storm approached menace.",
+                            "Storm approach fierce menacing.",
+                            "The storm approached fierce."
+                        ],
+                        answer: 0,
+                        explanation: "'Fierce' is the adjective; 'menacingly' is the adverb."
+                    },
+                    {
+                        q: "Upgrade 'The dancer twirled.'",
+                        options: [
+                            "The graceful dancer twirled effortlessly.",
+                            "Gracefully dancer twirled effortless.",
+                            "Dancer twirl graceful effortless.",
+                            "The dancer twirled graceful."
+                        ],
+                        answer: 0,
+                        explanation: "'Graceful' describes the dancer; 'effortlessly' describes the action."
+                    },
+                    {
+                        q: "Choose the best upgrade for 'The lion roared.'",
+                        options: [
+                            "The mighty lion roared fiercely.",
+                            "Mightily lion roared fierce.",
+                            "Lion roar mighty fierce.",
+                            "The lion roared mighty."
+                        ],
+                        answer: 0,
+                        explanation: "'Mighty' is the adjective and 'fiercely' is the adverb."
+                    },
+                    {
+                        q: "Upgrade 'The candle flickered.'",
+                        options: [
+                            "The fragile candle flickered weakly.",
+                            "Fragilely candle flickered weak.",
+                            "Candle flicker fragile weak.",
+                            "The candle flickered fragile."
+                        ],
+                        answer: 0,
+                        explanation: "'Fragile' describes the candle; 'weakly' describes how it flickered."
+                    },
+                    {
+                        q: "Enhance 'The detective solved the mystery.'",
+                        options: [
+                            "The brilliant detective solved the mystery cleverly.",
+                            "Brilliantly detective solved mystery clever.",
+                            "Detective solve brilliant clever.",
+                            "The brilliant detective solved cleverly."
+                        ],
+                        answer: 0,
+                        explanation: "'Brilliant' modifies detective; 'cleverly' modifies solved."
+                    }
+                ]
+            },
+            {
+                id: 4,
+                title: "Level 4: Master Builder",
+                description: "Advanced placement of multiple modifiers, avoiding common traps (like adjective/adverb confusion).",
+                badge: "Advanced Placement",
+                sentenceSeed: "The architect designed a skyscraper.",
+                meterName: "Level 4 Advanced",
+                questions: [
+                    {
+                        q: "Choose the grammatically correct sentence:",
+                        options: [
+                            "She played the piano real good.",
+                            "She played the piano really well.",
+                            "She played real good piano.",
+                            "She played goodly."
+                        ],
+                        answer: 1,
+                        explanation: "'Really' (adverb) modifies the adverb 'well', and 'well' modifies the verb 'played'."
+                    },
+                    {
+                        q: "Which sentence uses the adjective/adverb correctly?",
+                        options: [
+                            "He felt badly about losing the game.",
+                            "He felt bad about losing the game.",
+                            "He felt badly with his hands.",
+                            "He bad felt."
+                        ],
+                        answer: 1,
+                        explanation: "After linking verbs like 'feel', we use the adjective 'bad' to describe emotional state, not the adverb 'badly'."
+                    },
+                    {
+                        q: "Identify the correct sentence structure:",
+                        options: [
+                            "The soup smells deliciously.",
+                            "The soup smells delicious.",
+                            "The soup smelling deliciously.",
+                            "Delicious soup smell."
+                        ],
+                        answer: 1,
+                        explanation: "'Smells' is a linking verb here, so it takes the adjective 'delicious' rather than the adverb 'deliciously'."
+                    },
+                    {
+                        q: "Choose the correct sentence:",
+                        options: [
+                            "Drive slow through the school zone.",
+                            "Drive slowly through the school zone.",
+                            "Drive slower through zone.",
+                            "Slow drive."
+                        ],
+                        answer: 1,
+                        explanation: "To modify the verb 'drive', the adverb 'slowly' is grammatically preferred in formal English."
+                    },
+                    {
+                        q: "Which sentence features correct modifier placement?",
+                        options: [
+                            "Only she ate the chocolate cake.",
+                            "She ate only the chocolate cake.",
+                            "She only ate chocolate cake.",
+                            "All of the above depending on intended meaning, but 'She ate only the chocolate cake' restricts the object."
+                        ],
+                        answer: 3,
+                        explanation: "Placement of modifiers like 'only' can shift the meaning of the sentence significantly!"
+                    },
+                    {
+                        q: "Select the correct sentence:",
+                        options: [
+                            "He speaks English fluent.",
+                            "He speaks English fluently.",
+                            "He fluent speaks English.",
+                            "He speak fluency."
+                        ],
+                        answer: 1,
+                        explanation: "'Fluently' is the adverb required to modify how he 'speaks'."
+                    },
+                    {
+                        q: "Which sentence is correct?",
+                        options: [
+                            "The flowers smell sweet.",
+                            "The flowers smell sweetly.",
+                            "Sweet flowers smelling.",
+                            "Flowers smell sweet nicely."
+                        ],
+                        answer: 0,
+                        explanation: "'Smell' as a sensory linking verb takes the adjective 'sweet'."
+                    },
+                    {
+                        q: "Choose the correct modifier usage:",
+                        options: [
+                            "She performed exceptional on the test.",
+                            "She performed exceptionally on the test.",
+                            "Exceptional she performed.",
+                            "Performed exceptionally exception."
+                        ],
+                        answer: 1,
+                        explanation: "'Exceptionally' is an adverb modifying the verb 'performed'."
+                    },
+                    {
+                        q: "Identify the correct sentence:",
+                        options: [
+                            "He runs quick in races.",
+                            "He runs quickly in races.",
+                            "Quickly he run race.",
+                            "He run quick."
+                        ],
+                        answer: 1,
+                        explanation: "'Quickly' is the correct adverb modifying 'runs'."
+                    },
+                    {
+                        q: "Which sentence is correct?",
+                        options: [
+                            "The music sounds loud.",
+                            "The music sounds loudly.",
+                            "Loud music sound.",
+                            "Music sounding loud."
+                        ],
+                        answer: 0,
+                        explanation: "'Sounds' is a linking verb, so it takes the adjective 'loud'."
+                    },
+                    {
+                        q: "Select the correct sentence:",
+                        options: [
+                            "She looked angry at the broken vase.",
+                            "She looked angrily at the broken vase.",
+                            "Angrily she look vase.",
+                            "She look angry."
+                        ],
+                        answer: 1,
+                        explanation: "Here, 'looked' is an action verb (directing her gaze with anger), so the adverb 'angrily' is correct."
+                    },
+                    {
+                        q: "Choose the correct sentence:",
+                        options: [
+                            "He is an extreme talented musician.",
+                            "He is an extremely talented musician.",
+                            "Extremely he is talented.",
+                            "He extreme talent."
+                        ],
+                        answer: 1,
+                        explanation: "'Extremely' is an adverb modifying the adjective 'talented'."
+                    },
+                    {
+                        q: "Which sentence uses adverbs correctly?",
+                        options: [
+                            "She walked quiet into the room.",
+                            "She walked quietly into the room.",
+                            "Quietly she walk room.",
+                            "Walk quietly."
+                        ],
+                        answer: 1,
+                        explanation: "'Quietly' modifies the verb 'walked'."
+                    },
+                    {
+                        q: "Identify the correct sentence:",
+                        options: [
+                            "The cake tastes wonderful.",
+                            "The cake tastes wonderfully.",
+                            "Wonderful cake taste.",
+                            "Taste wonderful cake."
+                        ],
+                        answer: 0,
+                        explanation: "'Tastes' is a sensory linking verb taking the adjective 'wonderful'."
+                    },
+                    {
+                        q: "Select the correct sentence:",
+                        options: [
+                            "He reacted calm to the emergency.",
+                            "He reacted calmly to the emergency.",
+                            "Calmly he react.",
+                            "He calm reaction."
+                        ],
+                        answer: 1,
+                        explanation: "'Reacted' is an action verb, modified by the adverb 'calmly'."
+                    },
+                    {
+                        q: "Choose the correct sentence:",
+                        options: [
+                            "She sings beautiful.",
+                            "She sings beautifully.",
+                            "Beautiful she sing.",
+                            "Sing beautiful."
+                        ],
+                        answer: 1,
+                        explanation: "'Beautifully' is the adverb modifying 'sings'."
+                    },
+                    {
+                        q: "Which sentence is correct?",
+                        options: [
+                            "The project went smooth.",
+                            "The project went smoothly.",
+                            "Smoothly project go.",
+                            "Go smooth project."
+                        ],
+                        answer: 1,
+                        explanation: "'Went' in the sense of progress is modified by the adverb 'smoothly'."
+                    },
+                    {
+                        q: "Select the correct sentence:",
+                        options: [
+                            "He is a remarkably smart student.",
+                            "He is a remarkable smart student.",
+                            "Remarkable he smart student.",
+                            "Smart remarkably student."
+                        ],
+                        answer: 0,
+                        explanation: "'Remarkably' is an adverb modifying the adjective 'smart'."
+                    },
+                    {
+                        q: "Choose the correct sentence:",
+                        options: [
+                            "Please read the instructions careful.",
+                            "Please read the instructions carefully.",
+                            "Carefully read instruction.",
+                            "Read careful instructions."
+                        ],
+                        answer: 1,
+                        explanation: "'Carefully' modifies the verb 'read'."
+                    },
+                    {
+                        q: "Identify the correct sentence:",
+                        options: [
+                            "The children behaved good today.",
+                            "The children behaved well today.",
+                            "Well children behave.",
+                            "Behave good."
+                        ],
+                        answer: 1,
+                        explanation: "'Well' is the adverb of manner modifying the verb 'behaved'."
+                    }
+                ]
+            },
+            {
+                id: 5,
+                title: "Level 5: The Grand Challenge",
+                description: "The ultimate test! Complex sentence expansion, multi-modifier integration, and elite ESL grammar mastery.",
+                badge: "Grand Challenge",
+                sentenceSeed: "The kingdom prospered.",
+                meterName: "Level 5 Master",
+                questions: [
+                    {
+                        q: "Choose the sentence with the richest and most accurate use of adjectives and adverbs:",
+                        options: [
+                            "The ancient kingdom prospered very peaceful.",
+                            "The ancient kingdom prospered very peacefully.",
+                            "Ancient kingdom prosper very peace.",
+                            "The kingdom prospered peaceful."
+                        ],
+                        answer: 1,
+                        explanation: "'Ancient' (adjective) modifies kingdom, 'very' (adverb) modifies 'peacefully', and 'peacefully' (adverb) modifies 'prospered'."
+                    },
+                    {
+                        q: "Which sentence successfully expands 'The detective solved the case'?",
+                        options: [
+                            "The brilliant detective solved the complex case remarkably fast.",
+                            "Brilliant detective solve case quick.",
+                            "The detective solved case brilliance.",
+                            "Brilliantly detective solve."
+                        ],
+                        answer: 0,
+                        explanation: "Includes multiple adjectives ('brilliant', 'complex') and adverbs ('remarkably', 'fast') for maximum sentence length and richness!"
+                    },
+                    {
+                        q: "Identify the sentence with flawless modifier coordination:",
+                        options: [
+                            "She wrote an incredible detailed report quite efficiently.",
+                            "She wrote an incredibly detailed report quite efficiently.",
+                            "Incredible write report efficient.",
+                            "She write report incredible."
+                        ],
+                        answer: 1,
+                        explanation: "'Incredibly' modifies adjective 'detailed', and 'quite' modifies adverb 'efficiently'."
+                    },
+                    {
+                        q: "Choose the most descriptive and grammatically correct sentence:",
+                        options: [
+                            "The exhausted hikers climbed the steep mountain cautiously.",
+                            "Exhausted hiker climb steep mountain cautious.",
+                            "The exhaust climb mountain caution.",
+                            "Exhausted hikers climbed steep mountain cautious."
+                        ],
+                        answer: 0,
+                        explanation: "'Exhausted' and 'steep' are adjectives; 'cautiously' is an adverb."
+                    },
+                    {
+                        q: "Which sentence demonstrates elite modifier mastery?",
+                        options: [
+                            "The talented artist painted a breathtaking portrait effortlessly.",
+                            "Talented artist paint breathtaking portrait effortless.",
+                            "The artist paint breathtaking effortless.",
+                            "Talentedly artist painted portrait."
+                        ],
+                        answer: 0,
+                        explanation: "'Talented' & 'breathtaking' are precise adjectives; 'effortlessly' is a smooth adverb."
+                    },
+                    {
+                        q: "Select the correctly expanded sentence for 'The storm struck.'",
+                        options: [
+                            "The ferocious storm struck the coastal village unexpectedly.",
+                            "Ferocious storm strike coastal village unexpected.",
+                            "The storm strike village ferocious unexpected.",
+                            "Ferociously storm struck village."
+                        ],
+                        answer: 0,
+                        explanation: "'Ferocious' and 'coastal' are adjectives; 'unexpectedly' is an adverb."
+                    },
+                    {
+                        q: "Choose the correct sentence:",
+                        options: [
+                            "He spoke so eloquent that everyone listened close.",
+                            "He spoke so eloquently that everyone listened closely.",
+                            "He spoke eloquent that listen close.",
+                            "Eloquent speak close listen."
+                        ],
+                        answer: 1,
+                        explanation: "Both verbs ('spoke', 'listened') require adverbs ('eloquently', 'closely')."
+                    },
+                    {
+                        q: "Which sentence is grammatically pristine?",
+                        options: [
+                            "The golden sun sank slowly below the horizon.",
+                            "Gold sun sink slow horizon.",
+                            "The sun sank slowly golden horizon.",
+                            "Slow sun sank golden."
+                        ],
+                        answer: 0,
+                        explanation: "'Golden' describes sun; 'slowly' describes how it sank."
+                    },
+                    {
+                        q: "Select the sentence with perfect adjective/adverb placement:",
+                        options: [
+                            "She successfully completed the challenging assignment.",
+                            "She successful completed challenging assignment.",
+                            "Successfully she complete challenge.",
+                            "She complete successful."
+                        ],
+                        answer: 0,
+                        explanation: "'Successfully' (adverb) modifies completed; 'challenging' (adjective) modifies assignment."
+                    },
+                    {
+                        q: "Choose the most descriptive sentence:",
+                        options: [
+                            "The curious kitten explored the mysterious room silently.",
+                            "Curious kitten explore mysterious room silent.",
+                            "The kitten explore room curiosity.",
+                            "Curiously kitten explored mysterious."
+                        ],
+                        answer: 0,
+                        explanation: "'Curious' and 'mysterious' are adjectives; 'silently' is an adverb."
+                    },
+                    {
+                        q: "Identify the correct advanced sentence:",
+                        options: [
+                            "The veteran pilot landed the huge aircraft smoothly.",
+                            "Veteran pilot land huge aircraft smooth.",
+                            "The pilot land huge smoothly.",
+                            "Veteran land aircraft smoothly."
+                        ],
+                        answer: 0,
+                        explanation: "'Veteran' (used as noun adjunct/adjective) & 'huge' modify nouns; 'smoothly' modifies landed."
+                    },
+                    {
+                        q: "Choose the correct sentence structure:",
+                        options: [
+                            "The young chef prepared a delicious meal expertly.",
+                            "Young chef prepare delicious meal expert.",
+                            "The chef prepared meal delicious expert.",
+                            "Youngly chef prepared meal."
+                        ],
+                        answer: 0,
+                        explanation: "'Young' and 'delicious' are adjectives; 'expertly' is an adverb."
+                    },
+                    {
+                        q: "Which sentence demonstrates advanced modifier skill?",
+                        options: [
+                            "The enthusiastic crowd cheered wildly for the local team.",
+                            "Enthusiastic crowd cheer wild local team.",
+                            "The crowd cheer enthusiastically local.",
+                            "Enthusiastically crowd cheered."
+                        ],
+                        answer: 0,
+                        explanation: "'Enthusiastic' and 'local' are adjectives; 'wildly' is an adverb."
+                    },
+                    {
+                        q: "Select the correct sentence:",
+                        options: [
+                            "She designed a truly remarkable architectural masterpiece.",
+                            "She designed a true remarkable architecture.",
+                            "Truly she design masterpiece.",
+                            "Design true masterpiece."
+                        ],
+                        answer: 0,
+                        explanation: "'Truly' is an adverb modifying the adjective 'remarkable'."
+                    },
+                    {
+                        q: "Choose the best sentence upgrade:",
+                        options: [
+                            "The patient teacher explained the complex rule clearly.",
+                            "Patient teacher explain complex rule clear.",
+                            "The teacher explain rule patience clear.",
+                            "Patiently teacher explained rule."
+                        ],
+                        answer: 0,
+                        explanation: "'Patient' and 'complex' are adjectives; 'clearly' is an adverb."
+                    },
+                    {
+                        q: "Identify the correct advanced sentence:",
+                        options: [
+                            "The bright stars shone brilliantly in the dark sky.",
+                            "Bright star shine brilliant dark sky.",
+                            "The star shine brilliance darkness.",
+                            "Brightly stars shone dark."
+                        ],
+                        answer: 0,
+                        explanation: "'Bright' and 'dark' are adjectives; 'brilliantly' is an adverb."
+                    },
+                    {
+                        q: "Select the correct sentence:",
+                        options: [
+                            "He handled the delicate situation very diplomatically.",
+                            "He handled delicate situation very diplomatic.",
+                            "Handle delicate situation diplomacy.",
+                            "He handle very delicate."
+                        ],
+                        answer: 0,
+                        explanation: "'Delicate' is an adjective; 'very' and 'diplomatically' are adverbs."
+                    },
+                    {
+                        q: "Choose the correct sentence structure:",
+                        options: [
+                            "The fearless firefighter rescued the trapped puppy bravely.",
+                            "Fearless firefighter rescue trapped puppy brave.",
+                            "The firefighter rescue puppy fear bravery.",
+                            "Fearlessly firefighter rescued."
+                        ],
+                        answer: 0,
+                        explanation: "'Fearless' and 'trapped' are adjectives; 'bravely' is an adverb."
+                    },
+                    {
+                        q: "Identify the correct advanced sentence:",
+                        options: [
+                            "The diligent student completed the difficult test successfully.",
+                            "Diligent student complete difficult test successful.",
+                            "The student complete test diligence success.",
+                            "Diligently student completed."
+                        ],
+                        answer: 0,
+                        explanation: "'Diligent' and 'difficult' are adjectives; 'successfully' is an adverb."
+                    },
+                    {
+                        q: "The Grand Finale! Choose the most eloquent, lengthy, and grammatically flawless sentence:",
+                        options: [
+                            "The visionary leader presented her inspiring plan clearly and persuasively.",
+                            "Visionary leader present inspiring plan clear persuasive.",
+                            "The leader present plan vision persuasion.",
+                            "Visionaryly leader presented clearly."
+                        ],
+                        answer: 0,
+                        explanation: "'Visionary' and 'inspiring' are adjectives; 'clearly' and 'persuasively' are coordinate adverbs modifying presented."
+                    }
+                ]
+            }
+        ];
+
+        // Game State Variables
+        let currentLevelIndex = 0;
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let lives = 3;
+        let streak = 0;
+        let correctCount = 0;
+        let totalQuestionsAnswered = 0;
+
+        // Initialize App on Load
+        window.onload = function() {
+            renderLevelGrid();
+            updateHeaderScore();
+        };
+
+        function goToHome() {
+            playSound('click');
+            hideAllViews();
+            document.getElementById('homeView').classList.remove('hidden');
+            renderLevelGrid();
+        }
+
+        function hideAllViews() {
+            document.getElementById('homeView').classList.add('hidden');
+            document.getElementById('gameView').classList.add('hidden');
+            document.getElementById('resultView').classList.add('hidden');
+            document.getElementById('gameOverView').classList.add('hidden');
+            document.getElementById('certificateView').classList.add('hidden');
+        }
+
+        function renderLevelGrid() {
+            const grid = document.getElementById('levelGrid');
+            grid.innerHTML = '';
+
+            levelsData.forEach((lvl, index) => {
+                const card = document.createElement('div');
+                card.className = `glass-card rounded-2xl p-5 shadow-sm border transition transform hover:-translate-y-1 cursor-pointer flex flex-col justify-between space-y-4`;
+                card.onclick = () => startLevel(lvl.id);
+
+                card.innerHTML = `
+                    <div class="space-y-2">
+                        <div class="flex justify-between items-center">
+                            <span class="text-xs font-bold px-2.5 py-1 rounded-full bg-indigo-100 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300">Level ${lvl.id}</span>
+                            <span class="text-xs font-semibold text-slate-400">20 Questions</span>
+                        </div>
+                        <h4 class="font-display font-bold text-base md:text-lg text-slate-800 dark:text-white">${lvl.title}</h4>
+                        <p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">${lvl.description}</p>
+                    </div>
+                    <div class="flex items-center justify-between pt-2 border-t border-slate-100 dark:border-slate-800">
+                        <span class="text-xs font-semibold text-indigo-600 dark:text-indigo-400 flex items-center">
+                            <i class="fa-solid fa-play mr-1.5"></i> Play Quest
+                        </span>
+                        <div class="w-7 h-7 rounded-full bg-indigo-50 dark:bg-indigo-950 text-indigo-600 dark:text-indigo-400 flex items-center justify-center text-xs">
+                            <i class="fa-solid fa-arrow-right"></i>
+                        </div>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        function startLevel(levelId) {
+            playSound('click');
+            currentLevelIndex = levelId - 1;
+            currentQuestionIndex = 0;
+            lives = 3;
+            streak = 0;
+            correctCount = 0;
+
+            hideAllViews();
+            document.getElementById('gameView').classList.remove('hidden');
+            loadQuestion();
+        }
+
+        function loadQuestion() {
+            const level = levelsData[currentLevelIndex];
+            const q = level.questions[currentQuestionIndex];
+
+            // Update header info
+            document.getElementById('currentLevelTitle').innerText = level.title;
+            document.getElementById('currentQNum').innerText = currentQuestionIndex + 1;
+            document.getElementById('questionTypeBadge').innerText = level.badge;
+            document.getElementById('questionText').innerText = q.q;
+
+            // Update Progress bar
+            const progressPercent = ((currentQuestionIndex) / level.questions.length) * 100;
+            document.getElementById('progressBar').style.width = `${progressPercent}%`;
+
+            // Update Hearts & Streak
+            document.getElementById('livesCount').innerText = lives;
+            document.getElementById('streakCount').innerText = streak;
+
+            // Update Sentence Preview Meter
+            document.getElementById('meterScoreText').innerText = level.meterName;
+            document.getElementById('sentencePreview').innerText = `"${level.sentenceSeed} (Stage ${currentLevelIndex + 1} Q${currentQuestionIndex + 1})"`
+
+            // Reset explanation box
+            const expBox = document.getElementById('explanationBox');
+            expBox.classList.add('hidden');
+
+            // Render Options
+            const optionsGrid = document.getElementById('optionsGrid');
+            optionsGrid.innerHTML = '';
+
+            q.options.forEach((opt, idx) => {
+                const btn = document.createElement('button');
+                btn.className = `w-full text-left p-4 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-indigo-500 hover:bg-indigo-50/50 dark:hover:bg-indigo-950/30 font-medium text-slate-800 dark:text-slate-200 transition flex items-center space-x-3 shadow-sm`;
+                btn.onclick = () => selectAnswer(idx);
+                
+                const letterBadge = document.createElement('span');
+                letterBadge.className = `w-7 h-7 rounded-xl bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 font-bold flex items-center justify-center text-xs shrink-0`;
+                letterBadge.innerText = String.fromCharCode(65 + idx);
+
+                const textSpan = document.createElement('span');
+                textSpan.className = 'flex-1 text-sm md:text-base';
+                textSpan.innerText = opt;
+
+                btn.appendChild(letterBadge);
+                btn.appendChild(textSpan);
+                optionsGrid.appendChild(btn);
+            });
+        }
+
+        function selectAnswer(selectedIndex) {
+            const level = levelsData[currentLevelIndex];
+            const q = level.questions[currentQuestionIndex];
+            const optionsGrid = document.getElementById('optionsGrid');
+            const buttons = optionsGrid.getElementsByTagName('button');
+
+            // Disable all buttons after selection
+            for (let i = 0; i < buttons.length; i++) {
+                buttons[i].disabled = true;
+                if (i === q.answer) {
+                    buttons[i].classList.add('bg-emerald-50', 'dark:bg-emerald-950/50', 'border-emerald-500', 'text-emerald-800', 'dark:text-emerald-200');
+                } else if (i === selectedIndex && selectedIndex !== q.answer) {
+                    buttons[i].classList.add('bg-rose-50', 'dark:bg-rose-950/50', 'border-rose-500', 'text-rose-800', 'dark:text-rose-200');
+                }
+            }
+
+            const expBox = document.getElementById('explanationBox');
+            const expIcon = document.getElementById('explanationIcon');
+            const expTitle = document.getElementById('explanationTitle');
+            const expText = document.getElementById('explanationText');
+
+            expBox.classList.remove('hidden');
+
+            if (selectedIndex === q.answer) {
+                playSound('success');
+                correctCount++;
+                streak++;
+                score += 20 + (streak * 5);
+                
+                expBox.className = "rounded-2xl p-4 border border-emerald-200 dark:border-emerald-800 bg-emerald-50/80 dark:bg-emerald-950/40 animate-fadeIn";
+                expIcon.innerHTML = '<i class="fa-solid fa-circle-check text-emerald-600"></i>';
+                expTitle.className = "font-display font-bold text-base text-emerald-800 dark:text-emerald-300";
+                expTitle.innerText = "Correct! Great Job!";
+                expText.innerText = q.explanation;
+            } else {
+                playSound('error');
+                streak = 0;
+                lives--;
+                document.getElementById('livesCount').innerText = lives;
+
+                expBox.className = "rounded-2xl p-4 border border-rose-200 dark:border-rose-800 bg-rose-50/80 dark:bg-rose-950/40 animate-fadeIn";
+                expIcon.innerHTML = '<i class="fa-solid fa-circle-xmark text-rose-600"></i>';
+                expTitle.className = "font-display font-bold text-base text-rose-800 dark:text-rose-300";
+                expTitle.innerText = "Incorrect Answer";
+                expText.innerText = q.explanation;
+
+                if (lives <= 0) {
+                    setTimeout(() => {
+                        showGameOver();
+                    }, 1500);
+                    return;
+                }
+            }
+
+            updateHeaderScore();
+        }
+
+        function nextQuestion() {
+            playSound('click');
+            currentQuestionIndex++;
+            const level = levelsData[currentLevelIndex];
+
+            if (currentQuestionIndex < level.questions.length) {
+                loadQuestion();
+            } else {
+                showLevelResult();
+            }
+        }
+
+        function showLevelResult() {
+            hideAllViews();
+            document.getElementById('resultView').classList.remove('hidden');
+
+            const level = levelsData[currentLevelIndex];
+            const accuracy = Math.round((correctCount / level.questions.length) * 100);
+            
+            document.getElementById('statCorrect').innerText = `${correctCount}/${level.questions.length}`;
+            document.getElementById('statAccuracy').innerText = `${accuracy}%`;
+            document.getElementById('statScore').innerText = `+${correctCount * 25}`;
+
+            triggerConfetti();
+
+            const nextBtn = document.getElementById('nextLevelBtn');
+            if (currentLevelIndex >= levelsData.length - 1) {
+                nextBtn.innerHTML = `<span>Claim Master Certificate</span> <i class="fa-solid fa-award ml-2"></i>`;
+                nextBtn.onclick = showCertificate;
+            } else {
+                nextBtn.innerHTML = `<span>Next Level</span> <i class="fa-solid fa-arrow-right ml-2"></i>`;
+                nextBtn.onclick = advanceToNextLevel;
+            }
+        }
+
+        function advanceToNextLevel() {
+            currentLevelIndex++;
+            startLevel(currentLevelIndex + 1);
+        }
+
+        function restartCurrentLevel() {
+            startLevel(currentLevelIndex + 1);
+        }
+
+        function showGameOver() {
+            hideAllViews();
+            document.getElementById('gameOverView').classList.remove('hidden');
+        }
+
+        function showCertificate() {
+            hideAllViews();
+            document.getElementById('certificateView').classList.remove('hidden');
+            document.getElementById('certTotalScore').innerText = score;
+            
+            let rank = "Modifier Apprentice";
+            if (score > 1500) rank = "Master Modifier";
+            else if (score > 1000) rank = "Sentence Builder";
+            
+            document.getElementById('certRankTitle').innerText = rank;
+            triggerConfetti();
+        }
+
+        function updateHeaderScore() {
+            document.getElementById('headerScore').innerText = `Score: ${score}`;
+        }
+
+        function triggerConfetti() {
+            confetti({
+                particleCount: 100,
+                spread: 70,
+                origin: { y: 0.6 }
+            });
+        }
+
+        function openRulesModal() {
+            playSound('click');
+            document.getElementById('rulesModal').classList.remove('hidden');
+        }
+
+        function closeRulesModal() {
+            playSound('click');
+            document.getElementById('rulesModal').classList.add('hidden');
+        }
+
+        function openStatsModal() {
+            openRulesModal();
+        }
+    </script>
+</body>
+</html>

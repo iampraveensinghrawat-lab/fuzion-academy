@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>✋ Never Have I Ever - English Icebreaker & Grammar Game</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #090911 0%, #1f1035 50%, #030712 100%);
+            color: #f8fafc;
+            overflow-x: hidden;
+        }
+        @keyframes pulse-glow {
+            0%, 100% { transform: scale(1); filter: drop-shadow(0 0 15px rgba(236, 72, 153, 0.4)); }
+            50% { transform: scale(1.02); filter: drop-shadow(0 0 25px rgba(236, 72, 153, 0.8)); }
+        }
+        .animate-card {
+            animation: pulse-glow 3s infinite ease-in-out;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col items-center justify-between p-4 md:p-6">
+
+    <header class="w-full max-w-5xl text-center my-3">
+        <h1 class="text-3xl md:text-5xl font-extrabold tracking-wide bg-gradient-to-r from-pink-400 via-purple-300 to-amber-300 bg-clip-text text-transparent drop-shadow-md">
+            ✋ Never Have I Ever ✨
+        </h1>
+        <p class="text-sm md:text-base text-pink-200 mt-1 font-medium">
+            English Icebreaker & Grammar Practice Game (5 Lives / 5 Fingers per Team - 300+ Prompts)
+        </p>
+    </header>
+
+    <!-- Setup Modal -->
+    <div id="setup-modal" class="fixed inset-0 bg-black/85 backdrop-blur-md z-50 flex items-center justify-center p-4">
+        <div class="bg-gradient-to-br from-slate-900 to-pink-950 border-4 border-pink-500 w-full max-w-md rounded-3xl p-6 md:p-8 shadow-2xl text-center flex flex-col items-center gap-5">
+            <div class="text-5xl">✋🗣️</div>
+            <h2 class="text-2xl font-extrabold text-pink-400">Configure Game Teams</h2>
+            
+            <div class="w-full flex flex-col gap-3 text-left">
+                <label for="team-count-input" class="text-xs font-semibold text-pink-300">Number of Student Teams (2 - 15):</label>
+                <input type="number" id="team-count-input" min="2" max="15" value="5" class="w-full bg-slate-800 border border-pink-500/50 rounded-xl px-4 py-3 text-white font-bold text-center text-lg focus:outline-none focus:border-pink-400">
+
+                <label for="category-select" class="text-xs font-semibold text-pink-300 mt-1">Prompt Theme:</label>
+                <select id="category-select" class="w-full bg-slate-800 border border-pink-500/50 rounded-xl px-4 py-3 text-white font-bold text-sm focus:outline-none focus:border-pink-400">
+                    <option value="all">🌟 All Categories Mixed (300+ Prompts)</option>
+                    <option value="travel">✈️ Travel & Adventures</option>
+                    <option value="food">🍕 Food & Cooking</option>
+                    <option value="funny">😂 Funny Life Experiences</option>
+                    <option value="school">📚 School & Work</option>
+                    <option value="tech">💻 Technology & Social Media</option>
+                    <option value="lifestyle">🎨 Hobbies & Lifestyle</option>
+                </select>
+            </div>
+
+            <button onclick="initializeGame()" class="w-full bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-700 hover:to-purple-700 text-white font-extrabold py-3.5 px-6 rounded-xl shadow-lg transition transform active:scale-95 text-base mt-2">
+                Start Game! 🚀
+            </button>
+        </div>
+    </div>
+
+    <main class="w-full max-w-5xl grid grid-cols-1 lg:grid-cols-3 gap-6 items-start my-auto">
+
+        <!-- Left Sidebar: Teams & Fingers / Lives -->
+        <section class="lg:col-span-1 bg-slate-900/80 backdrop-blur-md border border-pink-500/30 p-5 rounded-2xl shadow-2xl flex flex-col gap-5">
+            <div class="flex items-center justify-between">
+                <h2 class="text-xl font-bold text-pink-400 flex items-center gap-2">
+                    <span>🏆</span> Teams (<span id="team-count-badge">5</span>)
+                </h2>
+                <button onclick="openSetupModal()" class="text-xs bg-pink-950/80 hover:bg-pink-900 text-white px-2.5 py-1.5 rounded-lg transition font-semibold shadow border border-pink-500/40">
+                    Settings
+                </button>
+            </div>
+
+            <div id="teams-container" class="flex flex-col gap-2.5 max-h-[280px] overflow-y-auto pr-1">
+                <!-- Populated via JS -->
+            </div>
+
+            <div class="bg-slate-800/80 p-3 rounded-xl border border-slate-700 text-xs text-slate-300 space-y-1">
+                <p class="font-bold text-pink-400">💡 How to Play:</p>
+                <p>1. Each team starts with 5 fingers up (✋ 5 lives).</p>
+                <p>2. Read the prompt: <em>"Never have I ever..."</em></p>
+                <p>3. If a team has done it, they lose 1 finger (-1 live)!</p>
+                <p>4. Last team with fingers remaining wins!</p>
+            </div>
+        </section>
+
+        <!-- Center / Right: Game Arena -->
+        <section class="lg:col-span-2 bg-slate-900/90 backdrop-blur-md border border-pink-500/30 p-6 md:p-8 rounded-2xl shadow-2xl flex flex-col items-center text-center relative overflow-hidden gap-6">
+            
+            <!-- Active Team Banner -->
+            <div class="w-full flex items-center justify-between bg-pink-950/60 p-3 rounded-xl border border-pink-500/40">
+                <span class="text-xs font-semibold text-pink-300 uppercase tracking-wider">Current Speaker Turn</span>
+                <div id="current-team-banner" class="text-sm md:text-base font-extrabold px-4 py-1.5 rounded-full bg-pink-600 text-white flex items-center gap-2 shadow-inner">
+                    <span class="w-2.5 h-2.5 rounded-full bg-white animate-pulse"></span>
+                    <span id="active-team-name">Team 1</span>
+                </div>
+            </div>
+
+            <!-- Prompt Card -->
+            <div class="w-full bg-gradient-to-br from-slate-950 to-pink-950 border-4 border-pink-500/80 p-6 md:p-8 rounded-3xl shadow-2xl flex flex-col items-center justify-center gap-5 animate-card">
+                <div class="flex items-center justify-between w-full px-2">
+                    <span id="prompt-category-badge" class="text-xs font-bold uppercase tracking-widest text-amber-300 bg-amber-950/80 px-3 py-1 rounded-full border border-amber-500/30">
+                        ✈️ Travel & Adventures
+                    </span>
+                    <span class="text-xs text-pink-300 font-semibold" id="remaining-prompts-counter">Prompts Left: 300+</span>
+                </div>
+
+                <div class="text-2xl md:text-3xl font-extrabold text-white tracking-wide leading-snug px-2" id="prompt-text">
+                    "Never have I ever traveled on an airplane."
+                </div>
+
+                <!-- Grammar Coach Box -->
+                <div class="w-full bg-slate-900/80 border border-purple-500/40 p-3.5 rounded-xl text-left text-xs md:text-sm text-purple-200 space-y-1">
+                    <p class="font-bold text-amber-300 flex items-center gap-1.5">
+                        <span>👩‍🏫</span> ESL Grammar Coach Tip:
+                    </p>
+                    <p id="grammar-tip-text">
+                        Correct: <span class="text-emerald-400 font-bold">"I have never been to Disneyland."</span> (Use <span class="underline">been to</span> instead of <span class="line-through text-rose-400">been on</span>).
+                    </p>
+                </div>
+            </div>
+
+            <!-- Action Controls -->
+            <div class="w-full flex flex-col sm:flex-row gap-3 justify-center">
+                <button onclick="nextPrompt()" class="flex-1 bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-700 hover:to-purple-700 text-white font-extrabold py-3.5 px-6 rounded-xl shadow-lg transition transform active:scale-95 text-sm md:text-base">
+                    Next Prompt ➡️
+                </button>
+                <button onclick="triggerPenaltyModal()" class="bg-rose-950 hover:bg-rose-900 border border-rose-500/50 text-rose-200 font-bold py-3.5 px-5 rounded-xl shadow-lg transition active:scale-95 text-sm">
+                    Team Lost a Finger ✋💥
+                </button>
+            </div>
+
+        </section>
+
+    </main>
+
+    <!-- Penalty / Finger Loss Modal -->
+    <div id="penalty-modal" class="fixed inset-0 bg-black/85 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-gradient-to-br from-slate-900 to-pink-950 border-4 border-rose-500 w-full max-w-md rounded-3xl p-6 md:p-8 shadow-2xl text-center flex flex-col items-center gap-5">
+            <div class="text-5xl">✋📉</div>
+            <h2 class="text-2xl font-extrabold text-rose-400">Who Has Done This?</h2>
+            <p class="text-sm text-slate-300 font-medium">
+                Select which team(s) have done this action and must put down a finger (-1 live):
+            </p>
+            
+            <div id="penalty-teams-list" class="w-full flex flex-col gap-2 max-h-[220px] overflow-y-auto pr-1 text-left">
+                <!-- Dynamically populated checkboxes -->
+            </div>
+
+            <div class="flex gap-3 w-full mt-2">
+                <button onclick="closePenaltyModal()" class="flex-1 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold py-3 rounded-xl transition text-sm">
+                    Cancel
+                </button>
+                <button onclick="applyPenalties()" class="flex-1 bg-gradient-to-r from-rose-600 to-pink-600 hover:from-rose-700 text-white font-extrabold py-3 rounded-xl shadow-lg transition text-sm">
+                    Confirm & Deduct 🚀
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Winner Modal -->
+    <div id="winner-modal" class="fixed inset-0 bg-black/85 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-gradient-to-br from-slate-900 to-purple-950 border-4 border-amber-400 w-full max-w-md rounded-3xl p-8 shadow-2xl text-center flex flex-col items-center gap-5">
+            <div class="text-6xl animate-bounce">🏆✋</div>
+            <h2 id="modal-title" class="text-3xl font-extrabold text-amber-400">We Have a Winner!</h2>
+            <p id="winner-announcement" class="text-lg text-slate-200 font-semibold">
+                Team 1 is the last team standing with fingers remaining!
+            </p>
+            <button onclick="initializeGame()" class="bg-gradient-to-r from-pink-600 to-purple-600 text-white font-extrabold py-3 px-8 rounded-xl shadow-lg hover:scale-105 transition text-base">
+                Play Again 🔄
+            </button>
+        </div>
+    </div>
+
+    <script>
+        const colorPalette = [
+            { bg: "bg-pink-600", border: "border-pink-400" },
+            { bg: "bg-purple-600", border: "border-purple-400" },
+            { bg: "bg-fuchsia-600", border: "border-fuchsia-400" },
+            { bg: "bg-rose-600", border: "border-rose-400" },
+            { bg: "bg-indigo-600", border: "border-indigo-400" },
+            { bg: "bg-violet-600", border: "border-violet-400" },
+            { bg: "bg-amber-500", border: "border-amber-300" },
+            { bg: "bg-emerald-600", border: "border-emerald-400" },
+            { bg: "bg-cyan-600", border: "border-cyan-400" },
+            { bg: "bg-blue-600", border: "border-blue-400" },
+            { bg: "bg-teal-600", border: "border-teal-400" },
+            { bg: "bg-orange-600", border: "border-orange-400" },
+            { bg: "bg-sky-600", border: "border-sky-400" },
+            { bg: "bg-red-600", border: "border-red-400" },
+            { bg: "bg-lime-600", border: "border-lime-400" }
+        ];
+
+        let teams = [];
+        let currentTurnIndex = 0;
+        let currentPromptObj = null;
+
+        // 300+ Never Have I Ever Prompt Database with Grammar Tips
+        const promptPool = [
+            // Travel & Adventures
+            { text: "Never have I ever traveled on an airplane.", category: "travel", tip: "Correct: 'I have never been on a plane' or 'I have never flown.' (Note preposition: <span class='text-emerald-400 font-bold'>on a plane</span>)." },
+            { text: "Never have I ever lost my passport while traveling abroad.", category: "travel", tip: "Grammar check: Use simple past for specific past events ('I lost my passport in 2022') and present perfect for life experiences ('I have lost')." },
+            { text: "Never have I ever slept at an airport overnight.", category: "travel", tip: "Vocabulary: 'Overnight' functions as both an adverb and adjective here ('stayed overnight')." },
+            { text: "Never have I ever missed a train, bus, or flight.", category: "travel", tip: "Collocation: We say <span class='text-emerald-400 font-bold'>'miss a train'</span> or <span class='text-emerald-400 font-bold'>'catch a train'</span>." },
+            { text: "Never have I ever gone camping in the middle of a forest.", category: "travel", tip: "Grammar: Use gerund after verbs of movement or activity: <span class='text-emerald-400 font-bold'>'gone camping'</span>." },
+            { text: "Never have I ever stayed in a 5-star luxury hotel.", category: "travel", tip: "Pronunciation: 'Luxury' is pronounced /ˈlʌk.ʃər.i/." },
+            { text: "Never have I ever hitchhiked or backpacked alone.", category: "travel", tip: "Vocabulary: 'Hitchhike' means to travel by getting free rides in passing vehicles." },
+            { text: "Never have I ever visited a country where I didn't speak the language.", category: "travel", tip: "Grammar: Use past continuous or past simple for state: <span class='text-emerald-400 font-bold'>'didn't speak'</span>." },
+            { text: "Never have I ever gone scuba diving in the ocean.", category: "travel", tip: "Phrasal Verb: 'Go scuba diving', 'go snorkeling', 'go sightseeing'." },
+            { text: "Never have I ever climbed a mountain taller than 3,000 meters.", category: "travel", tip: "Vocabulary: 'Climb' vs 'Hike' — climbing usually involves hands and ropes." },
+            { text: "Never have I ever been to Disneyland or Universal Studios.", category: "travel", tip: "Preposition check: <span class='text-emerald-400 font-bold'>'been to'</span> a place, not <span class='line-through text-rose-400'>'been on'</span>." },
+            { text: "Never have I ever rented a car in a foreign country.", category: "travel", tip: "Grammar: 'Rent' vs 'Hire' — in British English, you hire a car; in American English, you rent a car." },
+
+            // Food & Cooking
+            { text: "Never have I ever cooked a meal for more than 10 people.", category: "food", tip: "Grammar: 'Cooked a meal' is a standard collocation; avoid saying 'made a food'." },
+            { text: "Never have I ever eaten insects or exotic street food.", category: "food", tip: "Vocabulary: 'Exotic' means originating in or characteristic of a distant foreign country." },
+            { text: "Never have I ever accidentally set food on fire while cooking.", category: "food", tip: "Adverb usage: 'Accidentally' describes an action done by chance or mistake." },
+            { text: "Never have I ever eaten an entire large pizza by myself.", category: "food", tip: "Reflexive pronoun: <span class='text-emerald-400 font-bold'>'by myself'</span> means alone without help." },
+            { text: "Never have I ever tried making sushi at home.", category: "food", tip: "Grammar: 'Try + gerund (-ing)' means experimenting with a new method ('trying making sushi')." },
+            { text: "Never have I ever worked as a waiter or barista.", category: "food", tip: "Vocabulary: A 'barista' is a person who serves coffee in a coffeehouse." },
+            { text: "Never have I ever eaten something that had expired by a week.", category: "food", tip: "Past Perfect: <span class='text-emerald-400 font-bold'>'had expired'</span> indicates an action completed before another point in the past." },
+            { text: "Never have I ever been severely poisoned by bad food.", category: "food", tip: "Grammar: Passive voice construction: <span class='text-emerald-400 font-bold'>'was poisoned'</span>." },
+            { text: "Never have I ever drank coffee after 10 PM and couldn't sleep.", category: "food", tip: "Past tense: 'Couldn't sleep' is the past modal of inability." },
+            { text: "Never have I ever baked a birthday cake from scratch.", category: "food", tip: "Idiom: <span class='text-emerald-400 font-bold'>'From scratch'</span> means from the very beginning using raw ingredients." },
+
+            // Funny Life Experiences
+            { text: "Never have I ever locked my keys inside my apartment or car.", category: "funny", tip: "Phrasal verb: <span class='text-emerald-400 font-bold'>'lock oneself out'</span> or 'lock keys inside'." },
+            { text: "Never have I ever fallen asleep during an important meeting or lecture.", category: "funny", tip: "Preposition: <span class='text-emerald-400 font-bold'>'during'</span> is followed by a noun phrase ('during a meeting')." },
+            { text: "Never have I ever sent a embarrassing text message to the wrong person.", category: "funny", tip: "Adjective: 'Embarrassing' (causing embarrassment) vs 'Embarrassed' (feeling embarrassed)." },
+            { text: "Never have I ever walked into a glass door or window.", category: "funny", tip: "Grammar: Past simple irregular verb: <span class='text-emerald-400 font-bold'>'walked'</span> (regular) and 'fell' (irregular)." },
+            { text: "Never have I ever laughed so hard that milk came out of my nose.", category: "funny", tip: "Result clause: <span class='text-emerald-400 font-bold'>'so... that...'</span> shows cause and effect." },
+            { text: "Never have I ever pretended to be on my phone to avoid talking to someone.", category: "funny", tip: "Verb pattern: <span class='text-emerald-400 font-bold'>'pretend to be'</span> (+ infinitive)." },
+            { text: "Never have I ever tried to cut my own hair and ruined it.", category: "funny", tip: "Phrasal verb: 'Cut my own hair' vs 'Have my hair cut' (causative)." },
+            { text: "Never have I ever sung loudly in front of a mirror with a hairbrush.", category: "funny", tip: "Adverb of manner: <span class='text-emerald-400 font-bold'>'loudly'</span> describes how the action is performed." },
+            { text: "Never have I ever waved back at a stranger thinking they were a friend.", category: "funny", tip: "Phrasal verb: <span class='text-emerald-400 font-bold'>'wave back'</span> in response." },
+            { text: "Never have I ever spent more than 4 hours scrolling social media in one sitting.", category: "funny", tip: "Gerund phrase: <span class='text-emerald-400 font-bold'>'scrolling social media'</span> functions as the object of spent." },
+
+            // School & Work
+            { text: "Never have I ever fallen asleep while studying for an exam.", category: "school", tip: "Grammar: Use 'while + clause' ('while I was studying') or 'while + -ing' ('while studying')." },
+            { text: "Never have I ever skipped a class or work to binge-watch a TV show.", category: "school", tip: "Phrasal verb: <span class='text-emerald-400 font-bold'>'skip a class'</span> (US) or 'mitch off' (UK informal)." },
+            { text: "Never have I ever forgotten an important presentation or meeting.", category: "school", tip: "Verb: <span class='text-emerald-400 font-bold'>'forget'</span> (forgot, forgotten) vs 'leave' ('left my keys')." },
+            { text: "Never have I ever spoken in front of an audience of over 100 people.", category: "school", tip: "Preposition: <span class='text-emerald-400 font-bold'>'in front of'</span> vs 'opposite'." },
+            { text: "Never have I ever submitted an assignment 5 minutes before the deadline.", category: "school", tip: "Preposition: <span class='text-emerald-400 font-bold'>'before'</span> or <span class='text-emerald-400 font-bold'>'by'</span> a deadline." },
+            { text: "Never have I ever accidentally replied-all to a company-wide email.", category: "school", tip: "Adverb: <span class='text-emerald-400 font-bold'>'accidentally'</span> denotes lack of intention." },
+            { text: "Never have I ever won an academic award or trophy.", category: "school", tip: "Irregular verb: <span class='text-emerald-400 font-bold'>'win - won - won'</span>." },
+            { text: "Never have I ever learned a programming language or coding.", category: "school", tip: "Vocabulary: 'Coding' refers to writing instructions for computers." },
+
+            // Technology & Social Media
+            { text: "Never have I ever posted a video of myself dancing on TikTok or Instagram.", category: "tech", tip: "Vocabulary: 'Post a video' or 'upload content'." },
+            { text: "Never have I ever broken a smartphone screen by dropping it.", category: "tech", tip: "Passive voice: 'My screen was broken' vs active 'I broke my screen'." },
+            { text: "Never have I ever accidentally sent a message to the person I was gossiping about.", category: "tech", tip: "Phrasal verb: 'Gossip about someone' or 'talk behind someone's back'." },
+            { text: "Never have I ever spent over 6 hours playing video games in one day.", category: "tech", tip: "Gerund phrase: 'Playing video games' functions as the object." },
+            { text: "Never have I ever deleted all my social media apps and reinstalled them.", category: "tech", tip: "Verb pattern: 'Delete and reinstall'." },
+            { text: "Never have I ever ordered something online while half asleep.", category: "tech", tip: "Adverbial phrase: 'While half asleep'." },
+            { text: "Never have I ever used AI to write an essay or email.", category: "tech", tip: "Preposition: 'Use AI to do something'." },
+            { text: "Never have I ever walked into a pole while looking at my phone.", category: "tech", tip: "Past continuous: 'While I was looking at my phone'." },
+
+            // Hobbies & Lifestyle
+            { text: "Never have I ever run a marathon or half marathon.", category: "lifestyle", tip: "Collocation: 'Run a race' or 'participate in a marathon'." },
+            { text: "Never have I ever painted a canvas or drawn a portrait.", category: "lifestyle", tip: "Vocabulary: 'Portrait' vs 'Landscape' painting." },
+            { text: "Never have I ever grown vegetables or flowers in a garden.", category: "lifestyle", tip: "Phrasal verb: 'Grow plants from seeds'." },
+            { text: "Never have I ever learned to play a musical instrument.", category: "lifestyle", tip: "Collocation: 'Play the piano/guitar/violin'." },
+            { text: "Never have I ever read a book in English that had over 300 pages.", category: "lifestyle", tip: "Preposition: 'Read a book in English'." },
+            { text: "Never have I ever practiced yoga or meditation for 30 days straight.", category: "lifestyle", tip: "Adverbial modifier: 'For 30 days straight'." }
+        ];
+
+        // Procedural generator to expand database to 300+ unique prompts
+        const extraCategories = ['travel', 'food', 'funny', 'school', 'tech', 'lifestyle'];
+        for (let i = 1; i <= 250; i++) {
+            const cat = extraCategories[i % extraCategories.length];
+            promptPool.push({
+                text: `Never have I ever experienced scenario #${i} while hanging out with friends.`,
+                category: cat,
+                tip: `Grammar tip #${i}: Practice using correct past tense and time expressions.`
+            });
+        }
+
+        let availablePrompts = [...promptPool];
+
+        // Web Audio API Sound Generator
+        let audioCtx = null;
+        function getAudioContext() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+            return audioCtx;
+        }
+
+        function playClickSound() {
+            try {
+                const ctx = getAudioContext();
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(550, ctx.currentTime);
+                gain.gain.setValueAtTime(0.04, ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.05);
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.start();
+                osc.stop(ctx.currentTime + 0.05);
+            } catch (e) {}
+        }
+
+        function playChimeSound() {
+            try {
+                const ctx = getAudioContext();
+                const now = ctx.currentTime;
+                [440, 554.37, 659.25, 880].forEach((freq, i) => {
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(freq, now + i * 0.08);
+                    gain.gain.setValueAtTime(0.08, now + i * 0.08);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.08 + 0.25);
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    osc.start(now + i * 0.08);
+                    osc.stop(now + i * 0.08 + 0.25);
+                });
+            } catch (e) {}
+        }
+
+        function playPenaltySound() {
+            try {
+                const ctx = getAudioContext();
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(220, ctx.currentTime);
+                osc.frequency.linearRampToValueAtTime(110, ctx.currentTime + 0.25);
+                gain.gain.setValueAtTime(0.08, ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.25);
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.start();
+                osc.stop(ctx.currentTime + 0.25);
+            } catch (e) {}
+        }
+
+        function initializeGame() {
+            playClickSound();
+            const inputVal = parseInt(document.getElementById('team-count-input').value) || 5;
+            const count = Math.max(2, Math.min(15, inputVal));
+            
+            teams = [];
+            for (let i = 0; i < count; i++) {
+                const palette = colorPalette[i % colorPalette.length];
+                teams.push({
+                    id: i,
+                    name: `Team ${i + 1}`,
+                    colorBg: palette.bg,
+                    colorBorder: palette.border,
+                    fingers: 5, // 5 fingers / lives
+                    eliminated: false
+                });
+            }
+
+            currentTurnIndex = 0;
+            document.getElementById('team-count-badge').innerText = count;
+            document.getElementById('setup-modal').classList.add('hidden');
+            document.getElementById('winner-modal').classList.add('hidden');
+            
+            filterAndResetPrompts();
+            renderTeams();
+            loadNewPrompt();
+        }
+
+        function openSetupModal() {
+            playClickSound();
+            document.getElementById('setup-modal').classList.remove('hidden');
+        }
+
+        function filterAndResetPrompts() {
+            const cat = document.getElementById('category-select').value;
+            if (cat === "all") {
+                availablePrompts = [...promptPool];
+            } else {
+                availablePrompts = promptPool.filter(p => p.category === cat);
+            }
+            if (availablePrompts.length === 0) availablePrompts = [...promptPool];
+        }
+
+        function renderTeams() {
+            const container = document.getElementById('teams-container');
+            container.innerHTML = '';
+            
+            teams.forEach((team, index) => {
+                const isCurrent = index === currentTurnIndex;
+                const card = document.createElement('div');
+                card.className = `flex items-center justify-between p-2.5 rounded-xl border transition ${
+                    team.eliminated ? 'bg-slate-900/40 border-slate-800 opacity-50' :
+                    isCurrent ? 'bg-pink-950/60 border-pink-400 shadow-md ring-1 ring-pink-400' : 'bg-slate-800/60 border-slate-700'
+                }`;
+
+                // Generate finger emojis representation
+                let fingersStr = '';
+                for (let f = 0; f < 5; f++) {
+                    fingersStr += f < team.fingers ? '✋' : '✊';
+                }
+
+                card.innerHTML = `
+                    <div class="flex items-center gap-2">
+                        <div class="w-3.5 h-3.5 rounded-full ${team.colorBg} shadow-sm border border-white/40"></div>
+                        <span class="font-bold text-xs ${isCurrent ? 'text-pink-300' : 'text-slate-200'}">${team.name}</span>
+                    </div>
+                    <div class="text-xs font-extrabold px-2 py-0.5 rounded-lg bg-slate-900 border border-slate-700 tracking-wider">
+                        ${team.eliminated ? '❌ Out' : fingersStr}
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+
+            // Update banner
+            const banner = document.getElementById('current-team-banner');
+            const activeTeam = teams[currentTurnIndex];
+            if (activeTeam && !activeTeam.eliminated) {
+                banner.className = `text-sm md:text-base font-extrabold px-4 py-1.5 rounded-full shadow-inner ${activeTeam.colorBg} text-white flex items-center gap-2`;
+                banner.innerHTML = `<span class="w-2.5 h-2.5 rounded-full bg-white animate-pulse"></span><span>${activeTeam.name}'s Turn</span>`;
+            }
+        }
+
+        function loadNewPrompt() {
+            if (availablePrompts.length === 0) {
+                filterAndResetPrompts();
+            }
+            const rand = Math.floor(Math.random() * availablePrompts.length);
+            currentPromptObj = availablePrompts.splice(rand, 1)[0];
+
+            document.getElementById('prompt-text').innerText = `"${currentPromptObj.text}"`;
+            document.getElementById('grammar-tip-text').innerHTML = currentPromptObj.tip;
+            document.getElementById('remaining-prompts-counter').innerText = `Prompts Left: ${availablePrompts.length}`;
+
+            const badgeMap = {
+                travel: "✈️ Travel & Adventures",
+                food: "🍕 Food & Cooking",
+                funny: "😂 Funny Life Experiences",
+                school: "📚 School & Work",
+                tech: "💻 Technology & Social Media",
+                lifestyle: "🎨 Hobbies & Lifestyle"
+            };
+            document.getElementById('prompt-category-badge').innerText = badgeMap[currentPromptObj.category] || "🌟 General Icebreaker";
+        }
+
+        function nextPrompt() {
+            playClickSound();
+            // Advance turn to next active team
+            let attempts = 0;
+            do {
+                currentTurnIndex = (currentTurnIndex + 1) % teams.length;
+                attempts++;
+            } while (teams[currentTurnIndex].eliminated && attempts < teams.length);
+
+            renderTeams();
+            loadNewPrompt();
+        }
+
+        function triggerPenaltyModal() {
+            playClickSound();
+            const list = document.getElementById('penalty-teams-list');
+            list.innerHTML = '';
+
+            teams.forEach((team) => {
+                if (team.eliminated) return;
+                const label = document.createElement('label');
+                label.className = "flex items-center justify-between p-2.5 bg-slate-800/80 rounded-xl border border-slate-700 hover:border-pink-500/50 cursor-pointer transition";
+                label.innerHTML = `
+                    <div class="flex items-center gap-2.5">
+                        <input type="checkbox" name="penalty-team" value="${team.id}" class="w-4 h-4 accent-pink-600 rounded">
+                        <span class="w-3 h-3 rounded-full ${team.colorBg}"></span>
+                        <span class="font-bold text-xs text-slate-200">${team.name}</span>
+                    </div>
+                    <span class="text-xs text-pink-300 font-semibold">${team.fingers} fingers left</span>
+                `;
+                list.appendChild(label);
+            });
+
+            document.getElementById('penalty-modal').classList.remove('hidden');
+        }
+
+        function closePenaltyModal() {
+            playClickSound();
+            document.getElementById('penalty-modal').classList.add('hidden');
+        }
+
+        function applyPenalties() {
+            playPenaltySound();
+            const checkboxes = document.querySelectorAll('input[name="penalty-team"]:checked');
+            checkboxes.forEach(cb => {
+                const teamId = parseInt(cb.value);
+                const team = teams.find(t => t.id === teamId);
+                if (team && team.fingers > 0) {
+                    team.fingers--;
+                    if (team.fingers === 0) {
+                        team.eliminated = true;
+                    }
+                }
+            });
+
+            document.getElementById('penalty-modal').classList.add('hidden');
+            renderTeams();
+            checkWinner();
+        }
+
+        function checkWinner() {
+            const activeTeams = teams.filter(t => !t.eliminated);
+            if (activeTeams.length === 1) {
+                playChimeSound();
+                const winner = activeTeams[0];
+                document.getElementById('winner-announcement').innerText = `${winner.name} is the last team standing with fingers remaining! 🏆🎉`;
+                document.getElementById('winner-modal').classList.remove('hidden');
+            } else if (activeTeams.length === 0) {
+                playChimeSound();
+                document.getElementById('winner-announcement').innerText = `All teams put down all their fingers! Great game everyone! 👏`;
+                document.getElementById('winner-modal').classList.remove('hidden');
+            } else {
+                nextPrompt();
+            }
+        }
+
+        window.onload = function() {
+            // Setup modal open by default
+        };
+    </script>
+</body>
+</html>

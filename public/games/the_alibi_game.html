@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🕵️ The Alibi - Mystery & Detective English Game</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #090d16 0%, #1e1b4b 50%, #0f172a 100%);
+            color: #f8fafc;
+            overflow-x: hidden;
+        }
+        @keyframes pulse-slow {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.03); }
+        }
+        .animate-pulse-slow {
+            animation: pulse-slow 3s infinite ease-in-out;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col items-center justify-between p-4 md:p-6">
+
+    <header class="w-full max-w-5xl text-center my-3">
+        <h1 class="text-3xl md:text-5xl font-extrabold tracking-wide bg-gradient-to-r from-amber-400 via-rose-400 to-indigo-400 bg-clip-text text-transparent drop-shadow-md">
+            🕵️ The Alibi Mystery Game 🔍
+        </h1>
+        <p class="text-sm md:text-base text-indigo-200 mt-1 font-medium">
+            Roleplay & Past Tense Detective Game for English Learners
+        </p>
+    </header>
+
+    <!-- Setup Modal / Game Mode Configuration -->
+    <div id="setup-modal" class="fixed inset-0 bg-black/85 backdrop-blur-md z-50 flex items-center justify-center p-4">
+        <div class="bg-gradient-to-br from-slate-900 to-indigo-950 border-4 border-amber-400 w-full max-w-md rounded-3xl p-6 md:p-8 shadow-2xl text-center flex flex-col items-center gap-5">
+            <div class="text-5xl">🔍🕵️‍♂️</div>
+            <h2 class="text-2xl font-extrabold text-amber-400">Setup The Crime Scene</h2>
+            <p class="text-sm text-slate-300">Enter the names of your students or groups playing today:</p>
+            
+            <div class="w-full flex flex-col gap-3 text-left">
+                <label for="detective-name" class="text-xs font-semibold text-indigo-300">Detective Name:</label>
+                <input type="text" id="detective-name" value="Detective Holmes" class="w-full bg-slate-800 border border-indigo-500/50 rounded-xl px-4 py-2.5 text-white font-bold text-sm focus:outline-none focus:border-amber-400">
+
+                <label for="suspect1-name" class="text-xs font-semibold text-indigo-300">Suspect 1 Name:</label>
+                <input type="text" id="suspect1-name" value="Suspect Alex" class="w-full bg-slate-800 border border-indigo-500/50 rounded-xl px-4 py-2.5 text-white font-bold text-sm focus:outline-none focus:border-amber-400">
+
+                <label for="suspect2-name" class="text-xs font-semibold text-indigo-300">Suspect 2 Name:</label>
+                <input type="text" id="suspect2-name" value="Suspect Sam" class="w-full bg-slate-800 border border-indigo-500/50 rounded-xl px-4 py-2.5 text-white font-bold text-sm focus:outline-none focus:border-amber-400">
+            </div>
+
+            <button onclick="initializeGame()" class="w-full bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-slate-950 font-extrabold py-3.5 px-6 rounded-xl shadow-lg transition transform active:scale-95 text-base">
+                Start Investigation! 🚀
+            </button>
+        </div>
+    </div>
+
+    <main class="w-full max-w-5xl grid grid-cols-1 lg:grid-cols-3 gap-6 items-start my-auto">
+
+        <!-- Left Sidebar: Case Details & Grammar Helper -->
+        <section class="lg:col-span-1 bg-slate-900/80 backdrop-blur-md border border-indigo-500/30 p-5 rounded-2xl shadow-2xl flex flex-col gap-5">
+            <div class="flex items-center justify-between">
+                <h2 class="text-xl font-bold text-amber-400 flex items-center gap-2">
+                    <span>📋</span> Case File #404
+                </h2>
+                <button onclick="openSetupModal()" class="text-xs bg-indigo-900/80 hover:bg-indigo-800 text-white px-2.5 py-1.5 rounded-lg transition font-semibold shadow">
+                    Edit Players
+                </button>
+            </div>
+
+            <!-- Roles Breakdown -->
+            <div class="flex flex-col gap-2">
+                <div class="bg-slate-800/80 p-3 rounded-xl border border-indigo-500/30 flex items-center justify-between">
+                    <span class="text-xs text-indigo-300 font-semibold">🔍 Detective:</span>
+                    <span id="badge-detective" class="text-xs font-extrabold text-amber-400">Detective Holmes</span>
+                </div>
+                <div class="bg-slate-800/80 p-3 rounded-xl border border-rose-500/30 flex items-center justify-between">
+                    <span class="text-xs text-rose-300 font-semibold">👤 Suspect 1:</span>
+                    <span id="badge-suspect1" class="text-xs font-extrabold text-rose-400">Suspect Alex</span>
+                </div>
+                <div class="bg-slate-800/80 p-3 rounded-xl border border-rose-500/30 flex items-center justify-between">
+                    <span class="text-xs text-rose-300 font-semibold">👤 Suspect 2:</span>
+                    <span id="badge-suspect2" class="text-xs font-extrabold text-rose-400">Suspect Sam</span>
+                </div>
+            </div>
+
+            <!-- Grammar Focus Box -->
+            <div class="bg-slate-800/80 p-3.5 rounded-xl border border-slate-700 text-xs text-slate-300 space-y-1.5">
+                <p class="font-bold text-amber-400">💡 Grammar Focus:</p>
+                <p><strong class="text-indigo-300">Past Continuous:</strong> "At 8:00 PM, I <span class="text-amber-300">was studying</span> in the library."</p>
+                <p><strong class="text-indigo-300">Past Simple:</strong> "When the lights <span class="text-amber-300">went out</span>, I <span class="text-amber-300">dropped</span> my book."</p>
+            </div>
+        </section>
+
+        <!-- Center / Right: Crime Scene Arena -->
+        <section class="lg:col-span-2 bg-slate-900/90 backdrop-blur-md border border-indigo-500/30 p-6 md:p-8 rounded-2xl shadow-2xl flex flex-col items-center text-center relative overflow-hidden gap-6">
+            
+            <!-- Crime Description Banner -->
+            <div class="w-full bg-gradient-to-r from-rose-950/80 to-slate-950 p-4 rounded-2xl border-2 border-rose-500/60 shadow-inner flex flex-col gap-2">
+                <div class="text-xs font-extrabold text-rose-400 uppercase tracking-widest flex items-center justify-center gap-1.5">
+                    <span>🚨</span> The Crime Scene
+                </div>
+                <div id="crime-description" class="text-base md:text-lg font-bold text-slate-100 leading-snug">
+                    "Someone stole the giant chocolate cake from the school cafeteria last night exactly at 8:00 PM!"
+                </div>
+                <button onclick="newCrime()" class="self-center bg-slate-800 hover:bg-slate-700 text-rose-300 text-xs font-bold py-1 px-3 rounded-lg border border-rose-500/30 transition">
+                    🎲 Randomize Crime
+                </button>
+            </div>
+
+            <!-- Suspect Preparation Phase Box -->
+            <div id="prep-box" class="w-full bg-slate-950/80 border border-slate-700 p-6 rounded-3xl shadow-xl flex flex-col items-center gap-4">
+                <div class="text-sm font-bold text-indigo-300 uppercase tracking-wider">
+                    ⏳ Suspects Alibi Preparation (60s)
+                </div>
+                <div id="prep-timer" class="text-4xl font-extrabold text-amber-400 tracking-widest">01:00</div>
+                <p class="text-xs text-slate-300 max-w-md">
+                    Suspect 1 & Suspect 2 must secretly agree on what they were doing between 7:00 PM and 9:00 PM (Where were they? What were they wearing? Who did they see?).
+                </p>
+                <button onclick="startInterrogation()" class="bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-slate-950 font-extrabold py-2.5 px-6 rounded-xl shadow transition text-sm">
+                    Start Interrogation! 🕵️‍♂️
+                </button>
+            </div>
+
+            <!-- Interrogation / Question Generator Box (Hidden initially) -->
+            <div id="interrogation-box" class="w-full bg-slate-950/90 border-2 border-indigo-500/80 p-6 rounded-3xl shadow-xl flex flex-col items-center gap-4 hidden">
+                <div class="text-xs font-bold text-indigo-300 uppercase tracking-widest flex items-center gap-1.5">
+                    <span>❓</span> Rapid-Fire Detective Challenge Card
+                </div>
+                <div id="question-card-text" class="text-lg md:text-xl font-extrabold text-white leading-snug">
+                    "What song was playing on the radio when you arrived at the parking lot?"
+                </div>
+                <button onclick="nextQuestion()" class="bg-indigo-700 hover:bg-indigo-600 text-white font-bold py-2 px-5 rounded-xl shadow transition text-xs">
+                    Next Detective Question ⏭️
+                </button>
+
+                <!-- Jury Voting Buttons -->
+                <div class="w-full border-t border-slate-800 pt-4 flex flex-col gap-3">
+                    <div class="text-xs font-bold text-amber-400">⚖️ Jury Verdict: Are their alibis consistent?</div>
+                    <div class="flex gap-3 justify-center">
+                        <button onclick="triggerVerdict('guilty')" class="bg-rose-600 hover:bg-rose-700 text-white font-bold py-2.5 px-6 rounded-xl shadow transition text-sm">
+                            🚨 Guilty (Contradiction Found!)
+                        </button>
+                        <button onclick="triggerVerdict('innocent')" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 px-6 rounded-xl shadow transition text-sm">
+                            🎉 Innocent (Alibi Checked Out!)
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+        </section>
+
+    </main>
+
+    <!-- Verdict Modal -->
+    <div id="verdict-modal" class="fixed inset-0 bg-black/85 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-gradient-to-br from-slate-900 to-indigo-950 border-4 border-amber-400 w-full max-w-md rounded-3xl p-8 shadow-2xl text-center flex flex-col items-center gap-5">
+            <div id="verdict-emoji" class="text-6xl animate-bounce">⚖️</div>
+            <h2 id="verdict-title" class="text-3xl font-extrabold text-amber-400">Case Closed!</h2>
+            <p id="verdict-announcement" class="text-base text-slate-200 font-semibold">
+                The jury found the suspects guilty because their stories did not match!
+            </p>
+            <button onclick="resetGame()" class="bg-gradient-to-r from-amber-500 to-orange-600 text-slate-950 font-extrabold py-3 px-8 rounded-xl shadow-lg hover:scale-105 transition text-base">
+                New Case 🔄
+            </button>
+        </div>
+    </div>
+
+    <script>
+        const crimes = [
+            "Someone stole the giant chocolate cake from the school cafeteria last night exactly at 8:00 PM!",
+            "Someone painted the principal's official parking spot bright neon pink yesterday at 8:30 PM!",
+            "Someone hid all the English dictionaries in the swimming pool last night at 7:45 PM!",
+            "Someone replaced the school bell sound with chicken clucking noises at 8:15 PM!",
+            "Someone locked the teacher's lounge door from the inside with 20 padlocks at 8:00 PM!"
+        ];
+
+        const questions = [
+            "What exact song or radio station was playing in the background?",
+            "What color shoes was the person sitting next to you wearing?",
+            "What did you eat or drink immediately before 8:00 PM?",
+            "What was the weather like outside when you looked out the window?",
+            "Who was the last person you spoke to before the crime happened?",
+            "What were you holding in your left hand at 8:00 PM?",
+            "Did you use an umbrella, a jacket, or neither? What color was it?",
+            "What was the exact time displayed on the nearest clock when you arrived?"
+        ];
+
+        let prepTimerInterval = null;
+        let prepTimeLeft = 60;
+
+        function initializeGame() {
+            const det = document.getElementById('detective-name').value || "Detective Holmes";
+            const s1 = document.getElementById('suspect1-name').value || "Suspect Alex";
+            const s2 = document.getElementById('suspect2-name').value || "Suspect Sam";
+
+            document.getElementById('badge-detective').innerText = det;
+            document.getElementById('badge-suspect1').innerText = s1;
+            document.getElementById('badge-suspect2').innerText = s2;
+
+            document.getElementById('setup-modal').classList.add('hidden');
+            newCrime();
+            resetPrepTimer();
+        }
+
+        function openSetupModal() {
+            document.getElementById('setup-modal').classList.remove('hidden');
+            clearInterval(prepTimerInterval);
+        }
+
+        function newCrime() {
+            const rand = Math.floor(Math.random() * crimes.length);
+            document.getElementById('crime-description').innerText = `"${crimes[rand]}"`;
+        }
+
+        function resetPrepTimer() {
+            clearInterval(prepTimerInterval);
+            prepTimeLeft = 60;
+            updatePrepTimerDisplay();
+
+            document.getElementById('prep-box').classList.remove('hidden');
+            document.getElementById('interrogation-box').classList.add('hidden');
+
+            prepTimerInterval = setInterval(() => {
+                prepTimeLeft--;
+                updatePrepTimerDisplay();
+                if (prepTimeLeft <= 0) {
+                    clearInterval(prepTimerInterval);
+                }
+            }, 1000);
+        }
+
+        function updatePrepTimerDisplay() {
+            const mins = Math.floor(prepTimeLeft / 60);
+            const secs = prepTimeLeft % 60;
+            const formatted = `${mins < 10 ? '0' + mins : mins}:${secs < 10 ? '0' + secs : secs}`;
+            document.getElementById('prep-timer').innerText = formatted;
+        }
+
+        function startInterrogation() {
+            clearInterval(prepTimerInterval);
+            document.getElementById('prep-box').classList.add('hidden');
+            document.getElementById('interrogation-box').classList.remove('hidden');
+            nextQuestion();
+        }
+
+        function nextQuestion() {
+            const rand = Math.floor(Math.random() * questions.length);
+            document.getElementById('question-card-text').innerText = `"${questions[rand]}"`;
+        }
+
+        function triggerVerdict(type) {
+            const modal = document.getElementById('verdict-modal');
+            const emoji = document.getElementById('verdict-emoji');
+            const title = document.getElementById('verdict-title');
+            const announcement = document.getElementById('verdict-announcement');
+
+            const s1 = document.getElementById('badge-suspect1').innerText;
+            const s2 = document.getElementById('badge-suspect2').innerText;
+
+            if (type === 'guilty') {
+                emoji.innerText = "🚨🕵️‍♂️";
+                title.innerText = "Guilty Verdict!";
+                announcement.innerText = `The jury found ${s1} and ${s2} guilty because their alibi stories contradicted each other! Case solved! 🎉`;
+            } else {
+                emoji.innerText = "🎉🏆";
+                title.innerText = "Innocent / Case Dismissed!";
+                announcement.innerText = `The jury accepted the alibis of ${s1} and ${s2}! They are innocent and free to go! 🌟`;
+            }
+
+            modal.classList.remove('hidden');
+        }
+
+        function resetGame() {
+            document.getElementById('verdict-modal').classList.add('hidden');
+            newCrime();
+            resetPrepTimer();
+        }
+
+        window.onload = function() {
+            // Setup modal remains open until customized
+        };
+    </script>
+</body>
+</html>

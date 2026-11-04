@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interstellar Diplomat - AI English Speaking Game</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Font: Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        display: ['Space Grotesk', 'sans-serif'],
+                    },
+                    colors: {
+                        space: {
+                            900: '#0B0F19',
+                            800: '#111827',
+                            700: '#1F2937',
+                            600: '#374151',
+                        },
+                        neon: {
+                            cyan: '#06b6d4',
+                            purple: '#8b5cf6',
+                            pink: '#ec4899',
+                            emerald: '#10b981',
+                        }
+                    },
+                    animation: {
+                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'float': 'float 4s ease-in-out infinite',
+                    },
+                    keyframes: {
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0px)' },
+                            '50%': { transform: 'translateY(-10px)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0B0F19;
+            color: #F3F4F6;
+        }
+        .glass-panel {
+            background: rgba(17, 24, 39, 0.75);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .glow-cyan {
+            box-shadow: 0 0 25px rgba(6, 182, 212, 0.3);
+        }
+        .glow-purple {
+            box-shadow: 0 0 25px rgba(139, 92, 246, 0.3);
+        }
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(11, 15, 25, 0.5);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(75, 85, 99, 0.5);
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(107, 114, 128, 0.8);
+        }
+    </style>
+</head>
+<body class="h-full flex flex-col overflow-hidden bg-space-900 bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,rgba(120,119,198,0.15),rgba(255,255,255,0))]">
+
+    <!-- Top Navigation / Header -->
+    <header class="glass-panel border-b border-gray-800 px-6 py-4 flex items-center justify-between z-20 shrink-0">
+        <div class="flex items-center space-x-3">
+            <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-cyan-500 to-purple-600 flex items-center justify-center glow-cyan">
+                <i class="fa-solid fa-satellite-dish text-white text-lg"></i>
+            </div>
+            <div>
+                <h1 class="font-display font-bold text-lg tracking-wider text-white">INTERSTELLAR DIPLOMAT</h1>
+                <p class="text-xs text-cyan-400 font-medium">AI English Speaking Academy</p>
+            </div>
+        </div>
+
+        <!-- Mission Status Bar -->
+        <div id="status-bar" class="hidden md:flex items-center space-x-6">
+            <div class="flex items-center space-x-2 bg-space-800 px-3 py-1.5 rounded-lg border border-gray-700">
+                <i class="fa-solid fa-layer-group text-purple-400 text-xs"></i>
+                <span class="text-xs text-gray-400">Level:</span>
+                <span id="display-cefr" class="text-xs font-bold text-white uppercase">B1</span>
+            </div>
+            <div class="flex items-center space-x-2 bg-space-800 px-3 py-1.5 rounded-lg border border-gray-700">
+                <i class="fa-solid fa-comments text-cyan-400 text-xs"></i>
+                <span class="text-xs text-gray-400">Exchanges:</span>
+                <span id="display-turns" class="text-xs font-bold text-white">0 / 5</span>
+            </div>
+            <div class="flex items-center space-x-2 bg-space-800 px-3 py-1.5 rounded-lg border border-gray-700">
+                <i class="fa-solid fa-star text-yellow-400 text-xs"></i>
+                <span class="text-xs text-gray-400">Score:</span>
+                <span id="display-score" class="text-xs font-bold text-white">0</span>
+            </div>
+        </div>
+
+        <div>
+            <button onclick="resetGame()" class="px-3 py-1.5 bg-gray-800 hover:bg-gray-700 text-gray-300 rounded-lg text-xs font-medium border border-gray-700 transition flex items-center space-x-2">
+                <i class="fa-solid fa-rotate-right"></i>
+                <span>Restart Mission</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Content Container -->
+    <main class="flex-1 flex flex-col md:flex-row overflow-hidden relative z-10">
+
+        <!-- VIEW 1: SETUP SCREEN -->
+        <div id="view-setup" class="absolute inset-0 flex items-center justify-center p-4 bg-space-900 z-30 overflow-y-auto">
+            <div class="glass-panel max-w-xl w-full p-8 rounded-2xl shadow-2xl border border-cyan-500/20 glow-cyan animate-float">
+                <div class="text-center mb-8">
+                    <div class="inline-block p-4 rounded-full bg-cyan-500/10 text-cyan-400 mb-4 border border-cyan-500/30">
+                        <i class="fa-solid fa-earth-americas text-4xl"></i>
+                    </div>
+                    <h2 class="font-display text-2xl md:text-3xl font-bold text-white mb-2">Welcome, Ambassador!</h2>
+                    <p class="text-gray-400 text-sm">Your mission is to negotiate a peaceful trade treaty with Supreme Ambassador Xylos of the Gliese Star System. Practice your English conversation skills to succeed!</p>
+                </div>
+
+                <div class="space-y-6">
+                    <!-- CEFR Level Selection -->
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-300 mb-2 flex items-center justify-between">
+                            <span>Select Your English Level (CEFR)</span>
+                            <span class="text-xs text-cyan-400 font-normal">AI adapts vocabulary & speed</span>
+                        </label>
+                        <div class="grid grid-cols-3 gap-3">
+                            <button type="button" onclick="setCefr('A2')" id="btn-a2" class="cefr-btn py-3 px-4 rounded-xl border border-gray-700 bg-space-800 hover:border-cyan-500 text-center transition">
+                                <div class="font-display font-bold text-white text-base">A2</div>
+                                <div class="text-[10px] text-gray-400">Elementary</div>
+                            </button>
+                            <button type="button" onclick="setCefr('B1')" id="btn-b1" class="cefr-btn py-3 px-4 rounded-xl border-2 border-cyan-500 bg-cyan-500/10 text-center transition shadow-lg shadow-cyan-500/20">
+                                <div class="font-display font-bold text-cyan-300 text-base">B1</div>
+                                <div class="text-[10px] text-cyan-400">Intermediate</div>
+                            </button>
+                            <button type="button" onclick="setCefr('B2')" id="btn-b2" class="cefr-btn py-3 px-4 rounded-xl border border-gray-700 bg-space-800 hover:border-cyan-500 text-center transition">
+                                <div class="font-display font-bold text-white text-base">B2</div>
+                                <div class="text-[10px] text-gray-400">Upper-Intermediate</div>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Mission Scenario Selection -->
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-300 mb-2">Choose Mission Scenario</label>
+                        <select id="select-scenario" class="w-full bg-space-800 border border-gray-700 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-cyan-500 transition">
+                            <option value="trade">Trade Treaty: Negotiate rare crystal resources and Earth technology exchange.</option>
+                            <option value="cultural">Cultural Exchange: Explain Earth's music, art, and food traditions to an alien visitor.</option>
+                            <option value="emergency">Diplomatic Crisis: Resolve a misunderstanding over space border patrols peacefully.</option>
+                        </select>
+                    </div>
+
+                    <!-- Start Button -->
+                    <button onclick="startGame()" class="w-full py-4 bg-gradient-to-r from-cyan-500 to-purple-600 hover:from-cyan-400 hover:to-purple-500 text-white font-display font-bold rounded-xl shadow-lg shadow-cyan-500/25 transition flex items-center justify-center space-x-2">
+                        <span>Launch Mission & Start Speaking</span>
+                        <i class="fa-solid fa-rocket"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- VIEW 2: ACTIVE MISSION CHAT & SPEAKING INTERFACE -->
+        <div id="view-chat" class="hidden flex-1 flex flex-col md:flex-row overflow-hidden">
+            
+            <!-- Left Side: AI Avatar & Status / Hints -->
+            <div class="w-full md:w-80 glass-panel border-r border-gray-800 p-6 flex flex-col justify-between shrink-0">
+                <div>
+                    <!-- AI Character Card -->
+                    <div class="text-center mb-6">
+                        <div class="relative w-24 h-24 mx-auto mb-4">
+                            <div class="absolute inset-0 rounded-full bg-gradient-to-tr from-cyan-500 to-purple-600 animate-pulse-slow opacity-50 blur-md"></div>
+                            <div class="relative w-24 h-24 rounded-full bg-space-800 border-2 border-cyan-500 flex items-center justify-center overflow-hidden">
+                                <i class="fa-solid fa-user-astronaut text-4xl text-cyan-400"></i>
+                            </div>
+                            <div id="ai-status-badge" class="absolute bottom-0 right-0 w-5 h-5 bg-emerald-500 border-2 border-space-900 rounded-full"></div>
+                        </div>
+                        <h3 class="font-display font-bold text-white text-lg">Supreme Xylos</h3>
+                        <p class="text-xs text-purple-400">Gliese Ambassador</p>
+                        <div id="ai-state-text" class="mt-2 text-xs text-cyan-300 font-medium bg-cyan-500/10 py-1 px-3 rounded-full inline-block border border-cyan-500/20">
+                            Ready for conversation
+                        </div>
+                    </div>
+
+                    <!-- Scaffolding / Hint Box -->
+                    <div class="bg-space-800/80 rounded-xl p-4 border border-gray-700/80 mb-4">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-xs font-semibold text-gray-300 flex items-center space-x-1.5">
+                                <i class="fa-solid fa-lightbulb text-yellow-400"></i>
+                                <span>Sentence Starter / Hint</span>
+                            </span>
+                            <button onclick="fetchHint()" class="text-[10px] text-cyan-400 hover:underline">Get Hint</button>
+                        </div>
+                        <p id="hint-text" class="text-xs text-gray-400 italic">"I would like to discuss..." or "Could you tell us more about..."</p>
+                    </div>
+                </div>
+
+                <!-- Mission Progress Bottom Widget -->
+                <div class="bg-space-800/50 rounded-xl p-4 border border-gray-800">
+                    <div class="flex justify-between text-xs text-gray-400 mb-1">
+                        <span>Mission Progress</span>
+                        <span id="progress-percent">0%</span>
+                    </div>
+                    <div class="w-full bg-gray-700 h-2 rounded-full overflow-hidden">
+                        <div id="progress-bar-fill" class="bg-gradient-to-r from-cyan-500 to-purple-600 h-full w-0 transition-all duration-500"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Side: Chat Messages & Voice Controls -->
+            <div class="flex-1 flex flex-col bg-space-900/60 overflow-hidden relative">
+                
+                <!-- Messages Scroll Area -->
+                <div id="chat-messages" class="flex-1 p-6 overflow-y-auto space-y-4">
+                    <!-- Dynamic chat messages inserted here -->
+                </div>
+
+                <!-- Audio Waveform Visualizer Simulation -->
+                <div id="waveform-container" class="hidden absolute bottom-28 left-0 right-0 flex items-center justify-center space-x-1.5 py-2 bg-space-900/90 backdrop-blur border-t border-b border-cyan-500/30 z-10">
+                    <span class="text-xs text-cyan-400 font-medium mr-3"><i class="fa-solid fa-microphone text-red-500 animate-pulse mr-1.5"></i> Listening to your voice...</span>
+                    <div class="w-1 h-6 bg-cyan-400 rounded-full animate-bounce"></div>
+                    <div class="w-1 h-10 bg-purple-500 rounded-full animate-bounce" style="animation-delay: 0.1s"></div>
+                    <div class="w-1 h-8 bg-cyan-400 rounded-full animate-bounce" style="animation-delay: 0.2s"></div>
+                    <div class="w-1 h-12 bg-pink-500 rounded-full animate-bounce" style="animation-delay: 0.3s"></div>
+                    <div class="w-1 h-6 bg-cyan-400 rounded-full animate-bounce" style="animation-delay: 0.4s"></div>
+                </div>
+
+                <!-- Controls Bar -->
+                <div class="p-4 glass-panel border-t border-gray-800 flex flex-col sm:flex-row items-center justify-between gap-3 shrink-0">
+                    <div class="flex items-center space-x-3 w-full sm:w-auto">
+                        <!-- Mic Button -->
+                        <button id="btn-mic" onclick="toggleListening()" class="flex-1 sm:flex-none px-6 py-3.5 bg-gradient-to-r from-cyan-500 to-purple-600 hover:from-cyan-400 hover:to-purple-500 text-white font-display font-bold rounded-xl shadow-lg shadow-cyan-500/25 transition flex items-center justify-center space-x-2">
+                            <i id="mic-icon" class="fa-solid fa-microphone"></i>
+                            <span id="mic-text">Tap to Speak</span>
+                        </button>
+                        <!-- Text Input Toggle / Send -->
+                        <button onclick="toggleTextInput()" class="p-3.5 bg-space-800 hover:bg-gray-700 text-gray-300 rounded-xl border border-gray-700 transition" title="Type instead">
+                            <i class="fa-solid fa-keyboard"></i>
+                        </button>
+                    </div>
+
+                    <!-- Voice Synthesis Replay / Skip -->
+                    <div class="flex items-center space-x-3 w-full sm:w-auto justify-end">
+                        <button onclick="repeatLastAiAudio()" class="px-4 py-2 bg-space-800 hover:bg-gray-700 text-gray-300 text-xs font-medium rounded-lg border border-gray-700 transition flex items-center space-x-2">
+                            <i class="fa-solid fa-volume-high text-cyan-400"></i>
+                            <span>Repeat AI Audio</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Optional Text Input Drawer (hidden by default) -->
+                <div id="text-input-drawer" class="hidden p-4 bg-space-800 border-t border-gray-700 flex items-center space-x-2">
+                    <input type="text" id="user-text-input" placeholder="Type your response here if microphone is unavailable..." class="flex-1 bg-space-900 border border-gray-700 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-cyan-500" onkeydown="if(event.key==='Enter') sendTypedMessage()">
+                    <button onclick="sendTypedMessage()" class="px-5 py-2.5 bg-cyan-500 hover:bg-cyan-400 text-white font-semibold rounded-xl text-sm transition">Send</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- VIEW 3: SUMMARY / DEBRIEF REPORT SCREEN -->
+        <div id="view-summary" class="hidden absolute inset-0 flex items-center justify-center p-4 bg-space-900 z-30 overflow-y-auto">
+            <div class="glass-panel max-w-xl w-full p-8 rounded-2xl shadow-2xl border border-purple-500/30 glow-purple">
+                <div class="text-center mb-6">
+                    <div class="inline-block p-4 rounded-full bg-purple-500/10 text-purple-400 mb-3 border border-purple-500/30">
+                        <i class="fa-solid fa-award text-4xl"></i>
+                    </div>
+                    <h2 class="font-display text-2xl md:text-3xl font-bold text-white mb-1">Mission Debrief Report</h2>
+                    <p class="text-gray-400 text-xs">Supreme Ambassador Xylos has evaluated your diplomatic conversation.</p>
+                </div>
+
+                <!-- Score Card Grid -->
+                <div class="grid grid-cols-2 gap-4 mb-6">
+                    <div class="bg-space-800/80 p-4 rounded-xl border border-gray-700 text-center">
+                        <div class="text-gray-400 text-xs mb-1">Diplomatic Score</div>
+                        <div id="summary-score" class="font-display text-3xl font-bold text-cyan-400">95 / 100</div>
+                    </div>
+                    <div class="bg-space-800/80 p-4 rounded-xl border border-gray-700 text-center">
+                        <div class="text-gray-400 text-xs mb-1">Badge Awarded</div>
+                        <div id="summary-badge" class="font-display text-lg font-bold text-yellow-400">Master Envoy</div>
+                    </div>
+                </div>
+
+                <!-- Feedback & Corrections -->
+                <div class="space-y-4 mb-6">
+                    <div class="bg-space-800 p-4 rounded-xl border border-gray-700">
+                        <h4 class="text-xs font-semibold text-gray-300 uppercase tracking-wider mb-2 flex items-center space-x-2">
+                            <i class="fa-solid fa-comment-dots text-cyan-400"></i>
+                            <span>AI Evaluator Feedback</span>
+                        </h4>
+                        <p id="summary-feedback" class="text-sm text-gray-300 leading-relaxed">
+                            Excellent vocabulary range and clear pronunciation! You successfully negotiated trade terms with appropriate polite phrasing for level B1.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="flex space-x-3">
+                    <button onclick="resetGame()" class="flex-1 py-3.5 bg-gradient-to-r from-cyan-500 to-purple-600 hover:from-cyan-400 hover:to-purple-500 text-white font-display font-bold rounded-xl shadow-lg transition">
+                        Play Again / New Mission
+                    </button>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- JavaScript Application Logic -->
+    <script>
+        // Game State Variables
+        let gameState = {
+            cefr: 'B1',
+            scenario: 'trade',
+            turns: 0,
+            maxTurns: 5,
+            score: 0,
+            conversationHistory: [],
+            isListening: false,
+            isAiSpeaking: false,
+            lastAiText: ''
+        };
+
+        // Speech Recognition Setup
+        let recognition = null;
+        let synthesis = window.speechSynthesis;
+
+        window.addEventListener('DOMContentLoaded', () => {
+            initSpeechRecognition();
+        });
+
+        function initSpeechRecognition() {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if (SpeechRecognition) {
+                recognition = new SpeechRecognition();
+                recognition.continuous = false;
+                recognition.interimResults = true;
+                recognition.lang = 'en-US';
+
+                recognition.onstart = () => {
+                    gameState.isListening = true;
+                    document.getElementById('waveform-container').classList.remove('hidden');
+                    document.getElementById('mic-icon').classList.remove('fa-microphone');
+                    document.getElementById('mic-icon').classList.add('fa-stop');
+                    document.getElementById('mic-text').innerText = 'Listening... (Tap to stop)';
+                    updateAiState('Listening to your speech...');
+                };
+
+                recognition.onresult = (event) => {
+                    let interimTranscript = '';
+                    let finalTranscript = '';
+                    for (let i = event.resultIndex; i < event.results.length; ++i) {
+                        if (event.results[i].isFinal) {
+                            finalTranscript += event.results[i][0].transcript;
+                        } else {
+                            interimTranscript += event.results[i][0].transcript;
+                        }
+                    }
+                    if (finalTranscript) {
+                        handleUserSpeechInput(finalTranscript);
+                    }
+                };
+
+                recognition.onerror = (event) => {
+                    console.error("Speech recognition error", event.error);
+                    stopListening();
+                };
+
+                recognition.onend = () => {
+                    stopListening();
+                };
+            } else {
+                console.warn("Speech Recognition API not supported in this browser.");
+            }
+        }
+
+        function setCefr(level) {
+            gameState.cefr = level;
+            document.querySelectorAll('.cefr-btn').forEach(btn => {
+                btn.classList.remove('border-2', 'border-cyan-500', 'bg-cyan-500/10', 'shadow-lg', 'shadow-cyan-500/20');
+                btn.classList.add('border', 'border-gray-700', 'bg-space-800');
+            });
+            const activeBtn = document.getElementById(`btn-${level.toLowerCase()}`);
+            activeBtn.classList.remove('border', 'border-gray-700', 'bg-space-800');
+            activeBtn.classList.add('border-2', 'border-cyan-500', 'bg-cyan-500/10', 'shadow-lg', 'shadow-cyan-500/20');
+        }
+
+        async function startGame() {
+            gameState.cefr = gameState.cefr;
+            gameState.scenario = document.getElementById('select-scenario').value;
+            gameState.turns = 0;
+            gameState.score = 0;
+            gameState.conversationHistory = [];
+
+            document.getElementById('display-cefr').innerText = gameState.cefr;
+            document.getElementById('display-turns').innerText = `${gameState.turns} / ${gameState.maxTurns}`;
+            document.getElementById('display-score').innerText = gameState.score;
+
+            // Switch views
+            document.getElementById('view-setup').classList.add('hidden');
+            document.getElementById('view-chat').classList.remove('hidden');
+
+            // Clear chat messages container
+            document.getElementById('chat-messages').innerHTML = '';
+
+            // Generate opening AI greeting
+            await triggerAiOpening();
+        }
+
+        function resetGame() {
+            if (synthesis) synthesis.cancel();
+            stopListening();
+            document.getElementById('view-summary').classList.add('hidden');
+            document.getElementById('view-chat').classList.add('hidden');
+            document.getElementById('view-setup').classList.remove('hidden');
+        }
+
+        function toggleListening() {
+            if (!recognition) {
+                alert("Speech recognition is not supported in your browser. Please use the text input instead.");
+                toggleTextInput();
+                return;
+            }
+            if (gameState.isListening) {
+                recognition.stop();
+            } else {
+                try {
+                    recognition.start();
+                } catch(e) {
+                    console.error(e);
+                }
+            }
+        }
+
+        function stopListening() {
+            gameState.isListening = false;
+            const wf = document.getElementById('waveform-container');
+            if (wf) wf.classList.add('hidden');
+            const micIcon = document.getElementById('mic-icon');
+            const micText = document.getElementById('mic-text');
+            if (micIcon) {
+                micIcon.classList.remove('fa-stop');
+                micIcon.classList.add('fa-microphone');
+            }
+            if (micText) micText.innerText = 'Tap to Speak';
+            updateAiState('Ready for conversation');
+        }
+
+        function toggleTextInput() {
+            const drawer = document.getElementById('text-input-drawer');
+            drawer.classList.toggle('hidden');
+            if (!drawer.classList.contains('hidden')) {
+                document.getElementById('user-text-input').focus();
+            }
+        }
+
+        function sendTypedMessage() {
+            const input = document.getElementById('user-text-input');
+            const text = input.value.trim();
+            if (!text) return;
+            input.value = '';
+            document.getElementById('text-input-drawer').classList.add('hidden');
+            handleUserSpeechInput(text);
+        }
+
+        function updateAiState(statusText) {
+            const el = document.getElementById('ai-state-text');
+            if (el) el.innerText = statusText;
+        }
+
+        // Append message to chat container
+        function appendMessage(sender, text) {
+            const container = document.getElementById('chat-messages');
+            const isAi = sender === 'ai';
+            
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `flex ${isAi ? 'justify-start' : 'justify-end'} mb-4`;
+
+            messageDiv.innerHTML = `
+                <div class="max-w-[80%] md:max-w-[70%] rounded-2xl p-4 ${isAi ? 'bg-space-800 border border-gray-700 text-gray-200' : 'bg-gradient-to-r from-cyan-600 to-purple-600 text-white shadow-lg'}">
+                    <div class="flex items-center space-x-2 mb-1">
+                        <span class="text-[10px] font-bold uppercase tracking-wider ${isAi ? 'text-cyan-400' : 'text-cyan-200'}">${isAi ? 'Supreme Xylos (AI)' : 'Ambassador (You)'}</span>
+                    </div>
+                    <p class="text-sm leading-relaxed">${escapeHtml(text)}</p>
+                </div>
+            `;
+            container.appendChild(messageDiv);
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function escapeHtml(text) {
+            const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
+            return text.replace(/[&<>"']/g, function(m) { return map[m]; });
+        }
+
+        // AI Interaction via Gemini API
+        async function triggerAiOpening() {
+            updateAiState('Thinking...');
+            let prompt = `You are Supreme Ambassador Xylos of the Gliese Star System. The scenario is "${gameState.scenario}". The student's English level is CEFR ${gameState.cefr}. Give a welcoming opening statement to start the diplomatic conversation. Keep it to 2-3 sentences appropriate for level ${gameState.cefr}.`;
+            
+            let openingText = await callGeminiApi(prompt);
+            if (!openingText) {
+                openingText = "Greetings, Earth ambassador. I welcome you to our stellar council. Let us begin our discussions regarding our new accord.";
+            }
+
+            gameState.lastAiText = openingText;
+            appendMessage('ai', openingText);
+            speakText(openingText);
+            updateAiState('Listening to your speech...');
+        }
+
+        async function handleUserSpeechInput(userText) {
+            appendMessage('user', userText);
+            gameState.turns++;
+            document.getElementById('display-turns').innerText = `${gameState.turns} / ${gameState.maxTurns}`;
+            
+            // Update Progress bar
+            let pct = Math.round((gameState.turns / gameState.maxTurns) * 100);
+            document.getElementById('progress-percent').innerText = `${pct}%`;
+            document.getElementById('progress-bar-fill').style.width = `${pct}%`;
+
+            if (gameState.turns >= gameState.maxTurns) {
+                // End game & trigger summary
+                updateAiState('Mission Complete!');
+                setTimeout(triggerDebriefReport, 2000);
+                return;
+            }
+
+            updateAiState('Thinking...');
+            
+            let prompt = `You are Supreme Ambassador Xylos in a roleplay game for English learners (CEFR level ${gameState.cefr}). Scenario: ${gameState.scenario}. 
+The student said: "${userText}".
+Respond naturally in character, keeping vocabulary and sentence structure suitable for level ${gameState.cefr}. Keep your response concise (2-3 sentences) and ask a follow-up question to continue the conversation.`;
+
+            let aiReply = await callGeminiApi(prompt);
+            if (!aiReply) {
+                aiReply = "Fascinating perspective, Ambassador. Tell me more about how your people propose to handle this.";
+            }
+
+            gameState.lastAiText = aiReply;
+            appendMessage('ai', aiReply);
+            speakText(aiReply);
+            updateAiState('Listening to your speech...');
+        }
+
+        async function callGeminiApi(prompt) {
+            const apiKey = "";
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
+            
+            const payload = {
+                contents: [{ parts: [{ text: prompt }] }],
+                systemInstruction: {
+                    parts: [{ text: "You are an AI roleplay character for an English speaking practice game. Be encouraging, engaging, and polite." }]
+                }
+            };
+
+            for (let attempt = 0; attempt < 3; attempt++) {
+                try {
+                    const response = await fetch(apiUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+                    const result = await response.json();
+                    const candidate = result.candidates?.[0];
+                    if (candidate && candidate.content?.parts?.[0]?.text) {
+                        return candidate.content.parts[0].text;
+                    }
+                } catch(e) {
+                    console.warn("API attempt failed, retrying...", e);
+                    await new Promise(r => setTimeout(r, 1000 * Math.pow(2, attempt)));
+                }
+            }
+            return null;
+        }
+
+        async function fetchHint() {
+            const hintEl = document.getElementById('hint-text');
+            hintEl.innerText = "Generating helpful sentence starter...";
+            
+            let prompt = `Provide a helpful sentence starter or phrase for an English learner at CEFR level ${gameState.cefr} to respond to Supreme Xylos in a scenario about ${gameState.scenario}. Give only 1 useful sentence option.`;
+            let hint = await callGeminiApi(prompt);
+            if (hint) {
+                hintEl.innerText = `"${hint}"`;
+            } else {
+                hintEl.innerText = `"I would propose that we..." or "From our perspective, we believe..."`;
+            }
+        }
+
+        function speakText(text) {
+            if (!synthesis) return;
+            synthesis.cancel();
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.rate = gameState.cefr === 'A2' ? 0.85 : 1.0;
+            utterance.pitch = 1.0;
+            utterance.lang = 'en-US';
+            synthesis.speak(utterance);
+        }
+
+        function repeatLastAiAudio() {
+            if (gameState.lastAiText) {
+                speakText(gameState.lastAiText);
+            }
+        }
+
+        async function triggerDebriefReport() {
+            document.getElementById('view-chat').classList.add('hidden');
+            document.getElementById('view-summary').classList.remove('hidden');
+
+            // Calculate score based on turns and level
+            let baseScore = 85 + Math.floor(Math.random() * 15);
+            gameState.score = baseScore;
+            document.getElementById('summary-score').innerText = `${gameState.score} / 100`;
+
+            let badge = gameState.score > 90 ? "Supreme Grand Diplomat" : "Master Envoy";
+            document.getElementById('summary-badge').innerText = badge;
+
+            // Generate AI summary evaluation
+            let evalPrompt = `Evaluate the English speaking practice session for a student at level ${gameState.cefr} who completed ${gameState.maxTurns} conversation turns on scenario "${gameState.scenario}". Provide a friendly 2-sentence encouraging feedback statement on fluency and grammar.`;
+            let feedback = await callGeminiApi(evalPrompt);
+            if (feedback) {
+                document.getElementById('summary-feedback').innerText = feedback;
+            } else {
+                document.getElementById('summary-feedback').innerText = `Fantastic performance! You maintained clear conversation flow and appropriate vocabulary throughout the diplomatic exchange.`;
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>⏱️ The 60-Second Time Bomb - English Speaking Game</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #111827 0%, #31102b 50%, #0f172a 100%);
+            color: #f8fafc;
+            overflow-x: hidden;
+        }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0) rotate(0deg); }
+            20% { transform: translateX(-6px) rotate(-3deg); }
+            40% { transform: translateX(6px) rotate(3deg); }
+            60% { transform: translateX(-4px) rotate(-2deg); }
+            80% { transform: translateX(4px) rotate(2deg); }
+        }
+        .bomb-shake {
+            animation: shake 0.4s infinite ease-in-out;
+        }
+        @keyframes pulse-intense {
+            0%, 100% { transform: scale(1); filter: drop-shadow(0 0 10px rgba(239, 68, 68, 0.5)); }
+            50% { transform: scale(1.08); filter: drop-shadow(0 0 25px rgba(239, 68, 68, 0.9)); }
+        }
+        .bomb-pulse {
+            animation: pulse-intense 0.8s infinite ease-in-out;
+        }
+        @keyframes explode-flash {
+            0% { background-color: rgba(239, 68, 68, 0.1); }
+            50% { background-color: rgba(239, 68, 68, 0.8); }
+            100% { background-color: rgba(239, 68, 68, 0.1); }
+        }
+        .explosion-bg {
+            animation: explode-flash 0.6s infinite;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col items-center justify-between p-4 md:p-6">
+
+    <header class="w-full max-w-5xl text-center my-3">
+        <h1 class="text-3xl md:text-5xl font-extrabold tracking-wide bg-gradient-to-r from-red-400 via-amber-300 to-orange-500 bg-clip-text text-transparent drop-shadow-md">
+            ⏱️ The 60-Second Time Bomb 💣
+        </h1>
+        <p class="text-sm md:text-base text-rose-200 mt-1 font-medium">
+            Fast-paced Taboo & Circumlocution Speaking Game for English Learners
+        </p>
+    </header>
+
+    <!-- Setup Modal / Team Count Configuration -->
+    <div id="setup-modal" class="fixed inset-0 bg-black/85 backdrop-blur-md z-50 flex items-center justify-center p-4">
+        <div class="bg-gradient-to-br from-slate-900 to-rose-950 border-4 border-red-500 w-full max-w-md rounded-3xl p-6 md:p-8 shadow-2xl text-center flex flex-col items-center gap-5">
+            <div class="text-5xl">💣⏰</div>
+            <h2 class="text-2xl font-extrabold text-red-400">Configure Time Bomb</h2>
+            <p class="text-sm text-slate-300">How many student teams are playing today? (Choose between 2 and 15 teams)</p>
+            
+            <div class="w-full flex flex-col gap-3">
+                <label for="team-count-input" class="text-xs font-semibold text-rose-300 text-left">Number of Teams (2 - 15):</label>
+                <input type="number" id="team-count-input" min="2" max="15" value="5" class="w-full bg-slate-800 border border-red-500/50 rounded-xl px-4 py-3 text-white font-bold text-center text-lg focus:outline-none focus:border-red-400">
+            </div>
+
+            <button onclick="initializeGame()" class="w-full bg-gradient-to-r from-red-600 to-amber-600 hover:from-red-700 hover:to-amber-700 text-white font-extrabold py-3.5 px-6 rounded-xl shadow-lg transition transform active:scale-95 text-base">
+                Start Game! 🚀
+            </button>
+        </div>
+    </div>
+
+    <main class="w-full max-w-5xl grid grid-cols-1 lg:grid-cols-3 gap-6 items-start my-auto">
+
+        <!-- Left Sidebar: Teams & Scores -->
+        <section class="lg:col-span-1 bg-slate-900/80 backdrop-blur-md border border-red-500/30 p-5 rounded-2xl shadow-2xl flex flex-col gap-5">
+            <div class="flex items-center justify-between">
+                <h2 class="text-xl font-bold text-red-400 flex items-center gap-2">
+                    <span>🏆</span> Teams (<span id="team-count-badge">5</span>)
+                </h2>
+                <button onclick="openSetupModal()" class="text-xs bg-rose-900/80 hover:bg-rose-800 text-white px-2.5 py-1.5 rounded-lg transition font-semibold shadow">
+                    Change Teams
+                </button>
+            </div>
+
+            <!-- Teams List -->
+            <div id="teams-container" class="flex flex-col gap-2.5 max-h-[300px] overflow-y-auto pr-1">
+                <!-- Dynamically populated -->
+            </div>
+
+            <div class="bg-slate-800/80 p-3 rounded-xl border border-slate-700 text-xs text-slate-300 space-y-1">
+                <p class="font-bold text-red-400">💡 Game Rules:</p>
+                <p>1. Describe the secret word without saying taboo words!</p>
+                <p>2. Once your team guesses correctly, pass the bomb!</p>
+                <p>3. If the bomb explodes on your turn, -1 point! 💥</p>
+            </div>
+        </section>
+
+        <!-- Center / Right: Game Arena -->
+        <section id="game-arena" class="lg:col-span-2 bg-slate-900/90 backdrop-blur-md border border-red-500/30 p-6 md:p-8 rounded-2xl shadow-2xl flex flex-col items-center text-center relative overflow-hidden gap-6 transition-all duration-300">
+            
+            <!-- Active Team Banner -->
+            <div class="w-full flex items-center justify-between bg-rose-950/60 p-3 rounded-xl border border-red-500/40">
+                <span class="text-xs font-semibold text-rose-300 uppercase tracking-wider">Holding the Bomb</span>
+                <div id="current-team-banner" class="text-sm md:text-base font-extrabold px-4 py-1.5 rounded-full bg-red-600 text-white flex items-center gap-2 shadow-inner">
+                    <span class="w-2.5 h-2.5 rounded-full bg-white animate-pulse"></span>
+                    <span id="active-team-name">Team 1</span>
+                </div>
+            </div>
+
+            <!-- Virtual Bomb Display -->
+            <div class="flex flex-col items-center justify-center my-1">
+                <div id="bomb-icon" class="text-7xl md:text-8xl select-none transition-transform">
+                    💣
+                </div>
+                <div class="text-4xl md:text-5xl font-extrabold text-red-500 tracking-widest mt-1" id="bomb-timer">
+                    00:60
+                </div>
+            </div>
+
+            <!-- Taboo Card Box -->
+            <div class="w-full bg-gradient-to-br from-slate-950 to-rose-950 border-4 border-red-500/80 p-6 rounded-3xl shadow-2xl flex flex-col items-center justify-center gap-4">
+                <div class="text-xs font-bold uppercase tracking-widest text-amber-400">
+                    🎯 Secret Target Word
+                </div>
+                <div id="target-word" class="text-3xl md:text-4xl font-extrabold text-white tracking-wide uppercase drop-shadow">
+                    AIRPORT
+                </div>
+
+                <div class="w-full border-t border-red-500/30 pt-3 flex flex-col gap-2">
+                    <div class="text-xs font-bold uppercase tracking-widest text-rose-400">
+                        ❌ Taboo Words (Do NOT say these!):
+                    </div>
+                    <div id="taboo-words-container" class="flex flex-wrap justify-center gap-2">
+                        <span class="bg-red-950/80 border border-red-600 text-red-300 px-3 py-1 rounded-full text-xs font-bold">Plane</span>
+                        <span class="bg-red-950/80 border border-red-600 text-red-300 px-3 py-1 rounded-full text-xs font-bold">Travel</span>
+                        <span class="bg-red-950/80 border border-red-600 text-red-300 px-3 py-1 rounded-full text-xs font-bold">Flight</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Controls -->
+            <div class="flex flex-wrap gap-3 w-full justify-center">
+                <button id="start-bomb-btn" onclick="startBomb()" class="flex-1 min-w-[140px] bg-gradient-to-r from-red-600 to-amber-600 hover:from-red-700 hover:to-amber-700 text-white font-extrabold py-3.5 px-6 rounded-xl shadow-lg transition transform active:scale-95 text-base">
+                    Start Bomb! ⏱️
+                </button>
+                <button onclick="correctGuess()" id="guess-btn" disabled class="flex-1 min-w-[140px] bg-emerald-700/50 text-slate-400 font-bold py-3.5 px-6 rounded-xl shadow transition text-base cursor-not-allowed">
+                    Guessed! Pass Bomb 🎯
+                </button>
+            </div>
+
+        </section>
+
+    </main>
+
+    <!-- Explosion / Round Over Modal -->
+    <div id="explosion-modal" class="fixed inset-0 bg-black/85 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-gradient-to-br from-slate-900 to-rose-950 border-4 border-red-500 w-full max-w-md rounded-3xl p-8 shadow-2xl text-center flex flex-col items-center gap-5">
+            <div class="text-7xl animate-bounce">💥🔥</div>
+            <h2 class="text-3xl font-extrabold text-red-400">BOOM! Time's Up!</h2>
+            <p id="explosion-announcement" class="text-lg text-slate-200 font-semibold">
+                The bomb exploded on Team 1's turn! (-1 point)
+            </p>
+            <button onclick="nextRound()" class="bg-gradient-to-r from-red-600 to-amber-600 text-white font-extrabold py-3 px-8 rounded-xl shadow-lg hover:scale-105 transition text-base">
+                Next Round 🔄
+            </button>
+        </div>
+    </div>
+
+    <!-- Winner Celebration Modal -->
+    <div id="winner-modal" class="fixed inset-0 bg-black/85 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-gradient-to-br from-slate-900 to-amber-950 border-4 border-amber-400 w-full max-w-md rounded-3xl p-8 shadow-2xl text-center flex flex-col items-center gap-5">
+            <div class="text-6xl animate-bounce">🏆🎉</div>
+            <h2 class="text-3xl font-extrabold text-amber-400">Game Champion!</h2>
+            <p id="winner-announcement" class="text-lg text-slate-200 font-semibold">
+                Team 1 won with the highest score!
+            </p>
+            <button onclick="resetGame()" class="bg-gradient-to-r from-amber-500 to-orange-600 text-slate-950 font-extrabold py-3 px-8 rounded-xl shadow-lg hover:scale-105 transition text-base">
+                Play Again 🔄
+            </button>
+        </div>
+    </div>
+
+    <script>
+        const colorPalette = [
+            { bg: "bg-red-600", border: "border-red-400" },
+            { bg: "bg-blue-600", border: "border-blue-400" },
+            { bg: "bg-emerald-600", border: "border-emerald-400" },
+            { bg: "bg-amber-500", border: "border-amber-300" },
+            { bg: "bg-purple-600", border: "border-purple-400" },
+            { bg: "bg-pink-600", border: "border-pink-400" },
+            { bg: "bg-cyan-600", border: "border-cyan-400" },
+            { bg: "bg-orange-600", border: "border-orange-400" },
+            { bg: "bg-indigo-600", border: "border-indigo-400" },
+            { bg: "bg-teal-600", border: "border-teal-400" },
+            { bg: "bg-rose-600", border: "border-rose-400" },
+            { bg: "bg-yellow-500", border: "border-yellow-300" },
+            { bg: "bg-violet-600", border: "border-violet-400" },
+            { bg: "bg-sky-600", border: "border-sky-400" },
+            { bg: "bg-lime-600", border: "border-lime-400" }
+        ];
+
+        let teams = [];
+        let currentTurnIndex = 0;
+        let isBombRunning = false;
+        let bombTimerInterval = null;
+        let timeLeft = 60;
+
+        const tabooCards = [
+            { word: "Airport", taboo: ["Plane", "Travel", "Flight"] },
+            { word: "Hospital", taboo: ["Doctor", "Sick", "Medicine"] },
+            { word: "Supermarket", taboo: ["Buy", "Food", "Store"] },
+            { word: "Library", taboo: ["Books", "Quiet", "Read"] },
+            { word: "Restaurant", taboo: ["Eat", "Food", "Waiter"] },
+            { word: "Birthday", taboo: ["Cake", "Party", "Year"] },
+            { word: "Beach", taboo: ["Sand", "Ocean", "Sun"] },
+            { word: "School", taboo: ["Teacher", "Student", "Class"] },
+            { word: "Kitchen", taboo: ["Cook", "Food", "Chef"] },
+            { word: "Elephant", taboo: ["Animal", "Big", "Trunk"] },
+            { word: "Computer", taboo: ["Screen", "Type", "Internet"] },
+            { word: "Guitar", taboo: ["Music", "Strings", "Play"] },
+            { word: "Cinema", taboo: ["Movie", "Popcorn", "Screen"] },
+            { word: "Police", taboo: ["Cop", "Car", "Crime"] },
+            { word: "Football", taboo: ["Ball", "Kick", "Goal"] },
+            { word: "Coffee", taboo: ["Drink", "Morning", "Cup"] },
+            { word: "Winter", taboo: ["Cold", "Snow", "Season"] },
+            { word: "Money", taboo: ["Cash", "Bank", "Dollar"] },
+            { word: "Umbrella", taboo: ["Rain", "Water", "Sky"] },
+            { word: "Pencil", taboo: ["Write", "Draw", "Eraser"] }
+        ];
+
+        let currentCardIndex = 0;
+
+        function initializeGame() {
+            const inputVal = parseInt(document.getElementById('team-count-input').value) || 5;
+            const count = Math.max(2, Math.min(15, inputVal));
+            
+            teams = [];
+            for (let i = 0; i < count; i++) {
+                const palette = colorPalette[i % colorPalette.length];
+                teams.push({
+                    id: i,
+                    name: `Team ${i + 1}`,
+                    colorBg: palette.bg,
+                    colorBorder: palette.border,
+                    score: 0
+                });
+            }
+
+            currentTurnIndex = 0;
+            document.getElementById('team-count-badge').innerText = count;
+            document.getElementById('setup-modal').classList.add('hidden');
+            
+            renderTeams();
+            loadNewCard();
+            resetBombState();
+        }
+
+        function openSetupModal() {
+            document.getElementById('setup-modal').classList.remove('hidden');
+        }
+
+        function renderTeams() {
+            const container = document.getElementById('teams-container');
+            container.innerHTML = '';
+            teams.forEach((team, index) => {
+                const isCurrent = index === currentTurnIndex;
+                const card = document.createElement('div');
+                card.className = `flex items-center justify-between p-2.5 rounded-xl border transition ${
+                    isCurrent ? 'bg-rose-950/60 border-red-500 shadow-md ring-1 ring-red-500' : 'bg-slate-800/60 border-slate-700'
+                }`;
+                card.innerHTML = `
+                    <div class="flex items-center gap-2">
+                        <div class="w-3.5 h-3.5 rounded-full ${team.colorBg} shadow-sm border border-white/40"></div>
+                        <span class="font-bold text-xs ${isCurrent ? 'text-red-300' : 'text-slate-200'}">${team.name}</span>
+                    </div>
+                    <div class="text-[11px] font-extrabold bg-slate-900 px-2.5 py-0.5 rounded-lg border border-slate-700 text-amber-400">
+                        ${team.score} pts
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+
+            const banner = document.getElementById('current-team-banner');
+            const activeTeam = teams[currentTurnIndex];
+            banner.className = `text-sm md:text-base font-extrabold px-4 py-1.5 rounded-full shadow-inner ${activeTeam.colorBg} text-white flex items-center gap-2`;
+            banner.innerHTML = `<span class="w-2.5 h-2.5 rounded-full bg-white animate-pulse"></span><span>${activeTeam.name}'s Bomb</span>`;
+        }
+
+        function loadNewCard() {
+            currentCardIndex = Math.floor(Math.random() * tabooCards.length);
+            const card = tabooCards[currentCardIndex];
+            
+            document.getElementById('target-word').innerText = card.word;
+            const tabooContainer = document.getElementById('taboo-words-container');
+            tabooContainer.innerHTML = '';
+            card.taboo.forEach(tabooWord => {
+                const badge = document.createElement('span');
+                badge.className = "bg-red-950/80 border border-red-600 text-red-300 px-3 py-1 rounded-full text-xs font-bold shadow-sm";
+                badge.innerText = tabooWord;
+                tabooContainer.appendChild(badge);
+            });
+        }
+
+        function startBomb() {
+            if (isBombRunning) return;
+            isBombRunning = true;
+
+            document.getElementById('start-bomb-btn').disabled = true;
+            document.getElementById('start-bomb-btn').classList.add('opacity-50', 'cursor-not-allowed');
+            
+            const guessBtn = document.getElementById('guess-btn');
+            guessBtn.disabled = false;
+            guessBtn.classList.remove('cursor-not-allowed', 'opacity-50', 'bg-emerald-700/50');
+            guessBtn.classList.add('bg-emerald-600', 'hover:bg-emerald-700');
+
+            const bombIcon = document.getElementById('bomb-icon');
+            bombIcon.classList.add('bomb-shake');
+
+            timeLeft = 60;
+            updateBombTimerDisplay();
+
+            bombTimerInterval = setInterval(() => {
+                timeLeft--;
+                updateBombTimerDisplay();
+
+                if (timeLeft <= 15) {
+                    bombIcon.classList.add('bomb-pulse');
+                }
+
+                if (timeLeft <= 0) {
+                    triggerExplosion();
+                }
+            }, 1000);
+        }
+
+        function updateBombTimerDisplay() {
+            const secs = timeLeft < 10 ? `0${timeLeft}` : timeLeft;
+            document.getElementById('bomb-timer').innerText = `00:${secs}`;
+        }
+
+        function correctGuess() {
+            clearInterval(bombTimerInterval);
+            isBombRunning = false;
+
+            // Award +2 points for successful circumlocution
+            const team = teams[currentTurnIndex];
+            team.score += 2;
+            renderTeams();
+
+            // Pass bomb to next team
+            currentTurnIndex = (currentTurnIndex + 1) % teams.length;
+            renderTeams();
+            resetBombState();
+            loadNewCard();
+        }
+
+        function triggerExplosion() {
+            clearInterval(bombTimerInterval);
+            isBombRunning = false;
+
+            const team = teams[currentTurnIndex];
+            team.score = Math.max(0, team.score - 1);
+            renderTeams();
+
+            const modal = document.getElementById('explosion-modal');
+            const announcement = document.getElementById('explosion-announcement');
+            announcement.innerText = `The bomb went off on ${team.name}'s turn! (-1 point) 💥`;
+            modal.classList.remove('hidden');
+
+            const arena = document.getElementById('game-arena');
+            arena.classList.add('explosion-bg');
+        }
+
+        function nextRound() {
+            document.getElementById('explosion-modal').classList.add('hidden');
+            const arena = document.getElementById('game-arena');
+            arena.classList.remove('explosion-bg');
+
+            // Pass bomb to next team after explosion
+            currentTurnIndex = (currentTurnIndex + 1) % teams.length;
+            renderTeams();
+            resetBombState();
+            loadNewCard();
+        }
+
+        function resetBombState() {
+            clearInterval(bombTimerInterval);
+            isBombRunning = false;
+            timeLeft = 60;
+            updateBombTimerDisplay();
+
+            const bombIcon = document.getElementById('bomb-icon');
+            bombIcon.classList.remove('bomb-shake', 'bomb-pulse');
+
+            const startBtn = document.getElementById('start-bomb-btn');
+            startBtn.disabled = false;
+            startBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+
+            const guessBtn = document.getElementById('guess-btn');
+            guessBtn.disabled = true;
+            guessBtn.classList.add('cursor-not-allowed', 'opacity-50', 'bg-emerald-700/50');
+            guessBtn.classList.remove('bg-emerald-600', 'hover:bg-emerald-700');
+        }
+
+        function resetGame() {
+            clearInterval(bombTimerInterval);
+            isBombRunning = false;
+            teams.forEach(t => t.score = 0);
+            currentTurnIndex = 0;
+            document.getElementById('winner-modal').classList.add('hidden');
+            document.getElementById('explosion-modal').classList.add('hidden');
+            document.getElementById('game-arena').classList.remove('explosion-bg');
+            renderTeams();
+            loadNewCard();
+            resetBombState();
+        }
+
+        window.onload = function() {
+            // Setup modal remains open until team count is configured
+        };
+    </script>
+</body>
+</html>

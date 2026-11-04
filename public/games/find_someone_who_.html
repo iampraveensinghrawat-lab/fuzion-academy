@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Find Someone Who... Mobile Edition</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        :root {
+            --primary: #4f46e5;
+            --primary-hover: #4338ca;
+            --secondary: #ec4899;
+            --background: #f8fafc;
+            --card-bg: #ffffff;
+            --text: #1e293b;
+            --success: #10b981;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #e0e7ff, #fce7f3);
+            color: var(--text);
+            margin: 0;
+            padding: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            background-color: var(--card-bg);
+            padding: 20px;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            max-width: 600px;
+            width: 100%;
+            text-align: center;
+        }
+
+        h1 {
+            color: var(--primary);
+            margin-bottom: 5px;
+            font-size: 1.6rem;
+        }
+
+        .subtitle {
+            font-size: 0.9rem;
+            color: #64748b;
+            margin-bottom: 15px;
+        }
+
+        /* Lobby Screen */
+        #lobby-screen {
+            background: #f1f5f9;
+            padding: 20px;
+            border-radius: 14px;
+        }
+
+        #lobby-screen input {
+            width: 100%;
+            padding: 12px;
+            margin: 8px 0;
+            border: 2px solid #cbd5e1;
+            border-radius: 8px;
+            font-size: 1rem;
+            box-sizing: border-box;
+        }
+
+        .btn {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            font-size: 1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        .btn:hover {
+            background-color: var(--primary-hover);
+        }
+
+        .hidden { display: none !important; }
+
+        /* Game Board Area */
+        .scoreboard-bar {
+            display: flex;
+            justify-content: space-between;
+            background: #f1f5f9;
+            padding: 10px 15px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            font-weight: bold;
+            font-size: 0.95rem;
+        }
+
+        .grid-container {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 12px;
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        @media(min-width: 480px) {
+            .grid-container {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        .quest-card {
+            background: #ffffff;
+            border: 2px solid #cbd5e1;
+            border-radius: 12px;
+            padding: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            min-height: 100px;
+        }
+
+        .quest-card:active {
+            transform: scale(0.98);
+        }
+
+        .quest-card.completed {
+            background: #ecfdf5;
+            border-color: var(--success);
+        }
+
+        .quest-prompt {
+            font-weight: bold;
+            font-size: 0.9rem;
+            color: #334155;
+            margin-bottom: 4px;
+        }
+
+        .quest-question {
+            font-size: 0.78rem;
+            color: #6366f1;
+            font-style: italic;
+            margin-bottom: 8px;
+        }
+
+        .quest-footer {
+            font-size: 0.8rem;
+            font-weight: bold;
+            color: #94a3b8;
+            border-top: 1px dashed #e2e8f0;
+            padding-top: 6px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .quest-card.completed .quest-footer {
+            color: var(--success);
+            border-top-color: #a7f3d0;
+        }
+
+        /* Modal Popup Styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s ease;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .modal-box {
+            background: white;
+            padding: 20px;
+            border-radius: 16px;
+            width: 90%;
+            max-width: 360px;
+            text-align: left;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+        }
+
+        .modal-box label {
+            display: block;
+            font-size: 0.85rem;
+            font-weight: bold;
+            margin: 8px 0 4px;
+            color: #475569;
+        }
+
+        .modal-box input {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #cbd5e1;
+            border-radius: 8px;
+            font-size: 1rem;
+            box-sizing: border-box;
+        }
+
+        .modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .btn-secondary {
+            background-color: #cbd5e1;
+            color: #334155;
+            width: auto;
+            margin-top: 0;
+            padding: 10px 15px;
+        }
+
+        .celebration {
+            display: none;
+            background: #ecfdf5;
+            border: 2px solid var(--success);
+            padding: 15px;
+            border-radius: 12px;
+            margin-top: 15px;
+            color: #065f46;
+            font-size: 1rem;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>🌐 Find Someone Who... 🌐</h1>
+        <div class="subtitle">Unique non-repeating questions mixer!</div>
+
+        <!-- Lobby Screen -->
+        <div id="lobby-screen">
+            <h3>Enter Your Profile</h3>
+            <input type="text" id="player-name-input" placeholder="Your Name (e.g. Alex)..." autocomplete="off">
+            <input type="text" id="room-code-input" placeholder="Room Code (e.g. ROOM1)..." autocomplete="off">
+            <button class="btn" onclick="joinGame()">Start Board 🚀</button>
+        </div>
+
+        <!-- Game Screen -->
+        <div id="game-screen" class="hidden">
+            <div class="scoreboard-bar">
+                <div>Player: <span id="display-player-name" style="color:var(--primary);"></span></div>
+                <div>Completed: <span id="completed-count">0</span> / 6</div>
+            </div>
+
+            <div class="grid-container" id="grid-container"></div>
+
+            <div class="celebration" id="celebration-banner">
+                🎉 Amazing job! You completed your entire unique board! 🎉
+            </div>
+        </div>
+    </div>
+
+    <!-- Interview Modal -->
+    <div class="modal-overlay" id="modal-overlay">
+        <div class="modal-box">
+            <h3 id="modal-prompt-title" style="margin-top:0; font-size:1.1rem; color:var(--primary);">Find someone who...</h3>
+            <p style="font-size: 0.8rem; color: #6366f1; margin-bottom: 10px;" id="modal-question-hint"></p>
+            
+            <label for="peer-name">Classmate's Name:</label>
+            <input type="text" id="peer-name" placeholder="Type name here..." autocomplete="off">
+
+            <label for="peer-detail">Extra Detail / Note:</label>
+            <input type="text" id="peer-detail" placeholder="e.g., February 14th" autocomplete="off">
+
+            <div class="modal-actions">
+                <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+                <button class="btn" style="width:auto; margin-top:0; padding:10px 15px;" onclick="saveQuest()">Save ✅</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let myName = '';
+        let roomCode = '';
+        let activeIndex = null;
+        let playerQuests = [];
+
+        // Master pool of 12 unique non-repeating questions
+        const masterQuestionPool = [
+            { id: 1, prompt: "...was born in February", question: "Ask: 'Were you born in February?'" },
+            { id: 2, prompt: "...has traveled to another country", question: "Ask: 'Have you ever traveled abroad?'" },
+            { id: 3, prompt: "...plays a musical instrument", question: "Ask: 'Do you play a musical instrument?'" },
+            { id: 4, prompt: "...hates eating broccoli", question: "Ask: 'Do you dislike eating broccoli?'" },
+            { id: 5, prompt: "...woke up before 6:00 AM today", question: "Ask: 'Did you wake up early today?'" },
+            { id: 6, prompt: "...can speak more than two languages", question: "Ask: 'Can you speak three languages?'" },
+            { id: 7, prompt: "...has a pet cat or dog", question: "Ask: 'Do you have a pet cat or dog?'" },
+            { id: 8, prompt: "...read a book last week", question: "Ask: 'Did you read a book last week?'" },
+            { id: 9, prompt: "...loves swimming in the ocean", question: "Ask: 'Do you like swimming in the ocean?'" },
+            { id: 10, prompt: "...has broken a bone before", question: "Ask: 'Have you ever broken a bone?'" },
+            { id: 11, prompt: "...can bake a cake by themselves", question: "Ask: 'Can you bake a cake by yourself?'" },
+            { id: 12, prompt: "...has met a famous person", question: "Ask: 'Have you ever met a famous person?'" }
+        ];
+
+        function joinGame() {
+            myName = document.getElementById('player-name-input').value.trim();
+            roomCode = document.getElementById('room-code-input').value.trim().toUpperCase();
+
+            if (!myName || !roomCode) {
+                alert('Please enter both your name and a room code!');
+                return;
+            }
+
+            document.getElementById('display-player-name').textContent = myName;
+            document.getElementById('lobby-screen').classList.add('hidden');
+            document.getElementById('game-screen').classList.remove('hidden');
+
+            // Randomly select 6 unique non-repeating questions for this player's board
+            const shuffled = [...masterQuestionPool].sort(() => 0.5 - Math.random());
+            playerQuests = shuffled.slice(0, 6).map(q => ({
+                ...q,
+                completed: false,
+                name: "",
+                detail: ""
+            }));
+
+            renderGrid();
+        }
+
+        function renderGrid() {
+            const container = document.getElementById('grid-container');
+            container.innerHTML = '';
+
+            let completedCount = 0;
+
+            playerQuests.forEach((q, index) => {
+                if (q.completed) completedCount++;
+
+                const card = document.createElement('div');
+                card.className = `quest-card ${q.completed ? 'completed' : ''}`;
+                card.onclick = () => openModal(index);
+
+                card.innerHTML = `
+                    <div>
+                        <div class="quest-prompt">Find someone who ${q.prompt}</div>
+                        <div class="quest-question">${q.question}</div>
+                    </div>
+                    <div class="quest-footer">
+                        <span>${q.completed ? '👤 ' + q.name : 'Tap to interview ✍️'}</span>
+                        <span>${q.completed ? '✅' : '⏳'}</span>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+
+            document.getElementById('completed-count').textContent = completedCount;
+
+            if (completedCount === playerQuests.length) {
+                document.getElementById('celebration-banner').style.display = 'block';
+            }
+        }
+
+        function openModal(index) {
+            activeIndex = index;
+            const q = playerQuests[index];
+            document.getElementById('modal-prompt-title').textContent = `Find someone who ${q.prompt}`;
+            document.getElementById('modal-question-hint').textContent = q.question;
+            
+            document.getElementById('peer-name').value = q.name;
+            document.getElementById('peer-detail').value = q.detail;
+
+            document.getElementById('modal-overlay').classList.add('active');
+            document.getElementById('peer-name').focus();
+        }
+
+        function closeModal() {
+            document.getElementById('modal-overlay').classList.remove('active');
+            activeIndex = null;
+        }
+
+        function saveQuest() {
+            const nameInput = document.getElementById('peer-name').value.trim();
+            const detailInput = document.getElementById('peer-detail').value.trim();
+
+            if (nameInput) {
+                playerQuests[activeIndex].completed = true;
+                playerQuests[activeIndex].name = nameInput;
+                playerQuests[activeIndex].detail = detailInput || 'No extra detail';
+                
+                renderGrid();
+                closeModal();
+            } else {
+                alert('Please enter your classmate\'s name!');
+            }
+        }
+    </script>
+</body>
+</html>

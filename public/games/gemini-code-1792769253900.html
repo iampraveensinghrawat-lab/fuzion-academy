@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chapter 11: Adverbs Master Quiz</title>
+    <style>
+        body { font-family: sans-serif; background: #f4f7f6; padding: 20px; color: #333; }
+        .quiz-container { max-width: 600px; margin: auto; background: white; padding: 30px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        h2 { color: #2c3e50; text-align: center; }
+        .question { margin-bottom: 20px; font-weight: bold; font-size: 18px; }
+        .options label { display: block; margin: 10px 0; padding: 12px; background: #eef2f3; border-radius: 5px; cursor: pointer; transition: 0.2s; font-size: 16px; }
+        .options label:hover { background: #dfe6e9; }
+        button { background: #3498db; color: white; border: none; padding: 12px 20px; border-radius: 5px; cursor: pointer; font-size: 16px; margin-top: 15px; width: 100%; font-weight: bold; }
+        button:hover { background: #2980b9; }
+        #result { font-size: 22px; font-weight: bold; color: #27ae60; text-align: center; margin-top: 20px; }
+        .progress { text-align: center; color: #7f8c8d; margin-bottom: 15px; font-size: 14px; }
+    </style>
+</head>
+<body>
+    <div class="quiz-container">
+        <h2>Chapter 11: Adverbs Master Quiz</h2>
+        <div id="quiz-box">
+            <div id="progress" class="progress"></div>
+            <div id="question-text" class="question"></div>
+            <div id="options-box" class="options"></div>
+            <button onclick="nextQuestion()">Next Question</button>
+        </div>
+        <div id="result"></div>
+    </div>
+
+    <script>
+        const questions = [
+            { q: "What is the primary function of an adverb in a sentence?", options: ["To describe a noun or pronoun", "To modify a verb, an adjective, or another adverb", "To connect two independent clauses", "To indicate a preposition"], correct: 1 },
+            { q: "In 'The nightingale sang melodiously', what does the adverb 'melodiously' modify?", options: ["A noun", "A verb", "An adjective", "Another adverb"], correct: 1 },
+            { q: "In 'The plums were very sweet', the adverb 'very' modifies...", options: ["A verb", "An adjective", "A noun", "A conjunction"], correct: 1 },
+            { q: "Identify the adverb that modifies another adverb in: 'They finished the test quite quickly.'", options: ["finished", "test", "quite", "quickly"], correct: 2 },
+            { q: "Which of the following sentences features an adverb modifying a whole sentence?", options: ["She runs very fast.", "Seriously, this is not an easy task.", "The weather is extremely hot.", "They arrived promptly at six o'clock."], correct: 1 },
+            { q: "What question do Adverbs of Manner answer?", options: ["When?", "Where?", "How?", "How often?"], correct: 2 },
+            { q: "Which of the following words is an Adverb of Place?", options: ["Yesterday", "Upstairs", "Eloquently", "Often"], correct: 1 },
+            { q: "Which word functions as an Adverb of Time?", options: ["Inside", "Tomorrow", "Bravely", "Extremely"], correct: 1 },
+            { q: "Adverbs that tell us how often or how frequently an action happens are called...", options: ["Adverbs of Degree", "Adverbs of Frequency", "Interrogative Adverbs", "Relative Adverbs"], correct: 1 },
+            { q: "Words like very, extremely, almost, and quite primarily belong to which category?", options: ["Adverbs of Place", "Adverbs of Degree", "Adverbs of Time", "Adverbs of Manner"], correct: 1 },
+            { q: "Which of the following is an Interrogative Adverb used to ask a question about reason or cause?", options: ["Where", "When", "Why", "How"], correct: 2 },
+            { q: "Relative adverbs do which of the following?", options: ["Ask direct questions in a sentence", "Connect a subordinate clause to the main clause and refer to an antecedent", "Express shock or strong emotion exclusively", "Turn adjectives directly into nouns"], correct: 1 },
+            { q: "Identify the Adverb of Affirmation from the options below:", options: ["Not", "Never", "Surely", "Seldom"], correct: 2 },
+            { q: "Which sentence demonstrates an Exclamatory Adverb usage?", options: ["Did you make this curry?", "How beautifully she performed!", "He will certainly lend you money.", "The library is closed till tomorrow."], correct: 1 },
+            { q: "In the sentence, 'My friend lives there,' the word 'there' is an...", options: ["Adverb of Time", "Adverb of Place", "Adverb of Degree", "Adverb of Manner"], correct: 1 },
+            { q: "Which of the following is a classic example of an Adverb of Frequency?", options: ["Everywhere", "Promptly", "Rarely", "Yesterday"], correct: 2 },
+            { q: "Identify the phrase that acts as an adverb phrase of time:", options: ["down the street", "till tomorrow", "very carefully", "on stage"], correct: 1 },
+            { q: "Which word can act as both an adjective and an adverb without changing form?", options: ["Quickly", "Fast", "Beautifully", "Happily"], correct: 1 },
+            { q: "In the sentence, 'Physics is a hard subject for some people,' what part of speech is the word 'hard'?", options: ["Adverb", "Adjective", "Verb", "Preposition"], correct: 1 },
+            { q: "In the sentence, 'He worked hard on the farm,' what part of speech is the word 'hard'?", options: ["Adjective", "Adverb", "Noun", "Pronoun"], correct: 1 },
+            { q: "How are most standard adverbs of manner formed from adjectives?", options: ["By adding '-ly'", "By adding '-est'", "By dropping the final vowel entirely", "By adding prepositions"], correct: 0 },
+            { q: "If an adjective ends in '-ic', how is it typically changed into an adverb?", options: ["By adding '-ly' directly", "By adding '-ally' (e.g., basic -> basically)", "By changing '-ic' to '-y'", "By leaving it unchanged"], correct: 1 },
+            { q: "What is the adverb form of the adjective 'gentle' (ending in '-le')?", options: ["Gently", "Gentcly", "Gentlyy", "Gentely"], correct: 0 },
+            { q: "What is the adverb form of the adjective 'easy' (ending in a consonant + -y)?", options: ["Easyly", "Easily", "Easi", "Easiily"], correct: 1 },
+            { q: "Look at: 'He works hard' vs. 'He hardly works.' What does 'hardly' mean here?", options: ["With a lot of physical strength", "Almost not / Scarcely", "Frequently", "Very fast"], correct: 1 },
+            { q: "Compare 'I got up late' and 'I have not seen her lately.' What does 'lately' mean?", options: ["At a slow pace", "Recently / In the recent past", "Late at night", "Never"], correct: 1 },
+            { q: "Which pair represents a commonly confused adverb pair regarding exact direction/manner?", options: ["Short / Shortly", "Fast / Faster", "Good / Best", "Sweet / Sweetly"], correct: 0 },
+            { q: "Choose the correct adverb pair that deals with distance or connection:", options: ["Wide / Widely", "Clear / Clearly", "Bright / Brightly", "Loud / Loudly"], correct: 0 },
+            { q: "What is the comparative degree of the irregular adverb 'well'?", options: ["Gooder", "Better", "Best", "Wellest"], correct: 1 },
+            { q: "What is the superlative degree of the irregular adverb 'little'?", options: ["Less", "Least", "Littler", "Littlest"], correct: 1 },
+            { q: "What degree of comparison is used for 'hard' in 'Ragini works harder than Malati'?", options: ["Positive", "Comparative", "Superlative", "Absolute"], correct: 1 },
+            { q: "In the sentence, 'Tina works the hardest among them all,' what degree of comparison is 'hardest'?", options: ["Positive", "Comparative", "Superlative", "Equative"], correct: 2 },
+            { q: "For adverbs with three or more syllables (e.g., carefully), how do we form their comparative degree?", options: ["By adding '-er'", "By adding 'more' (more carefully)", "By adding '-est'", "By doubling the last letter"], correct: 1 },
+            { q: "How do we form the superlative degree of adverbs ending in '-ly' like quietly?", options: ["By adding '-est'", "By adding 'most' (most quietly)", "By removing the '-ly'", "By adding '-ily'"], correct: 1 },
+            { q: "What is the comparative form of the adverb 'badly / ill'?", options: ["Badder", "Worse", "Worst", "Illly"], correct: 1 },
+            { q: "What is the superlative form of 'far' (referring to distance)?", options: ["Farther", "Farthest", "Furthest", "Fartherest"], correct: 1 },
+            { q: "When comparing actions between two things, which degree must be used?", options: ["Positive degree", "Comparative degree", "Superlative degree", "Exclamatory degree"], correct: 1 },
+            { q: "When comparing an action across three or more things, which degree must be used?", options: ["Positive degree", "Comparative degree", "Superlative degree", "Interrogative degree"], correct: 2 },
+            { q: "What is the comparative form of the adverb 'soon'?", options: ["Sooner", "Soonest", "More soon", "Most soon"], correct: 0 },
+            { q: "What is the irregular superlative form of 'late'?", options: ["Later", "Latest", "Last", "Latter"], correct: 1 },
+            { q: "What is the standard structural rule for ordering Manner, Place, and Time (MPT) adverbs?", options: ["Time -> Place -> Manner", "Manner -> Place -> Time", "Place -> Manner -> Time", "Time -> Manner -> Place"], correct: 1 },
+            { q: "In 'Rachael danced gracefully on stage yesterday', identify the correct sequence:", options: ["Place -> Time -> Manner", "Manner -> Place -> Time", "Time -> Manner -> Place", "Random placement"], correct: 1 },
+            { q: "Adverbs of frequency and degree (always, seldom, quite) are generally placed...", options: ["At the very end of every sentence", "Between the subject and the verb (or after verbs like am/is/are)", "Before every subject pronoun", "Inside relative clauses only"], correct: 1 },
+            { q: "When choosing between Fairly and Rather, which one is paired with favorable adjectives?", options: ["Fairly (fairly fine)", "Rather (rather fine)", "Too", "Enough"], correct: 0 },
+            { q: "When should you use 'Rather' instead of 'Fairly'?", options: ["With pleasant adjectives", "With unfavorable or negative adjectives/adverbs (rather boring)", "Only before plural nouns", "Exclusively with verbs of manner"], correct: 1 },
+            { q: "What is the crucial placement rule for the word 'enough'?", options: ["It must always be placed before an adjective.", "It must always be placed after an adjective/adverb, but before a noun.", "It can never be used with nouns.", "It must always sit at the beginning."], correct: 1 },
+            { q: "Which sentence correctly applies the rule for 'enough'?", options: ["We have food enough to last a week.", "We have enough food to last a week.", "Enough we have food to last a week.", "Food enough we have."], correct: 1 },
+            { q: "When choosing between Very and Much, which word is used with present participles (e.g., inspiring)?", options: ["Very", "Much", "Too", "Rather"], correct: 0 },
+            { q: "When should you use 'Much' regarding participles?", options: ["With present participles", "With past participles (much admired)", "With positive degree adjectives", "With interrogative adverbs"], correct: 1 },
+            { q: "In 'Charlie performed better than Naren', the word 'better' serves as what?", options: ["A positive adverb", "A comparative adverb modifying the verb performed", "A superlative adjective modifying Naren", "A prepositional phrase"], correct: 1 }
+        ];
+
+        let currentIdx = 0;
+        let score = 0;
+
+        function loadQuiz() {
+            if (currentIdx < questions.length) {
+                let q = questions[currentIdx];
+                document.getElementById("progress").innerText = `Question ${currentIdx + 1} of ${questions.length}`;
+                document.getElementById("question-text").innerText = q.q;
+                let optHtml = "";
+                q.options.forEach((opt, idx) => {
+                    optHtml += `<label><input type="radio" name="opt" value="${idx}"> ${opt}</label>`;
+                });
+                document.getElementById("options-box").innerHTML = optHtml;
+            } else {
+                document.getElementById("quiz-box").style.display = "none";
+                document.getElementById("result").innerText = `Quiz Completed! Your Score: ${score} / ${questions.length}`;
+            }
+        }
+
+        function nextQuestion() {
+            let selected = document.querySelector('input[name="opt"]:checked');
+            if (!selected) { alert("Please select an option!"); return; }
+            if (parseInt(selected.value) === questions[currentIdx].correct) { score++; }
+            currentIdx++;
+            loadQuiz();
+        }
+
+        loadQuiz();
+    </script>
+</body>
+</html>

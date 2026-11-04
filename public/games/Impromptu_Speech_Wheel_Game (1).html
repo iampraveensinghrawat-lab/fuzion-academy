@@ -1,0 +1,833 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Impromptu Speech Wheel Game</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Canvas Confetti -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: radial-gradient(circle at 50% 10%, #1e1b4b 0%, #0f172a 100%);
+            color: #f8fafc;
+            min-height: 100vh;
+        }
+        .glass-card {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .wheel-container {
+            position: relative;
+            width: 100%;
+            max-width: 480px;
+            aspect-ratio: 1 / 1;
+            margin: 0 auto;
+        }
+        canvas {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            box-shadow: 0 0 30px rgba(99, 102, 241, 0.3), inset 0 0 20px rgba(0,0,0,0.5);
+        }
+        .pointer {
+            position: absolute;
+            top: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 20px solid transparent;
+            border-right: 20px solid transparent;
+            border-top: 35px solid #ec4899;
+            filter: drop-shadow(0 4px 6px rgba(0,0,0,0.4));
+            z-index: 20;
+        }
+    </style>
+</head>
+<body class="flex flex-col min-h-screen">
+
+    <!-- Header -->
+    <header class="w-full py-6 px-6 border-b border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-4 glass-card sticky top-0 z-50">
+        <div class="flex items-center gap-3">
+            <div class="p-3 bg-gradient-to-tr from-indigo-500 to-pink-500 rounded-2xl shadow-lg shadow-indigo-500/30">
+                <i data-lucide="mic" class="w-7 h-7 text-white"></i>
+            </div>
+            <div>
+                <h1 class="text-2xl font-800 tracking-tight bg-gradient-to-r from-indigo-400 via-purple-300 to-pink-400 bg-clip-text text-transparent">
+                    Impromptu Speech Wheel
+                </h1>
+                <p class="text-xs text-slate-400">50 Simple Student Topics • Easy English Edition</p>
+            </div>
+        </div>
+
+        <div class="flex items-center gap-3 flex-wrap justify-center">
+            <button onclick="openModal('topicsModal')" class="px-4 py-2 bg-slate-800/80 hover:bg-slate-700 text-slate-200 text-sm font-semibold rounded-xl border border-slate-700 transition flex items-center gap-2 shadow">
+                <i data-lucide="list" class="w-4 h-4 text-indigo-400"></i> View Topics (<span id="remainingCount">50</span>/50)
+            </button>
+            <button onclick="openModal('settingsModal')" class="px-4 py-2 bg-slate-800/80 hover:bg-slate-700 text-slate-200 text-sm font-semibold rounded-xl border border-slate-700 transition flex items-center gap-2 shadow">
+                <i data-lucide="settings" class="w-4 h-4 text-pink-400"></i> Settings
+            </button>
+            <button onclick="resetAllTopics()" class="px-3 py-2 bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 text-sm font-semibold rounded-xl border border-rose-500/30 transition flex items-center gap-1.5" title="Reset Used Topics">
+                <i data-lucide="rotate-ccw" class="w-4 h-4"></i> Reset
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Content Grid -->
+    <main class="flex-1 max-w-7xl w-full mx-auto p-4 md:p-8 grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+        
+        <!-- Left Column: Wheel & Quick Controls -->
+        <section class="lg:col-span-7 flex flex-col items-center gap-6">
+            <div class="glass-card w-full p-6 rounded-3xl shadow-2xl flex flex-col items-center relative overflow-hidden">
+                <div class="absolute -top-24 -left-24 w-72 h-72 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none"></div>
+                <div class="absolute -bottom-24 -right-24 w-72 h-72 bg-pink-500/10 rounded-full blur-3xl pointer-events-none"></div>
+
+                <!-- Current Speaker Banner -->
+                <div id="speakerBanner" class="w-full bg-slate-800/60 border border-slate-700/60 rounded-2xl p-3 mb-4 flex items-center justify-between text-sm">
+                    <div class="flex items-center gap-2 text-slate-300">
+                        <i data-lucide="user" class="w-4 h-4 text-indigo-400"></i>
+                        <span>Current Speaker: <strong id="activeSpeakerName" class="text-white">Open Floor</strong></span>
+                    </div>
+                    <button onclick="nextSpeaker()" class="text-xs text-indigo-400 hover:text-indigo-300 font-semibold underline">Next Rotation</button>
+                </div>
+
+                <!-- The Canvas Wheel -->
+                <div class="wheel-container my-4">
+                    <div class="pointer"></div>
+                    <canvas id="wheelCanvas" width="600" height="600"></canvas>
+                    <!-- Center Spin Button Pin -->
+                    <button onclick="spinWheel()" id="spinCenterBtn" class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-24 h-24 rounded-full bg-gradient-to-tr from-indigo-600 via-purple-600 to-pink-600 text-white font-extrabold shadow-xl border-4 border-slate-900 flex flex-col items-center justify-center hover:scale-105 active:scale-95 transition cursor-pointer z-30 group">
+                        <i data-lucide="play" class="w-7 h-7 fill-white mb-0.5 group-hover:scale-110 transition"></i>
+                        <span class="text-[10px] tracking-wider uppercase font-bold">SPIN</span>
+                    </button>
+                </div>
+
+                <!-- Spin Action Button -->
+                <div class="w-full mt-6 flex gap-4">
+                    <button onclick="spinWheel()" id="spinActionBtn" class="flex-1 py-4 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 hover:opacity-95 text-white font-bold rounded-2xl shadow-lg shadow-indigo-500/25 flex items-center justify-center gap-3 text-lg transition transform active:scale-[0.98]">
+                        <i data-lucide="sparkles" class="w-6 h-6"></i> Spin the Wheel!
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Right Column: Topic Display & Timers -->
+        <section class="lg:col-span-5 flex flex-col gap-6">
+            
+            <!-- Active Topic Card -->
+            <div class="glass-card p-6 rounded-3xl shadow-xl border border-slate-700/80 relative">
+                <div class="flex items-center justify-between mb-3">
+                    <span class="text-xs uppercase font-extrabold tracking-wider text-pink-400 flex items-center gap-1">
+                        <i data-lucide="target" class="w-4 h-4"></i> Selected Question
+                    </span>
+                    <span id="topicCategoryBadge" class="px-2.5 py-1 bg-indigo-500/20 text-indigo-300 rounded-full text-xs font-medium">Easy English</span>
+                </div>
+                <h2 id="currentTopicDisplay" class="text-xl md:text-2xl font-bold text-slate-100 min-h-[4rem] flex items-center leading-snug">
+                    Spin the wheel to reveal your easy speaking question!
+                </h2>
+                
+                <div class="mt-4 pt-4 border-t border-slate-700/60 flex items-center justify-between">
+                    <div class="flex items-center gap-2">
+                        <input type="checkbox" id="eliminationModeToggle" checked onchange="toggleEliminationMode(this)" class="w-4 h-4 accent-indigo-500 rounded cursor-pointer">
+                        <label for="eliminationModeToggle" class="text-xs text-slate-300 cursor-pointer font-medium">Auto-Remove Used Questions</label>
+                    </div>
+                    <button onclick="rerollTopic()" id="rerollBtn" disabled class="px-3 py-1.5 bg-slate-800 text-slate-500 rounded-xl text-xs font-semibold border border-slate-700 transition flex items-center gap-1 cursor-not-allowed">
+                        <i data-lucide="shuffle" class="w-3.5 h-3.5"></i> Re-spin
+                    </button>
+                </div>
+            </div>
+
+            <!-- Timers Panel -->
+            <div class="glass-card p-6 rounded-3xl shadow-xl border border-slate-700/80 flex flex-col gap-6">
+                <div class="flex items-center justify-between">
+                    <h3 class="font-bold text-slate-200 flex items-center gap-2">
+                        <i data-lucide="timer" class="w-5 h-5 text-indigo-400"></i> Speech Timers
+                    </h3>
+                    <div class="flex gap-2">
+                        <button onclick="startTimer()" id="startTimerBtn" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-xl shadow transition flex items-center gap-1.5">
+                            <i data-lucide="play" class="w-3.5 h-3.5"></i> Start
+                        </button>
+                        <button onclick="pauseTimer()" id="pauseTimerBtn" class="px-3 py-2 bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold rounded-xl shadow transition hidden">
+                            <i data-lucide="pause" class="w-3.5 h-3.5"></i>
+                        </button>
+                        <button onclick="resetTimer()" class="px-3 py-2 bg-slate-700 hover:bg-slate-600 text-white text-xs font-bold rounded-xl shadow transition">
+                            <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Prep Timer Subsection -->
+                <div class="bg-slate-900/50 p-4 rounded-2xl border border-slate-800 flex items-center justify-between">
+                    <div>
+                        <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Prep Time</span>
+                        <p class="text-sm text-slate-300">Quick thinking phase</p>
+                    </div>
+                    <div id="prepTimerDisplay" class="text-2xl font-extrabold text-indigo-300 font-mono">10s</div>
+                </div>
+
+                <!-- Speaking Timer Subsection -->
+                <div class="bg-slate-900/50 p-4 rounded-2xl border border-slate-800 flex flex-col gap-3">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Speaking Time</span>
+                            <p class="text-sm text-slate-300">Deliver your speech</p>
+                        </div>
+                        <div id="speakTimerDisplay" class="text-3xl font-extrabold text-pink-400 font-mono">60s</div>
+                    </div>
+                    <!-- Progress Bar -->
+                    <div class="w-full bg-slate-800 h-3 rounded-full overflow-hidden p-0.5 border border-slate-700">
+                        <div id="timerProgressBar" class="bg-gradient-to-r from-indigo-500 to-pink-500 h-full w-full rounded-full transition-all duration-300"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Classroom Participants Quick Widget -->
+            <div class="glass-card p-6 rounded-3xl shadow-xl border border-slate-700/80">
+                <div class="flex items-center justify-between mb-3">
+                    <h3 class="font-bold text-slate-200 flex items-center gap-2 text-sm">
+                        <i data-lucide="users" class="w-4 h-4 text-pink-400"></i> Participants Queue
+                    </h3>
+                    <button onclick="openModal('settingsModal')" class="text-xs text-indigo-400 hover:underline">Manage</button>
+                </div>
+                <div id="miniParticipantsList" class="flex flex-wrap gap-2 max-h-24 overflow-y-auto">
+                    <!-- Rendered via JS -->
+                    <span class="text-xs text-slate-500 italic">No participants added yet. Add in settings!</span>
+                </div>
+            </div>
+
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="py-6 text-center text-xs text-slate-500 border-t border-slate-800 mt-auto">
+        Impromptu Speech Wheel • Designed for easy English practice and classroom confidence.
+    </footer>
+
+    <!-- MODAL: Topics List -->
+    <div id="topicsModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
+        <div class="glass-card max-w-2xl w-full max-h-[85vh] rounded-3xl shadow-2xl border border-slate-700 flex flex-col overflow-hidden animate-in fade-in zoom-in duration-200">
+            <div class="p-6 border-b border-slate-800 flex items-center justify-between">
+                <div>
+                    <h3 class="text-xl font-bold text-slate-100">All 50 Easy Questions</h3>
+                    <p class="text-xs text-slate-400">Green = Available, Red = Used (Eliminated)</p>
+                </div>
+                <button onclick="closeModal('topicsModal')" class="p-2 text-slate-400 hover:text-white rounded-xl hover:bg-slate-800 transition">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            <div class="p-6 overflow-y-auto flex-1 grid grid-cols-1 md:grid-cols-2 gap-3" id="modalTopicsContainer">
+                <!-- Populated by JS -->
+            </div>
+            <div class="p-4 border-t border-slate-800 flex justify-between items-center bg-slate-900/40">
+                <span id="modalStatusText" class="text-xs text-slate-400">50 questions remaining</span>
+                <button onclick="closeModal('topicsModal')" class="px-5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold rounded-xl text-sm transition">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: Settings & Participants -->
+    <div id="settingsModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
+        <div class="glass-card max-w-lg w-full rounded-3xl shadow-2xl border border-slate-700 flex flex-col overflow-hidden animate-in fade-in zoom-in duration-200">
+            <div class="p-6 border-b border-slate-800 flex items-center justify-between">
+                <h3 class="text-xl font-bold text-slate-100">Game Settings & Participants</h3>
+                <button onclick="closeModal('settingsModal')" class="p-2 text-slate-400 hover:text-white rounded-xl hover:bg-slate-800 transition">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            <div class="p-6 overflow-y-auto flex-1 flex flex-col gap-6">
+                <!-- Timer Settings -->
+                <div class="flex flex-col gap-3">
+                    <h4 class="text-sm font-semibold text-indigo-400 uppercase tracking-wider">Timer Durations</h4>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="text-xs text-slate-300 block mb-1">Prep Time (seconds)</label>
+                            <input type="number" id="settingPrepTime" value="10" min="0" max="60" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white text-sm focus:outline-none focus:border-indigo-500">
+                        </div>
+                        <div>
+                            <label class="text-xs text-slate-300 block mb-1">Speaking Time (seconds)</label>
+                            <input type="number" id="settingSpeakTime" value="60" min="10" max="300" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white text-sm focus:outline-none focus:border-indigo-500">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Participants Management -->
+                <div class="flex flex-col gap-3">
+                    <h4 class="text-sm font-semibold text-pink-400 uppercase tracking-wider">Participants / Students</h4>
+                    <div class="flex gap-2">
+                        <input type="text" id="newParticipantInput" placeholder="Enter name (e.g. Alex)" class="flex-1 bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white text-sm focus:outline-none focus:border-pink-500">
+                        <button onclick="addParticipant()" class="px-4 py-2 bg-pink-600 hover:bg-pink-500 text-white text-sm font-semibold rounded-xl transition">Add</button>
+                    </div>
+                    <div id="participantsListContainer" class="flex flex-col gap-2 max-h-40 overflow-y-auto bg-slate-900/50 p-3 rounded-xl border border-slate-800">
+                        <!-- Populated by JS -->
+                    </div>
+                </div>
+            </div>
+            <div class="p-4 border-t border-slate-800 flex justify-end gap-3 bg-slate-900/40">
+                <button onclick="saveSettings()" class="px-6 py-2 bg-gradient-to-r from-indigo-600 to-pink-600 hover:opacity-90 text-white font-semibold rounded-xl text-sm shadow transition">Save Settings</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Custom Notification/Message Box -->
+    <div id="msgModal" class="fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="glass-card max-w-sm w-full p-6 rounded-3xl shadow-2xl border border-slate-700 text-center flex flex-col items-center gap-4">
+            <div id="msgIconContainer" class="w-12 h-12 rounded-full bg-indigo-500/20 text-indigo-400 flex items-center justify-center">
+                <i data-lucide="info" class="w-6 h-6"></i>
+            </div>
+            <h4 id="msgTitle" class="text-lg font-bold text-white">Notice</h4>
+            <p id="msgBody" class="text-sm text-slate-300">Message content here.</p>
+            <button onclick="closeMsgModal()" class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold rounded-xl text-sm transition">OK</button>
+        </div>
+    </div>
+
+    <!-- Audio Synthesizer fallback for sound effects -->
+    <script>
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        function playBeep(freq = 440, duration = 0.1, type = 'sine') {
+            try {
+                if (audioCtx.state === 'suspended') {
+                    audioCtx.resume();
+                }
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = type;
+                osc.frequency.value = freq;
+                gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start();
+                osc.stop(audioCtx.currentTime + duration);
+            } catch (e) {
+                // Ignore audio context restrictions if blocked
+            }
+        }
+
+        function playTickSound() {
+            playBeep(600, 0.05, 'triangle');
+        }
+
+        function playWinSound() {
+            playBeep(523.25, 0.1, 'sine'); // C5
+            setTimeout(() => playBeep(659.25, 0.1, 'sine'), 100); // E5
+            setTimeout(() => playBeep(783.99, 0.2, 'sine'), 200); // G5
+        }
+    </script>
+
+    <!-- Application Script -->
+    <script>
+        // 50 Very Simple, Easy, and Engaging Questions for Students & Learners
+        const ALL_TOPICS = [
+            "What is your favorite food and why?",
+            "Tell us about your best friend.",
+            "What do you like to do on weekends?",
+            "What is your favorite subject in school?",
+            "What is your dream job when you grow up?",
+            "Do you prefer cats or dogs? Why?",
+            "What is your favorite color and why?",
+            "What is your favorite hobby?",
+            "Tell us about your family.",
+            "What is your favorite movie or cartoon?",
+            "What is the best gift you have ever received?",
+            "What is your favorite season (Summer, Winter, Spring, Autumn)?",
+            "What time do you usually wake up in the morning?",
+            "What is your favorite sport or outdoor game?",
+            "Do you prefer reading books or watching TV?",
+            "What is your favorite fruit?",
+            "What song or type of music do you like best?",
+            "If you could travel anywhere in the world, where would you go?",
+            "What is your favorite ice cream flavor?",
+            "What do you usually eat for breakfast?",
+            "What is something that makes you happy?",
+            "What is your favorite holiday of the year?",
+            "Do you prefer rainy days or sunny days?",
+            "What is your favorite animal?",
+            "Tell us about a fun place you visited recently.",
+            "What is one thing you are really good at?",
+            "What is your favorite subject to learn online?",
+            "Do you like cooking or baking? What do you make?",
+            "What shoes do you like to wear the most?",
+            "What is your favorite board game or video game?",
+            "What is the best way to relax after a long day?",
+            "What is your favorite drink?",
+            "If you could have any superpower, what would it be?",
+            "What is the last book you read?",
+            "Do you like to wake up early or sleep late?",
+            "What is your favorite flower or plant?",
+            "Tell us about a funny pet story if you have one.",
+            "What is your favorite clothes style or outfit?",
+            "What is your favorite school lunch or snack?",
+            "What is your favorite month of the year?",
+            "Do you prefer city life or country life?",
+            "What is your favorite thing to do with your friends?",
+            "What is one new thing you want to learn this year?",
+            "What makes you laugh the most?",
+            "What is your favorite restaurant or cafe?",
+            "Do you prefer morning time or evening time?",
+            "What is your favorite type of weather?",
+            "What is a nice thing someone did for you recently?",
+            "What is your favorite school memory so far?",
+            "Describe your ideal relaxing Sunday in three words."
+        ];
+
+        let state = {
+            topics: [...ALL_TOPICS],
+            usedTopics: [],
+            currentTopic: null,
+            currentCategory: "General",
+            isEliminationMode: true,
+            participants: [],
+            activeSpeakerIndex: 0,
+            prepTimeSetting: 10,
+            speakTimeSetting: 60,
+            prepTimeRemaining: 10,
+            speakTimeRemaining: 60,
+            timerState: 'stopped', // 'stopped', 'prep', 'speaking', 'paused'
+            timerInterval: null,
+            isSpinning: false,
+            wheelAngle: 0
+        };
+
+        // Canvas Wheel Setup
+        const canvas = document.getElementById('wheelCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        // Colors for wheel segments (vibrant modern palette)
+        const wheelColors = [
+            '#6366f1', '#ec4899', '#8b5cf6', '#3b82f6', 
+            '#f43f5e', '#10b981', '#f59e0b', '#06b6d4'
+        ];
+
+        function drawWheel() {
+            const availableTopics = state.isEliminationMode 
+                ? state.topics.filter(t => !state.usedTopics.includes(t))
+                : state.topics;
+
+            const numSegments = availableTopics.length > 0 ? availableTopics.length : 1;
+            const arcSize = (2 * Math.PI) / numSegments;
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+            const radius = centerX - 10;
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            if (availableTopics.length === 0) {
+                ctx.save();
+                ctx.fillStyle = '#1e293b';
+                ctx.beginPath();
+                ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
+                ctx.fill();
+                ctx.fillStyle = '#94a3b8';
+                ctx.font = 'bold 20px Outfit';
+                ctx.textAlign = 'center';
+                ctx.fillText('All Questions Used! Reset Wheel', centerX, centerY);
+                ctx.restore();
+                return;
+            }
+
+            ctx.save();
+            ctx.translate(centerX, centerY);
+            ctx.rotate(state.wheelAngle);
+
+            for (let i = 0; i < numSegments; i++) {
+                const angle = i * arcSize;
+                ctx.beginPath();
+                ctx.moveTo(0, 0);
+                ctx.arc(0, 0, radius, angle, angle + arcSize);
+                ctx.closePath();
+
+                ctx.fillStyle = wheelColors[i % wheelColors.length];
+                ctx.fill();
+                ctx.strokeStyle = '#0f172a';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+
+                // Draw text label
+                ctx.save();
+                ctx.rotate(angle + arcSize / 2);
+                ctx.textAlign = 'right';
+                ctx.fillStyle = '#ffffff';
+                ctx.font = 'bold 12px Outfit';
+                
+                let displayText = availableTopics[i];
+                if (displayText.length > 24) {
+                    displayText = displayText.substring(0, 22) + '...';
+                }
+                ctx.fillText(displayText, radius - 25, 4);
+                ctx.restore();
+            }
+
+            ctx.restore();
+
+            // Center cap shadow circle
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, 38, 0, 2 * Math.PI);
+            ctx.fillStyle = '#0f172a';
+            ctx.fill();
+            ctx.lineWidth = 4;
+            ctx.strokeStyle = '#334155';
+            ctx.stroke();
+        }
+
+        // Spin Wheel Functionality
+        let currentSpinAnim = null;
+        function spinWheel() {
+            if (state.isSpinning) return;
+
+            const availableTopics = state.isEliminationMode 
+                ? state.topics.filter(t => !state.usedTopics.includes(t))
+                : state.topics;
+
+            if (availableTopics.length === 0) {
+                showMsg('All Questions Used', 'All 50 questions have been used. Please click Reset to play again!');
+                return;
+            }
+
+            state.isSpinning = true;
+            document.getElementById('spinActionBtn').disabled = true;
+            document.getElementById('spinCenterBtn').disabled = true;
+
+            resetTimer();
+
+            const numSegments = availableTopics.length;
+            const arcSize = (2 * Math.PI) / numSegments;
+            
+            // Random target index
+            const targetIndex = Math.floor(Math.random() * numSegments);
+            const selectedTopicText = availableTopics[targetIndex];
+
+            const targetSegmentCenterAngle = targetIndex * arcSize + arcSize / 2;
+            const extraSpins = 6 + Math.floor(Math.random() * 4); // 6 to 9 full rotations
+            const targetAngle = (2 * Math.PI * extraSpins) + (3 * Math.PI / 2) - targetSegmentCenterAngle;
+
+            const startAngle = state.wheelAngle;
+            const distance = targetAngle - startAngle;
+            const duration = 3500; // 3.5 seconds
+            let startTime = null;
+
+            function animateSpin(timestamp) {
+                if (!startTime) startTime = timestamp;
+                const elapsed = timestamp - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+                
+                const easeOut = 1 - Math.pow(1 - progress, 3);
+                state.wheelAngle = startAngle + distance * easeOut;
+
+                drawWheel();
+                playTickSound();
+
+                if (progress < 1) {
+                    currentSpinAnim = requestAnimationFrame(animateSpin);
+                } else {
+                    state.isSpinning = false;
+                    document.getElementById('spinActionBtn').disabled = false;
+                    document.getElementById('spinCenterBtn').disabled = false;
+                    
+                    selectTopic(selectedTopicText);
+                    playWinStatus();
+                }
+            }
+
+            currentSpinAnim = requestAnimationFrame(animateSpin);
+        }
+
+        function selectTopic(topic) {
+            state.currentTopic = topic;
+            document.getElementById('currentTopicDisplay').textContent = topic;
+            document.getElementById('rerollBtn').disabled = false;
+            document.getElementById('rerollBtn').classList.remove('bg-slate-800', 'text-slate-500', 'cursor-not-allowed');
+            document.getElementById('rerollBtn').classList.add('bg-slate-800', 'text-slate-200', 'hover:bg-slate-700');
+
+            if (state.isEliminationMode && !state.usedTopics.includes(topic)) {
+                state.usedTopics.push(topic);
+            }
+
+            updateCounts();
+            renderTopicsModalList();
+        }
+
+        function playWinStatus() {
+            playWinSound();
+            confetti({
+                particleCount: 80,
+                spread: 70,
+                origin: { y: 0.6 }
+            });
+        }
+
+        function rerollTopic() {
+            if (state.isSpinning) return;
+            spinWheel();
+        }
+
+        function toggleEliminationMode(checkbox) {
+            state.isEliminationMode = checkbox.checked;
+            drawWheel();
+        }
+
+        function resetAllTopics() {
+            state.usedTopics = [];
+            state.currentTopic = null;
+            document.getElementById('currentTopicDisplay').textContent = 'Spin the wheel to reveal your easy speaking question!';
+            document.getElementById('topicCategoryBadge').textContent = 'Ready';
+            document.getElementById('rerollBtn').disabled = true;
+            document.getElementById('rerollBtn').classList.add('bg-slate-800', 'text-slate-500', 'cursor-not-allowed');
+            document.getElementById('rerollBtn').classList.remove('bg-slate-800', 'text-slate-200', 'hover:bg-slate-700');
+            resetTimer();
+            updateCounts();
+            drawWheel();
+            renderTopicsModalList();
+            showMsg('Wheel Reset', 'All questions have been restored to the wheel!');
+        }
+
+        function updateCounts() {
+            const remaining = state.topics.length - state.usedTopics.length;
+            document.getElementById('remainingCount').textContent = remaining;
+            document.getElementById('modalStatusText').textContent = `${remaining} of ${state.topics.length} questions remaining`;
+        }
+
+        // Timer Logic
+        function startTimer() {
+            if (state.timerState === 'prep' || state.timerState === 'speaking' || state.timerState === 'paused') {
+                if (state.timerState === 'paused') {
+                    state.timerState = state.resumeState || 'speaking';
+                }
+            } else {
+                state.timerState = 'prep';
+                state.prepTimeRemaining = state.prepTimeSetting;
+                state.speakTimeRemaining = state.speakTimeSetting;
+            }
+
+            document.getElementById('startTimerBtn').classList.add('hidden');
+            document.getElementById('pauseTimerBtn').classList.remove('hidden');
+
+            if (state.timerInterval) clearInterval(state.timerInterval);
+
+            state.timerInterval = setInterval(() => {
+                if (state.timerState === 'prep') {
+                    if (state.prepTimeRemaining > 0) {
+                        state.prepTimeRemaining--;
+                        if (state.prepTimeRemaining <= 3) playBeep(800, 0.08);
+                    }
+                    if (state.prepTimeRemaining <= 0) {
+                        playBeep(1200, 0.3);
+                        state.timerState = 'speaking';
+                    }
+                } else if (state.timerState === 'speaking') {
+                    if (state.speakTimeRemaining > 0) {
+                        state.speakTimeRemaining--;
+                        if (state.speakTimeRemaining <= 5 && state.speakTimeRemaining > 0) {
+                            playBeep(400, 0.15, 'sawtooth');
+                        }
+                    }
+                    if (state.speakTimeRemaining <= 0) {
+                        clearInterval(state.timerInterval);
+                        state.timerState = 'stopped';
+                        playBeep(300, 0.6, 'square');
+                        confetti({ particleCount: 100, spread: 100, origin: { y: 0.5 } });
+                        document.getElementById('startTimerBtn').classList.remove('hidden');
+                        document.getElementById('pauseTimerBtn').classList.add('hidden');
+                        showMsg('Time Up!', 'Great job answering the question!');
+                    }
+                }
+                updateTimerUI();
+            }, 1000);
+            updateTimerUI();
+        }
+
+        function pauseTimer() {
+            if (state.timerInterval) clearInterval(state.timerInterval);
+            state.resumeState = state.timerState;
+            state.timerState = 'paused';
+            document.getElementById('startTimerBtn').classList.remove('hidden');
+            document.getElementById('pauseTimerBtn').classList.add('hidden');
+            document.getElementById('startTimerBtn').innerHTML = `<i data-lucide="play" class="w-3.5 h-3.5"></i> Resume`;
+            lucide.createIcons();
+        }
+
+        function resetTimer() {
+            if (state.timerInterval) clearInterval(state.timerInterval);
+            state.timerState = 'stopped';
+            state.prepTimeRemaining = state.prepTimeSetting;
+            state.speakTimeRemaining = state.speakTimeSetting;
+            document.getElementById('startTimerBtn').classList.remove('hidden');
+            document.getElementById('pauseTimerBtn').classList.add('hidden');
+            document.getElementById('startTimerBtn').innerHTML = `<i data-lucide="play" class="w-3.5 h-3.5"></i> Start`;
+            updateTimerUI();
+            lucide.createIcons();
+        }
+
+        function updateTimerUI() {
+            document.getElementById('prepTimerDisplay').textContent = `${state.prepTimeRemaining}s`;
+            document.getElementById('speakTimerDisplay').textContent = `${state.speakTimeRemaining}s`;
+
+            const percentage = (state.speakTimeRemaining / state.speakTimeSetting) * 100;
+            const bar = document.getElementById('timerProgressBar');
+            bar.style.width = `${percentage}%`;
+
+            if (state.timerState === 'prep') {
+                document.getElementById('prepTimerDisplay').classList.add('text-amber-400', 'animate-pulse');
+                document.getElementById('speakTimerDisplay').classList.remove('text-amber-400');
+            } else if (state.timerState === 'speaking') {
+                document.getElementById('prepTimerDisplay').classList.remove('text-amber-400', 'animate-pulse');
+                if (state.speakTimeRemaining <= 10) {
+                    bar.className = "bg-rose-500 h-full rounded-full transition-all duration-300 animate-pulse";
+                    document.getElementById('speakTimerDisplay').className = "text-3xl font-extrabold text-rose-400 font-mono animate-bounce";
+                } else {
+                    bar.className = "bg-gradient-to-r from-indigo-500 to-pink-500 h-full rounded-full transition-all duration-300";
+                    document.getElementById('speakTimerDisplay').className = "text-3xl font-extrabold text-pink-400 font-mono";
+                }
+            }
+        }
+
+        // Participants Management
+        function addParticipant() {
+            const input = document.getElementById('newParticipantInput');
+            const name = input.value.trim();
+            if (!name) return;
+            state.participants.push(name);
+            input.value = '';
+            renderParticipantsUI();
+        }
+
+        function removeParticipant(index) {
+            state.participants.splice(index, 1);
+            if (state.activeSpeakerIndex >= state.participants.length) {
+                state.activeSpeakerIndex = 0;
+            }
+            renderParticipantsUI();
+        }
+
+        function nextSpeaker() {
+            if (state.participants.length === 0) {
+                showMsg('No Participants', 'Add participants in the Settings menu to use rotation mode!');
+                return;
+            }
+            state.activeSpeakerIndex = (state.activeSpeakerIndex + 1) % state.participants.length;
+            renderParticipantsUI();
+        }
+
+        function renderParticipantsUI() {
+            const container = document.getElementById('participantsListContainer');
+            const miniContainer = document.getElementById('miniParticipantsList');
+            const activeSpeakerNameEl = document.getElementById('activeSpeakerName');
+
+            if (state.participants.length === 0) {
+                container.innerHTML = `<span class="text-xs text-slate-500 italic">No participants added yet.</span>`;
+                miniContainer.innerHTML = `<span class="text-xs text-slate-500 italic">No participants added yet. Add in settings!</span>`;
+                activeSpeakerNameEl.textContent = "Open Floor";
+                return;
+            }
+
+            activeSpeakerNameEl.textContent = state.participants[state.activeSpeakerIndex];
+
+            let html = '';
+            state.participants.forEach((name, idx) => {
+                const isActive = idx === state.activeSpeakerIndex;
+                html += `
+                    <div class="flex items-center justify-between p-2 rounded-xl bg-slate-900/80 border ${isActive ? 'border-pink-500/80 shadow-pink-500/10 shadow-lg' : 'border-slate-800'}">
+                        <div class="flex items-center gap-2">
+                            <span class="w-6 h-6 rounded-full bg-slate-800 text-slate-300 text-xs font-bold flex items-center justify-center">${idx + 1}</span>
+                            <span class="text-sm font-medium ${isActive ? 'text-pink-300 font-bold' : 'text-slate-200'}">${name} ${isActive ? '(Speaking)' : ''}</span>
+                        </div>
+                        <button onclick="removeParticipant(${idx})" class="text-slate-500 hover:text-rose-400 p-1 transition"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                    </div>
+                `;
+            });
+            container.innerHTML = html;
+
+            let miniHtml = '';
+            state.participants.forEach((name, idx) => {
+                const isActive = idx === state.activeSpeakerIndex;
+                miniHtml += `
+                    <span class="px-3 py-1 rounded-xl text-xs font-semibold flex items-center gap-1.5 ${isActive ? 'bg-pink-600 text-white shadow-md shadow-pink-600/30 ring-2 ring-pink-400/50' : 'bg-slate-800 text-slate-300 border border-slate-700'}">
+                        ${name}
+                    </span>
+                `;
+            });
+            miniContainer.innerHTML = miniHtml;
+            lucide.createIcons();
+        }
+
+        function saveSettings() {
+            const prepInput = document.getElementById('settingPrepTime');
+            const speakInput = document.getElementById('settingSpeakTime');
+
+            const pTime = parseInt(prepInput.value);
+            const sTime = parseInt(speakInput.value);
+
+            if (!isNaN(pTime) && pTime >= 0) state.prepTimeSetting = pTime;
+            if (!isNaN(sTime) && sTime >= 10) state.speakTimeSetting = sTime;
+
+            resetTimer();
+            closeModal('settingsModal');
+            showMsg('Settings Saved', 'Timer configurations updated successfully!');
+        }
+
+        // Topics Modal List Render
+        function renderTopicsModalList() {
+            const container = document.getElementById('modalTopicsContainer');
+            let html = '';
+            state.topics.forEach((topic, idx) => {
+                const isUsed = state.usedTopics.includes(topic);
+                html += `
+                    <div class="p-3 rounded-2xl border flex items-start gap-3 ${isUsed ? 'bg-rose-950/20 border-rose-900/40 text-slate-400' : 'bg-slate-900/60 border-slate-800 text-slate-200'}">
+                        <span class="w-6 h-6 rounded-full bg-slate-800 text-xs font-bold flex items-center justify-center shrink-0 mt-0.5 ${isUsed ? 'text-rose-400' : 'text-indigo-400'}">${idx + 1}</span>
+                        <div class="flex-1 text-sm leading-snug">${topic}</div>
+                        <div>
+                            <span class="text-[10px] font-bold px-2 py-0.5 rounded-full ${isUsed ? 'bg-rose-500/20 text-rose-300' : 'bg-emerald-500/20 text-emerald-300'}">
+                                ${isUsed ? 'Used' : 'Ready'}
+                            </span>
+                        </div>
+                    </div>
+                `;
+            });
+            container.innerHTML = html;
+        }
+
+        // Modal Helpers
+        function openModal(modalId) {
+            document.getElementById(modalId).classList.remove('hidden');
+            if (modalId === 'topicsModal') renderTopicsModalList();
+            if (modalId === 'settingsModal') {
+                document.getElementById('settingPrepTime').value = state.prepTimeSetting;
+                document.getElementById('settingSpeakTime').value = state.speakTimeSetting;
+                renderParticipantsUI();
+            }
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.add('hidden');
+        }
+
+        function showMsg(title, body) {
+            document.getElementById('msgTitle').textContent = title;
+            document.getElementById('msgBody').textContent = body;
+            document.getElementById('msgModal').classList.remove('hidden');
+        }
+
+        function closeMsgModal() {
+            document.getElementById('msgModal').classList.add('hidden');
+        }
+
+        // Initialize App on load
+        window.onload = () => {
+            lucide.createIcons();
+            drawWheel();
+            updateCounts();
+
+            window.addEventListener('resize', () => {
+                drawWheel();
+            });
+        };
+    </script>
+</body>
+</html>

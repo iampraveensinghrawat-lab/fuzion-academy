@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Speak Up & Climb! - English Learning Board Game</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #1e1b4b 0%, #311042 50%, #0f172a 100%);
+            color: #f8fafc;
+        }
+        .board-grid {
+            display: grid;
+            grid-template-columns: repeat(10, minmax(0, 1fr));
+            grid-template-rows: repeat(10, minmax(0, 1fr));
+        }
+        /* Custom animations for dice and coin movement */
+        @keyframes bounce-coin {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-8px); }
+        }
+        .coin-animate {
+            animation: bounce-coin 0.6s infinite ease-in-out;
+        }
+        @keyframes roll {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .dice-rolling {
+            animation: roll 0.3s linear infinite;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col items-center justify-between p-4 md:p-6">
+
+    <header class="w-full max-w-7xl text-center my-3">
+        <h1 class="text-3xl md:text-5xl font-extrabold tracking-wide bg-gradient-to-r from-amber-400 via-pink-500 to-cyan-400 bg-clip-text text-transparent drop-shadow-md">
+            🎲 Speak Up & Climb! 🗣️
+        </h1>
+        <p class="text-sm md:text-base text-purple-200 mt-1 font-medium">
+            Multiplayer English Learning Adventure for 5 Teams
+        </p>
+    </header>
+
+    <main class="w-full max-w-7xl grid grid-cols-1 lg:grid-cols-4 gap-6 items-start my-auto">
+
+        <!-- Left Sidebar: Teams & Controls -->
+        <section class="lg:col-span-1 bg-slate-900/80 backdrop-blur-md border border-purple-500/30 p-5 rounded-2xl shadow-2xl flex flex-col gap-5">
+            <div class="flex items-center justify-between">
+                <h2 class="text-xl font-bold text-amber-400 flex items-center gap-2">
+                    <span>🏆</span> Teams Dashboard
+                </h2>
+                <button onclick="resetGame()" class="text-xs bg-red-600/80 hover:bg-red-600 text-white px-2.5 py-1.5 rounded-lg transition font-semibold shadow">
+                    Reset Game
+                </button>
+            </div>
+
+            <!-- Teams List -->
+            <div id="teams-container" class="flex flex-col gap-3">
+                <!-- Dynamically populated via JS -->
+            </div>
+
+            <!-- Current Turn & Controls Box -->
+            <div class="bg-purple-950/60 border border-purple-500/40 p-4 rounded-xl flex flex-col items-center gap-3 text-center">
+                <div class="text-sm text-purple-300 font-semibold uppercase tracking-wider">Current Turn</div>
+                <div id="current-turn-banner" class="text-lg font-extrabold px-4 py-1.5 rounded-full shadow-inner bg-red-600 text-white flex items-center gap-2">
+                    <span class="w-3 h-3 rounded-full bg-white"></span>
+                    <span>Red Team</span>
+                </div>
+
+                <!-- Dice Rolling Area -->
+                <div class="flex items-center justify-center gap-4 my-2 w-full">
+                    <div id="dice-box" class="w-16 h-16 bg-white text-slate-950 rounded-xl font-extrabold text-3xl flex items-center justify-center shadow-lg border-4 border-amber-400 select-none cursor-pointer hover:scale-105 transition">
+                        🎲
+                    </div>
+                    <button id="roll-btn" onclick="rollDice()" class="flex-1 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-slate-950 font-extrabold py-3 px-4 rounded-xl shadow-lg transition transform active:scale-95 text-lg">
+                        Roll Dice!
+                    </button>
+                </div>
+                <div id="dice-result-text" class="text-xs text-amber-300 font-medium h-4">Click dice or button to roll!</div>
+            </div>
+
+            <!-- Quick Rule Reminder -->
+            <div class="bg-slate-800/80 p-3.5 rounded-xl border border-slate-700 text-xs text-slate-300 space-y-1.5">
+                <p class="font-bold text-amber-400">💡 How to Play:</p>
+                <p>1. Roll the dice to move your colored coin.</p>
+                <p>2. Land on a box & speak on the topic for 30 seconds!</p>
+                <p>3. Ladders boost you up; Snakes slide you down!</p>
+            </div>
+        </section>
+
+        <!-- Center: Game Board (10x10 Grid) -->
+        <section class="lg:col-span-3 bg-slate-900/90 backdrop-blur-md border border-purple-500/30 p-4 md:p-6 rounded-2xl shadow-2xl flex flex-col items-center justify-center relative overflow-hidden">
+            <!-- Board container -->
+            <div id="game-board" class="board-grid w-full aspect-square max-w-[650px] bg-slate-950/80 rounded-xl border-4 border-purple-600/50 shadow-2xl relative overflow-hidden select-none">
+                <!-- Squares rendered dynamically by JavaScript -->
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Speaking Prompt Modal -->
+    <div id="prompt-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-slate-900 border-2 border-amber-400/80 w-full max-w-lg rounded-3xl p-6 md:p-8 shadow-2xl flex flex-col gap-6 relative animate-fade-in">
+            <!-- Header icon & Team Badge -->
+            <div class="flex items-center justify-between">
+                <span id="modal-team-badge" class="px-3 py-1 rounded-full text-xs font-bold bg-red-600 text-white flex items-center gap-1.5">
+                    🔴 Red Team's Turn
+                </span>
+                <span class="text-sm font-semibold text-amber-400 flex items-center gap-1">
+                    📍 Box <span id="modal-box-num">--</span>
+                </span>
+            </div>
+
+            <!-- Prompt Content -->
+            <div class="space-y-3">
+                <h3 id="modal-prompt-title" class="text-xl md:text-2xl font-extrabold text-white flex items-center gap-2">
+                    🗣️ English Speaking Challenge!
+                </h3>
+                <div class="bg-slate-800/90 border border-slate-700 p-4 rounded-2xl text-slate-200 text-base md:text-lg leading-relaxed shadow-inner" id="modal-prompt-text">
+                    Loading prompt...
+                </div>
+            </div>
+
+            <!-- Timer Section -->
+            <div class="flex flex-col items-center gap-2 bg-purple-950/40 p-4 rounded-2xl border border-purple-500/30">
+                <div class="text-sm font-semibold text-purple-300">Speaking Timer (30 Seconds)</div>
+                <div id="timer-display" class="text-4xl font-extrabold text-amber-400 tracking-wider">00:30</div>
+                <div class="flex gap-3 mt-1 w-full">
+                    <button onclick="startTimer()" id="start-timer-btn" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 px-4 rounded-xl shadow transition text-sm">
+                        Start Timer ⏱️
+                    </button>
+                    <button onclick="skipTimer()" class="bg-slate-700 hover:bg-slate-600 text-slate-200 font-bold py-2 px-4 rounded-xl shadow transition text-sm">
+                        Done Speaking ✅
+                    </button>
+                </div>
+            </div>
+
+            <!-- Special Action Notice -->
+            <div id="modal-special-notice" class="text-xs text-center font-medium text-pink-400 hidden">
+                ✨ Special Ladder or Snake effect applies here!
+            </div>
+        </div>
+    </div>
+
+    <!-- Winner Celebration Modal -->
+    <div id="winner-modal" class="fixed inset-0 bg-black/85 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-gradient-to-br from-slate-900 to-purple-950 border-4 border-amber-400 w-full max-w-md rounded-3xl p-8 shadow-2xl text-center flex flex-col items-center gap-5">
+            <div class="text-6xl animate-bounce">🏆🎉</div>
+            <h2 class="text-3xl font-extrabold text-amber-400">We Have a Winner!</h2>
+            <p id="winner-announcement" class="text-lg text-slate-200 font-semibold">
+                Red Team has successfully reached Box 100 and won the game!
+            </p>
+            <button onclick="resetGame(); closeWinnerModal();" class="bg-gradient-to-r from-amber-500 to-orange-600 text-slate-950 font-extrabold py-3 px-8 rounded-xl shadow-lg hover:scale-105 transition text-base">
+                Play Again 🔄
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // 5 Teams definition
+        const teams = [
+            { id: 0, name: "Red Team", colorBg: "bg-red-600", colorBorder: "border-red-400", hex: "#dc2626", position: 1 },
+            { id: 1, name: "Blue Team", colorBg: "bg-blue-600", colorBorder: "border-blue-400", hex: "#2563eb", position: 1 },
+            { id: 2, name: "Green Team", colorBg: "bg-emerald-600", colorBorder: "border-emerald-400", hex: "#059669", position: 1 },
+            { id: 3, name: "Yellow Team", colorBg: "bg-amber-500", colorBorder: "border-amber-300", hex: "#d97706", position: 1 },
+            { id: 4, name: "Purple Team", colorBg: "bg-purple-600", colorBorder: "border-purple-400", hex: "#9333ea", position: 1 }
+        ];
+
+        let currentTurnIndex = 0;
+        let isRolling = false;
+        let timerInterval = null;
+        let timeLeft = 30;
+
+        // Ladders and Snakes Configuration (Key: Start -> Value: End)
+        const specialMoves = {
+            // Ladders (Boosts)
+            4: 14,
+            9: 31,
+            20: 38,
+            28: 84,
+            40: 59,
+            51: 67,
+            63: 81,
+            71: 91,
+            // Snakes (Chutes)
+            17: 7,
+            34: 22,
+            54: 36,
+            62: 19,
+            87: 24,
+            93: 73,
+            99: 78
+        };
+
+        // English Speaking Prompts Database for various boxes (Slightly easier topics)
+        const defaultPrompts = [
+            "What is your favorite color and why do you like it?",
+            "What did you eat for breakfast today? Tell us about it.",
+            "Describe your best friend in 3 simple words and explain why.",
+            "What is your favorite hobby to do on weekends?",
+            "What is your favorite animal? What does it look like?",
+            "Would you rather eat pizza or burgers? Give one quick reason.",
+            "What is the weather like today where you are?",
+            "What is your favorite movie or cartoon? Why is it good?",
+            "What time do you usually wake up in the morning?",
+            "Name three things you always carry in your school bag.",
+            "What is your favorite subject in school and why?",
+            "If you could travel anywhere in the world, where would you go?"
+        ];
+
+        function getPromptForBox(boxNum) {
+            if (boxNum === 100) return "Say a happy 'Thank you!' to everyone for playing!";
+            if (specialMoves[boxNum] > boxNum) return `🪜 LADDER BOOST! Answer this easy question to climb: "${defaultPrompts[boxNum % defaultPrompts.length]}"`;
+            if (specialMoves[boxNum] < boxNum) return `🐍 SNAKE CHUTE! Answer this quick question to soften your slide: "${defaultPrompts[boxNum % defaultPrompts.length]}"`;
+            return defaultPrompts[boxNum % defaultPrompts.length];
+        }
+
+        // Initialize Board Grid (Boustrophedon / Snake Pattern from 1 to 100)
+        function renderBoard() {
+            const boardEl = document.getElementById('game-board');
+            boardEl.innerHTML = '';
+
+            // Generate 100 boxes in snake pattern layout
+            for (let row = 9; row >= 0; row--) {
+                for (let col = 0; col < 10; col++) {
+                    let boxNum;
+                    if (row % 2 === 1) {
+                        // Odd rows from left to right (e.g., 91 to 100)
+                        boxNum = row * 10 + (col + 1);
+                    } else {
+                        // Even rows from right to left (e.g., 90 to 81)
+                        boxNum = row * 10 + (10 - col);
+                    }
+
+                    const square = document.createElement('div');
+                    square.id = `square-${boxNum}`;
+                    square.className = `relative border border-purple-900/40 flex flex-col justify-between p-1 text-[10px] md:text-xs font-bold transition select-none ${
+                        boxNum === 100 ? 'bg-amber-500/20 text-amber-300' :
+                        boxNum === 1 ? 'bg-purple-900/40 text-purple-200' :
+                        specialMoves[boxNum] > boxNum ? 'bg-emerald-950/40 text-emerald-300' :
+                        specialMoves[boxNum] < boxNum ? 'bg-rose-950/40 text-rose-300' :
+                        'bg-slate-900/60 text-slate-400'
+                    }`;
+
+                    // Box number badge & indicators
+                    let indicator = boxNum === 100 ? '🏆' : specialMoves[boxNum] > boxNum ? '🪜+' : specialMoves[boxNum] < boxNum ? '🐍-' : '';
+                    square.innerHTML = `
+                        <div class="flex justify-between items-center w-full">
+                            <span class="opacity-70">${boxNum}</span>
+                            <span class="text-[10px]">${indicator}</span>
+                        </div>
+                        <div class="coins-container flex flex-wrap gap-0.5 items-center justify-center my-auto"></div>
+                    `;
+                    boardEl.appendChild(square);
+                }
+            }
+            updateCoinsOnBoard();
+        }
+
+        // Render Teams list in sidebar
+        function renderTeams() {
+            const container = document.getElementById('teams-container');
+            container.innerHTML = '';
+            teams.forEach((team, index) => {
+                const isCurrent = index === currentTurnIndex;
+                const card = document.createElement('div');
+                card.className = `flex items-center justify-between p-2.5 rounded-xl border transition ${
+                    isCurrent ? 'bg-purple-900/60 border-amber-400 shadow-md ring-1 ring-amber-400' : 'bg-slate-800/60 border-slate-700'
+                }`;
+                card.innerHTML = `
+                    <div class="flex items-center gap-2.5">
+                        <div class="w-4 h-4 rounded-full ${team.colorBg} shadow-sm border border-white/40"></div>
+                        <span class="font-bold text-sm ${isCurrent ? 'text-amber-300' : 'text-slate-200'}">${team.name}</span>
+                    </div>
+                    <div class="text-xs font-extrabold bg-slate-900 px-2.5 py-1 rounded-lg border border-slate-700 text-amber-400">
+                        Box ${team.position}
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+
+            // Update Current Turn Banner
+            const banner = document.getElementById('current-turn-banner');
+            const activeTeam = teams[currentTurnIndex];
+            banner.className = `text-base md:text-lg font-extrabold px-4 py-1.5 rounded-full shadow-inner ${activeTeam.colorBg} text-white flex items-center gap-2`;
+            banner.innerHTML = `<span class="w-3 h-3 rounded-full bg-white animate-pulse"></span><span>${activeTeam.name}</span>`;
+        }
+
+        // Position coins onto the board squares
+        function updateCoinsOnBoard() {
+            // Clear all coins containers first
+            for (let i = 1; i <= 100; i++) {
+                const sq = document.getElementById(`square-${i}`);
+                if (sq) {
+                    const cContainer = sq.querySelector('.coins-container');
+                    if (cContainer) cContainer.innerHTML = '';
+                }
+            }
+
+            // Place each team's coin in their target box
+            teams.forEach(team => {
+                const sq = document.getElementById(`square-${team.position}`);
+                if (sq) {
+                    const cContainer = sq.querySelector('.coins-container');
+                    if (cContainer) {
+                        const coin = document.createElement('div');
+                        coin.className = `w-4 h-4 md:w-5 md:h-5 rounded-full ${team.colorBg} border-2 border-white shadow-lg coin-animate flex items-center justify-center text-[8px] font-extrabold text-white`;
+                        coin.title = team.name;
+                        coin.innerText = team.name[0];
+                        cContainer.appendChild(coin);
+                    }
+                }
+            });
+        }
+
+        // Dice Roll Logic
+        function rollDice() {
+            if (isRolling) return;
+            isRolling = true;
+            const diceBox = document.getElementById('dice-box');
+            const rollBtn = document.getElementById('roll-btn');
+            const resultText = document.getElementById('dice-result-text');
+
+            rollBtn.disabled = true;
+            diceBox.classList.add('dice-rolling');
+            resultText.innerText = "Rolling dice...";
+
+            let counter = 0;
+            const rollInterval = setInterval(() => {
+                diceBox.innerText = Math.floor(Math.random() * 6) + 1;
+                counter++;
+                if (counter > 10) {
+                    clearInterval(rollInterval);
+                    diceBox.classList.remove('dice-rolling');
+                    const finalRoll = Math.floor(Math.random() * 6) + 1;
+                    diceBox.innerText = finalRoll;
+                    resultText.innerText = `${teams[currentTurnIndex].name} rolled a ${finalRoll}!`;
+                    
+                    // Move player
+                    movePlayer(finalRoll);
+                }
+            }, 50);
+        }
+
+        // Move active player and handle ladders/snakes
+        function movePlayer(roll) {
+            const team = teams[currentTurnIndex];
+            let oldPos = team.position;
+            let newPos = oldPos + roll;
+
+            if (newPos > 100) {
+                // Bounce back rule if exceeding 100
+                newPos = 100 - (newPos - 100);
+            }
+
+            team.position = newPos;
+            updateCoinsOnBoard();
+            renderTeams();
+
+            // Check if won
+            if (newPos === 100) {
+                setTimeout(() => triggerWinner(team), 500);
+                return;
+            }
+
+            // Trigger Speaking Prompt Modal after a short delay
+        setTimeout(() => {
+            openPromptModal(team, newPos);
+        }, 600);
+    }
+
+    function resetTimer() {
+        clearInterval(timerInterval);
+        timeLeft = 30;
+        updateTimerDisplay();
+        const startBtn = document.getElementById('start-timer-btn');
+        if (startBtn) {
+            startBtn.disabled = false;
+            startBtn.classList.remove('opacity-50');
+        }
+    }
+
+    // Modal Controls for Speaking Prompts
+    function openPromptModal(team, boxNum) {
+            const modal = document.getElementById('prompt-modal');
+            const badge = document.getElementById('modal-team-badge');
+            const boxNumSpan = document.getElementById('modal-box-num');
+            const promptText = document.getElementById('modal-prompt-text');
+            const notice = document.getElementById('modal-special-notice');
+
+            badge.className = `px-3 py-1 rounded-full text-xs font-bold ${team.colorBg} text-white flex items-center gap-1.5`;
+            badge.innerHTML = `<span>${team.name}'s Turn</span>`;
+            boxNumSpan.innerText = boxNum;
+            promptText.innerText = getPromptForBox(boxNum);
+
+            if (specialMoves[boxNum]) {
+                notice.classList.remove('hidden');
+                notice.innerText = specialMoves[boxNum] > boxNum ? 
+                    "✨ Landing here gives you a Ladder boost if you speak successfully!" : 
+                    "⚠️ Landing here is a Snake chute! Answer well to soften your slide.";
+            } else {
+                notice.classList.add('hidden');
+            }
+
+            resetTimer();
+            modal.classList.remove('hidden');
+        }
+
+        function closePromptModal() {
+            const modal = document.getElementById('prompt-modal');
+            modal.classList.add('hidden');
+            clearInterval(timerInterval);
+
+            // Handle Ladder / Snake jumps after speaking
+            const team = teams[currentTurnIndex];
+            let boxNum = team.position;
+            if (specialMoves[boxNum]) {
+                team.position = specialMoves[boxNum];
+                updateCoinsOnBoard();
+                renderTeams();
+            }
+
+            // Advance turn to next team
+            currentTurnIndex = (currentTurnIndex + 1) % teams.length;
+            renderTeams();
+
+            // Re-enable roll button
+            isRolling = false;
+            document.getElementById('roll-btn').disabled = false;
+        }
+
+        // Timer Functions
+        function startTimer() {
+            clearInterval(timerInterval);
+            timeLeft = 30;
+            updateTimerDisplay();
+
+            const startBtn = document.getElementById('start-timer-btn');
+            startBtn.disabled = true;
+            startBtn.classList.add('opacity-50');
+
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                updateTimerDisplay();
+                if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    skipTimer();
+                }
+            }, 1000);
+        }
+
+        function updateTimerDisplay() {
+            const display = document.getElementById('timer-display');
+            let secs = timeLeft < 10 ? `0${timeLeft}` : timeLeft;
+            display.innerText = `00:${secs}`;
+        }
+
+        function skipTimer() {
+            clearInterval(timerInterval);
+            const startBtn = document.getElementById('start-timer-btn');
+            startBtn.disabled = false;
+            startBtn.classList.remove('opacity-50');
+            closePromptModal();
+        }
+
+        // Winner celebration
+        function triggerWinner(team) {
+            const winnerModal = document.getElementById('winner-modal');
+            const announcement = document.getElementById('winner-announcement');
+            announcement.innerText = `${team.name} has successfully reached Box 100 and won the English Speaking Championship! 🎉`;
+            winnerModal.classList.remove('hidden');
+        }
+
+        function closeWinnerModal() {
+            document.getElementById('winner-modal').classList.add('hidden');
+        }
+
+        function resetGame() {
+            clearInterval(timerInterval);
+            currentTurnIndex = 0;
+            isRolling = false;
+            teams.forEach(t => t.position = 1);
+            renderBoard();
+            renderTeams();
+            document.getElementById('dice-box').innerText = "🎲";
+            document.getElementById('dice-result-text').innerText = "Click dice or button to roll!";
+            document.getElementById('roll-btn').disabled = false;
+            document.getElementById('prompt-modal').classList.add('hidden');
+            document.getElementById('winner-modal').classList.add('hidden');
+        }
+
+        // Initialize on load
+        window.onload = function() {
+            renderBoard();
+            renderTeams();
+        };
+    </script>
+</body>
+</html>

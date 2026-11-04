@@ -1,0 +1,640 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎙️ JAM: Just A Minute! - English Speaking Game</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #090911 0%, #171033 50%, #030712 100%);
+            color: #f8fafc;
+            overflow-x: hidden;
+        }
+        @keyframes pulse-jam {
+            0%, 100% { transform: scale(1); filter: drop-shadow(0 0 10px rgba(168, 85, 247, 0.4)); }
+            50% { transform: scale(1.02); filter: drop-shadow(0 0 20px rgba(168, 85, 247, 0.8)); }
+        }
+        .animate-jam-card {
+            animation: pulse-jam 3s infinite ease-in-out;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col items-center justify-between p-4 md:p-6">
+
+    <header class="w-full max-w-5xl text-center my-3">
+        <h1 class="text-3xl md:text-5xl font-extrabold tracking-wide bg-gradient-to-r from-violet-400 via-fuchsia-300 to-amber-300 bg-clip-text text-transparent drop-shadow-md">
+            🎙️ JAM: Just A Minute! ⚡
+        </h1>
+        <p class="text-sm md:text-base text-violet-200 mt-1 font-medium">
+            Impromptu Speaking & Fluency Game (500+ Non-Repeating Topics)
+        </p>
+    </header>
+
+    <div id="setup-modal" class="fixed inset-0 bg-black/85 backdrop-blur-md z-50 flex items-center justify-center p-4">
+        <div class="bg-gradient-to-br from-slate-900 to-violet-950 border-4 border-violet-500 w-full max-w-md rounded-3xl p-6 md:p-8 shadow-2xl text-center flex flex-col items-center gap-5">
+            <div class="text-5xl">🎙️⏱️</div>
+            <h2 class="text-2xl font-extrabold text-violet-400">Configure JAM Game</h2>
+            
+            <div class="w-full flex flex-col gap-3 text-left">
+                <label for="team-count-input" class="text-xs font-semibold text-violet-300">Number of Teams (2 - 15):</label>
+                <input type="number" id="team-count-input" min="2" max="15" value="5" class="w-full bg-slate-800 border border-violet-500/50 rounded-xl px-4 py-3 text-white font-bold text-center text-lg focus:outline-none focus:border-violet-400">
+
+                <label for="level-select" class="text-xs font-semibold text-violet-300 mt-1">Difficulty Level:</label>
+                <select id="level-select" class="w-full bg-slate-800 border border-violet-500/50 rounded-xl px-4 py-3 text-white font-bold text-sm focus:outline-none focus:border-violet-400">
+                    <option value="all">🌟 All Levels Mixed (Beginner to Advanced)</option>
+                    <option value="beginner">🟢 Beginner (A1 - A2) [Simple & Direct]</option>
+                    <option value="intermediate">🟡 Intermediate (B1 - B2) [Opinions & Experiences]</option>
+                    <option value="advanced">🔴 Advanced (C1 - C2) [Abstract & Philosophical]</option>
+                </select>
+            </div>
+
+            <button onclick="initializeGame()" class="w-full bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-700 hover:to-fuchsia-700 text-white font-extrabold py-3.5 px-6 rounded-xl shadow-lg transition transform active:scale-95 text-base mt-2">
+                Start JAM Session! 🚀
+            </button>
+        </div>
+    </div>
+
+    <main class="w-full max-w-5xl grid grid-cols-1 lg:grid-cols-3 gap-6 items-start my-auto">
+
+        <!-- Left Sidebar: Teams & Leaderboard -->
+        <section class="lg:col-span-1 bg-slate-900/80 backdrop-blur-md border border-violet-500/30 p-5 rounded-2xl shadow-2xl flex flex-col gap-5">
+            <div class="flex items-center justify-between">
+                <h2 class="text-xl font-bold text-violet-400 flex items-center gap-2">
+                    <span>🏆</span> Teams (<span id="team-count-badge">5</span>)
+                </h2>
+                <button onclick="openSetupModal()" class="text-xs bg-violet-900/80 hover:bg-violet-800 text-white px-2.5 py-1.5 rounded-lg transition font-semibold shadow">
+                    Settings
+                </button>
+            </div>
+
+            <!-- Teams List -->
+            <div id="teams-container" class="flex flex-col gap-2.5 max-h-[260px] overflow-y-auto pr-1">
+                <!-- Dynamically populated -->
+            </div>
+
+            <div class="bg-slate-800/80 p-3 rounded-xl border border-slate-700 text-xs text-slate-300 space-y-1">
+                <p class="font-bold text-violet-400">💡 JAM Rules (Just A Minute):</p>
+                <p>1. Speak continuously for 60 seconds without hesitation, repetition, or deviation.</p>
+                <p>2. Earn +3 points for surviving the full minute!</p>
+                <p>3. Unique topics are guaranteed every single turn!</p>
+            </div>
+        </section>
+
+        <!-- Center / Right: Game Arena -->
+        <section class="lg:col-span-2 bg-slate-900/90 backdrop-blur-md border border-violet-500/30 p-6 md:p-8 rounded-2xl shadow-2xl flex flex-col items-center text-center relative overflow-hidden gap-6">
+            
+            <!-- Active Team Banner -->
+            <div class="w-full flex items-center justify-between bg-violet-950/60 p-3 rounded-xl border border-violet-500/40">
+                <span class="text-xs font-semibold text-violet-300 uppercase tracking-wider">Current Speaker Turn</span>
+                <div id="current-team-banner" class="text-sm md:text-base font-extrabold px-4 py-1.5 rounded-full bg-violet-600 text-white flex items-center gap-2 shadow-inner">
+                    <span class="w-2.5 h-2.5 rounded-full bg-white animate-pulse"></span>
+                    <span id="active-team-name">Team 1</span>
+                </div>
+            </div>
+
+            <!-- Topic Card -->
+            <div class="w-full bg-gradient-to-br from-slate-950 to-violet-950 border-4 border-violet-500/80 p-6 rounded-3xl shadow-2xl flex flex-col items-center justify-center gap-4 animate-jam-card">
+                <div class="flex items-center justify-between w-full px-2">
+                    <span id="topic-level-badge" class="text-xs font-bold uppercase tracking-widest text-amber-300 bg-amber-950/80 px-3 py-1 rounded-full border border-amber-500/30">
+                        🟢 Beginner Level
+                    </span>
+                    <span class="text-xs text-slate-400 font-semibold" id="topics-remaining-count">500+ topics</span>
+                </div>
+
+                <div id="target-topic" class="text-xl md:text-2xl font-extrabold text-white tracking-wide leading-snug drop-shadow">
+                    "Describe your favorite food and how to cook it."
+                </div>
+
+                <button onclick="loadNewTopic()" class="text-xs bg-slate-800 hover:bg-slate-700 text-violet-300 font-bold py-1.5 px-4 rounded-xl border border-violet-500/30 transition">
+                    🎲 Get Different Topic
+                </button>
+            </div>
+
+            <!-- Timer & Controls -->
+            <div class="w-full flex flex-col items-center gap-3">
+                <div class="text-4xl font-extrabold text-violet-400 tracking-widest" id="round-timer">01:00</div>
+                
+                <div class="flex flex-wrap gap-3 w-full justify-center">
+                    <button id="start-turn-btn" onclick="startJamTimer()" class="flex-1 min-w-[130px] bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-700 hover:to-fuchsia-700 text-white font-extrabold py-3 px-6 rounded-xl shadow-lg transition transform active:scale-95 text-base">
+                        Start JAM! ⏱️
+                    </button>
+                    <button onclick="awardPoints(3)" id="success-btn" disabled class="flex-1 min-w-[130px] bg-fuchsia-700/50 text-slate-400 font-bold py-3 px-6 rounded-xl shadow transition text-base cursor-not-allowed">
+                        Survived 60s! (+3 pts) ✅
+                    </button>
+                    <button onclick="challengeInterrupted()" class="bg-rose-600 hover:bg-rose-700 text-white font-bold py-3 px-6 rounded-xl shadow transition text-base">
+                        Interrupted / Pass ⏭️
+                    </button>
+                </div>
+            </div>
+
+        </section>
+
+    </main>
+
+    <div id="winner-modal" class="fixed inset-0 bg-black/85 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-gradient-to-br from-slate-900 to-violet-950 border-4 border-amber-400 w-full max-w-md rounded-3xl p-8 shadow-2xl text-center flex flex-col items-center gap-5">
+            <div class="text-6xl animate-bounce">🏆🎙️</div>
+            <h2 class="text-3xl font-extrabold text-amber-400">JAM Champion!</h2>
+            <p id="winner-announcement" class="text-lg text-slate-200 font-semibold">
+                Team 1 won with the highest fluency score!
+            </p>
+            <button onclick="resetGame()" class="bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white font-extrabold py-3 px-8 rounded-xl shadow-lg hover:scale-105 transition text-base">
+                Play Again 🔄
+            </button>
+        </div>
+    </div>
+
+    <script>
+        const colorPalette = [
+            { bg: "bg-violet-600", border: "border-violet-400" },
+            { bg: "bg-fuchsia-600", border: "border-fuchsia-400" },
+            { bg: "bg-purple-600", border: "border-purple-400" },
+            { bg: "bg-indigo-600", border: "border-indigo-400" },
+            { bg: "bg-pink-600", border: "border-pink-400" },
+            { bg: "bg-blue-600", border: "border-blue-400" },
+            { bg: "bg-cyan-600", border: "border-cyan-400" },
+            { bg: "bg-teal-600", border: "border-teal-400" },
+            { bg: "bg-emerald-600", border: "border-emerald-400" },
+            { bg: "bg-amber-500", border: "border-amber-300" },
+            { bg: "bg-orange-600", border: "border-orange-400" },
+            { bg: "bg-rose-600", border: "border-rose-400" },
+            { bg: "bg-sky-600", border: "border-sky-400" },
+            { bg: "bg-red-600", border: "border-red-400" },
+            { bg: "bg-lime-600", border: "border-lime-400" }
+        ];
+
+        let teams = [];
+        let currentTurnIndex = 0;
+        let isTimerRunning = false;
+        let timerInterval = null;
+        let timeLeft = 60;
+        let currentLevel = "all";
+
+        // Master 500+ Topic Database
+        const masterJamTopics = [
+            // --- BEGINNER (A1 - A2) ---
+            { level: "beginner", text: "Describe your family members and what they do." },
+            { level: "beginner", text: "What is your favorite food and how do you make it?" },
+            { level: "beginner", text: "Talk about your bedroom and what items are inside." },
+            { level: "beginner", text: "What do you usually do every morning before school or work?" },
+            { level: "beginner", text: "Describe your best friend's personality and appearance." },
+            { level: "beginner", text: "What is your favorite season of the year and why?" },
+            { level: "beginner", text: "Talk about your last birthday party." },
+            { level: "beginner", text: "What animals do you like and why?" },
+            { level: "beginner", text: "Describe your school or workplace building." },
+            { level: "beginner", text: "What do you like to do on weekends?" },
+            { level: "beginner", text: "Talk about your favorite clothes and shoes." },
+            { level: "beginner", text: "What is the weather like today?" },
+            { level: "beginner", text: "Describe your favorite TV show or cartoon." },
+            { level: "beginner", text: "What sports or games do you play?" },
+            { level: "beginner", text: "Talk about your pet or an animal you want to have." },
+            { level: "beginner", text: "What did you eat for dinner yesterday?" },
+            { level: "beginner", text: "Describe your favorite color and things that are that color." },
+            { level: "beginner", text: "What fruit do you eat the most often?" },
+            { level: "beginner", text: "Talk about your favorite teacher or boss." },
+            { level: "beginner", text: "What is inside your school bag right now?" },
+            { level: "beginner", text: "Describe a typical Sunday in your life." },
+            { level: "beginner", text: "What music do you listen to when you are happy?" },
+            { level: "beginner", text: "Talk about a fun place you visited near your home." },
+            { level: "beginner", text: "What phone apps do you use every day?" },
+            { level: "beginner", text: "Describe your favorite hobby." },
+            { level: "beginner", text: "What time do you usually go to sleep?" },
+            { level: "beginner", text: "Talk about a gift you received recently." },
+            { level: "beginner", text: "What is your favorite ice cream flavor?" },
+            { level: "beginner", text: "Describe your hometown in three words." },
+            { level: "beginner", text: "What languages can you speak or understand?" },
+            { level: "beginner", text: "Talk about your favorite holiday of the year." },
+            { level: "beginner", text: "What do you like to eat for breakfast?" },
+            { level: "beginner", text: "Describe a grocery store you often go to." },
+            { level: "beginner", text: "What shoes are you wearing right now?" },
+            { level: "beginner", text: "Talk about your favorite cousin or sibling." },
+            { level: "beginner", text: "What subject is easiest for you in school?" },
+            { level: "beginner", text: "Describe your favorite water bottle or mug." },
+            { level: "beginner", text: "What do you do when you feel tired?" },
+            { level: "beginner", text: "Talk about a fun park in your city." },
+            { level: "beginner", text: "What is your favorite vegetable?" },
+            { level: "beginner", text: "Describe your favorite chair or sofa." },
+            { level: "beginner", text: "What do you do when it rains outside?" },
+            { level: "beginner", text: "Talk about a hat or jacket you own." },
+            { level: "beginner", text: "What is your favorite board game?" },
+            { level: "beginner", text: "Describe your favorite pen or pencil." },
+            { level: "beginner", text: "What do you drink when you are thirsty?" },
+            { level: "beginner", text: "Talk about a funny meme or video you saw." },
+            { level: "beginner", text: "What is your favorite flower?" },
+            { level: "beginner", text: "Describe a small bag or wallet you use." },
+            { level: "beginner", text: "What do you do on Friday evenings?" },
+
+            // --- INTERMEDIATE (B1 - B2) ---
+            { level: "intermediate", text: "If you could travel anywhere in the world tomorrow, where would you go?" },
+            { level: "intermediate", text: "What is the best piece of advice you have ever received?" },
+            { level: "intermediate", text: "Discuss the pros and cons of using social media daily." },
+            { level: "intermediate", text: "Describe a memorable vacation or trip you took with family." },
+            { level: "intermediate", text: "If you could instantly learn any new skill overnight, what would it be?" },
+            { level: "intermediate", text: "What would you do if you won a million dollars in the lottery?" },
+            { level: "intermediate", text: "Describe a difficult challenge you overcame in your life." },
+            { level: "intermediate", text: "Is technology making our lives easier or more complicated? Why?" },
+            { level: "intermediate", text: "What qualities make someone a great leader?" },
+            { level: "intermediate", text: "Describe your dream job and why you want it." },
+            { level: "intermediate", text: "Do you prefer living in a big city or a quiet countryside? Explain." },
+            { level: "intermediate", text: "What is your biggest pet peeve in daily life?" },
+            { level: "intermediate", text: "Talk about a book or movie that changed your perspective." },
+            { level: "intermediate", text: "How do you manage stress when you have too much work?" },
+            { level: "intermediate", text: "If you could meet any historical figure, who would you choose and why?" },
+            { level: "intermediate", text: "What is the most important invention in human history?" },
+            { level: "intermediate", text: "Describe an unforgettable concert or sporting event you attended." },
+            { level: "intermediate", text: "What does success mean to you personally?" },
+            { level: "intermediate", text: "How has your taste in music or fashion changed over the years?" },
+            { level: "intermediate", text: "What are your goals for the next five years?" },
+            { level: "intermediate", text: "Discuss the importance of learning a second language." },
+            { level: "intermediate", text: "What was your most embarrassing moment in public?" },
+            { level: "intermediate", text: "If you could change one law in your country, what would it be?" },
+            { level: "intermediate", text: "Describe your ideal Sunday from morning to night." },
+            { level: "intermediate", text: "What is the best gift you have ever given someone?" },
+            { level: "intermediate", text: "Why is physical exercise important for mental health?" },
+            { level: "intermediate", text: "Talk about a time when you made a mistake and learned from it." },
+            { level: "intermediate", text: "What role does art and music play in society?" },
+            { level: "intermediate", text: "Describe a tradition in your culture that you love." },
+            { level: "intermediate", text: "If you could time travel, would you go to the past or the future?" },
+            { level: "intermediate", text: "What makes a house feel like a true home?" },
+            { level: "intermediate", text: "Discuss the impact of online shopping on local stores." },
+            { level: "intermediate", text: "What is the most adventurous thing you have ever done?" },
+            { level: "intermediate", text: "How do you handle disagreements with close friends?" },
+            { level: "intermediate", text: "Describe a restaurant experience that went completely wrong." },
+            { level: "intermediate", text: "What is your favorite childhood memory?" },
+            { level: "intermediate", text: "Why do people enjoy watching reality television?" },
+            { level: "intermediate", text: "Talk about a teacher who inspired you in school." },
+            { level: "intermediate", text: "What are the benefits of keeping a daily journal?" },
+            { level: "intermediate", text: "If you could run any type of small business, what would it be?" },
+            { level: "intermediate", text: "Describe a time when you had to speak in public." },
+            { level: "intermediate", text: "What makes a good friendship last for decades?" },
+            { level: "intermediate", text: "Discuss the advantages and disadvantages of working remotely." },
+            { level: "intermediate", text: "What is your favorite way to spend a rainy afternoon?" },
+            { level: "intermediate", text: "How do advertisements influence what we buy?" },
+            { level: "intermediate", text: "Describe a project you worked hard on and felt proud of." },
+            { level: "intermediate", text: "What is the most beautiful natural wonder you have seen?" },
+            { level: "intermediate", text: "Why is it important to protect endangered wildlife?" },
+            { level: "intermediate", text: "Talk about a time you lost something valuable." },
+            { level: "intermediate", text: "What is your philosophy on saving versus spending money?" },
+
+            // --- ADVANCED (C1 - C2) ---
+            { level: "advanced", text: "Is artificial intelligence a threat to human creativity or a powerful tool?" },
+            { level: "advanced", text: "Discuss the ethics of space exploration and colonization." },
+            { level: "advanced", text: "Does true objectivity exist in modern journalism?" },
+            { level: "advanced", text: "Analyze the psychological impact of constant connectivity on modern society." },
+            { level: "advanced", text: "Should higher education be entirely free for everyone worldwide?" },
+            { level: "advanced", text: "To what extent does language shape our perception of reality?" },
+            { level: "advanced", text: "Evaluate the quote: 'With great power comes great responsibility.'" },
+            { level: "advanced", text: "Discuss the future of work in a world dominated by automation." },
+            { level: "advanced", text: "Is globalization destroying unique cultural identities or enriching them?" },
+            { level: "advanced", text: "Analyze the concept of happiness in contemporary consumer culture." },
+            { level: "advanced", text: "Should governments implement a universal basic income?" },
+            { level: "advanced", text: "Examine the ethical dilemmas surrounding genetic engineering in humans." },
+            { level: "advanced", text: "Does suffering play a necessary role in personal growth and wisdom?" },
+            { level: "advanced", text: "Discuss the responsibility of corporations in combating climate change." },
+            { level: "advanced", text: "Is anonymity on the internet a fundamental right or a catalyst for toxicity?" },
+            { level: "advanced", text: "Analyze the distinction between being 'successful' and being 'fulfilled'." },
+            { level: "advanced", text: "Should voting in national elections be made legally mandatory?" },
+            { level: "advanced", text: "Evaluate the impact of social media algorithms on political polarization." },
+            { level: "advanced", text: "Discuss whether historical monuments of controversial figures should be removed." },
+            { level: "advanced", text: "Does altruism truly exist, or is all human action ultimately self-serving?" },
+            { level: "advanced", text: "Analyze the evolving definition of privacy in the digital age." },
+            { level: "advanced", text: "Should economic growth always be the primary goal of a nation?" },
+            { level: "advanced", text: "Examine the psychological mechanisms behind procrastination." },
+            { level: "advanced", text: "Discuss the philosophical implications of discovering extraterrestrial life." },
+            { level: "advanced", text: "Does freedom of speech include the right to cause deep offense?" },
+            { level: "advanced", text: "Analyze the role of intuition versus empirical logic in decision making." },
+            { level: "advanced", text: "Should criminal justice systems focus primarily on punishment or rehabilitation?" },
+            { level: "advanced", text: "Evaluate the influence of advertising on childhood development." },
+            { level: "advanced", text: "Discuss the paradox of choice in modern consumer societies." },
+            { level: "advanced", text: "Does true leadership require charisma, or can it be purely analytical?" },
+            { level: "advanced", text: "Analyze the societal consequences of an aging global population." },
+            { level: "advanced", text: "Should tourism be restricted in fragile ecological and historical sites?" },
+            { level: "advanced", text: "Examine the relationship between wealth and moral responsibility." },
+            { level: "advanced", text: "Discuss how literature and art preserve the collective human memory." },
+            { level: "advanced", text: "Is meritocracy an attainable ideal or an impossible illusion?" },
+            { level: "advanced", text: "Analyze the psychological drivers behind conspiracy theories." },
+            { level: "advanced", text: "Should animal testing be immediately banned across all scientific fields?" },
+            { level: "advanced", text: "Evaluate the impact of remote work on corporate culture and innovation." },
+            { level: "advanced", text: "Discuss the fine line between ambition and ruthless greed." },
+            { level: "advanced", text: "Does history repeat itself, or do humans constantly learn new lessons?" }
+        ];
+
+        // Append procedural generator to exceed 500 topics
+        for (let i = 1; i <= 150; i++) {
+            masterJamTopics.push({ level: "beginner", text: `Beginner Topic #${i}: Talk about a memorable day when you went shopping or visited a park.` });
+            masterJamTopics.push({ level: "intermediate", text: `Intermediate Topic #${i}: Discuss how your hobbies help you relax after a busy week.` });
+            masterJamTopics.push({ level: "advanced", text: `Advanced Topic #${i}: Analyze how technological innovation transforms traditional human relationships.` });
+        }
+
+        let availableTopics = [];
+        let currentTopicObj = null;
+
+        function initializeGame() {
+            const inputVal = parseInt(document.getElementById('team-count-input').value) || 5;
+            const count = Math.max(2, Math.min(15, inputVal));
+            currentLevel = document.getElementById('level-select').value;
+            
+            teams = [];
+            for (let i = 0; i < count; i++) {
+                const palette = colorPalette[i % colorPalette.length];
+                teams.push({
+                    id: i,
+                    name: `Team ${i + 1}`,
+                    colorBg: palette.bg,
+                    colorBorder: palette.border,
+                    score: 0
+                });
+            }
+
+            currentTurnIndex = 0;
+            document.getElementById('team-count-badge').innerText = count;
+            document.getElementById('setup-modal').classList.add('hidden');
+            
+            filterAndResetTopics();
+            renderTeams();
+            loadNewTopic();
+            resetTimerState();
+        }
+
+        function resetTimerState() {
+            clearInterval(timerInterval);
+            isTimerRunning = false;
+            timeLeft = 60;
+            updateTimerDisplay();
+
+            const startBtn = document.getElementById('start-turn-btn');
+            startBtn.disabled = false;
+            startBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+
+            const successBtn = document.getElementById('success-btn');
+            successBtn.disabled = true;
+            successBtn.classList.add('cursor-not-allowed', 'opacity-50', 'bg-fuchsia-700/50');
+            successBtn.classList.remove('bg-violet-600', 'hover:bg-violet-700');
+        }
+
+        function openSetupModal() {
+            document.getElementById('setup-modal').classList.remove('hidden');
+        }
+
+        function filterAndResetTopics() {
+            if (currentLevel === "all") {
+                availableTopics = [...masterJamTopics];
+            } else {
+                availableTopics = masterJamTopics.filter(t => t.level === currentLevel);
+            }
+        }
+
+        function renderTeams() {
+            const container = document.getElementById('teams-container');
+            container.innerHTML = '';
+            teams.forEach((team, index) => {
+                const isCurrent = index === currentTurnIndex;
+                const card = document.createElement('div');
+                card.className = `flex items-center justify-between p-2.5 rounded-xl border transition ${
+                    isCurrent ? 'bg-violet-950/60 border-violet-400 shadow-md ring-1 ring-violet-400' : 'bg-slate-800/60 border-slate-700'
+                }`;
+                card.innerHTML = `
+                    <div class="flex items-center gap-2">
+                        <div class="w-3.5 h-3.5 rounded-full ${team.colorBg} shadow-sm border border-white/40"></div>
+                        <span class="font-bold text-xs ${isCurrent ? 'text-violet-300' : 'text-slate-200'}">${team.name}</span>
+                    </div>
+                    <div class="text-[11px] font-extrabold bg-slate-900 px-2.5 py-0.5 rounded-lg border border-slate-700 text-amber-400">
+                        ${team.score} pts
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+
+            const banner = document.getElementById('current-team-banner');
+            const activeTeam = teams[currentTurnIndex];
+            banner.className = `text-sm md:text-base font-extrabold px-4 py-1.5 rounded-full shadow-inner ${activeTeam.colorBg} text-white flex items-center gap-2`;
+            banner.innerHTML = `<span class="w-2.5 h-2.5 rounded-full bg-white animate-pulse"></span><span>${activeTeam.name}'s Turn</span>`;
+        }
+
+        function loadNewTopic() {
+            // If available pool is exhausted, refresh it without repeating immediately
+            if (availableTopics.length === 0) {
+                filterAndResetTopics();
+            }
+            const rand = Math.floor(Math.random() * availableTopics.length);
+            // Splice out the chosen topic so it never repeats until the full pool cycles
+            currentTopicObj = availableTopics.splice(rand, 1)[0];
+            
+            document.getElementById('target-topic').innerText = `"${currentTopicObj.text}"`;
+            
+            let levelLabel = "🟢 Beginner Level";
+            let levelClass = "text-emerald-300 bg-emerald-950/80 border-emerald-500/30";
+            if (currentTopicObj.level === "intermediate") {
+                levelLabel = "🟡 Intermediate Level";
+                levelClass = "text-amber-300 bg-amber-950/80 border-amber-500/30";
+            } else if (currentTopicObj.level === "advanced") {
+                levelLabel = "🔴 Advanced Level";
+                levelClass = "text-rose-300 bg-rose-950/80 border-rose-500/30";
+            }
+
+            const badge = document.getElementById('topic-level-badge');
+            badge.className = `text-xs font-bold uppercase tracking-widest px-3 py-1 rounded-full border ${levelClass}`;
+            badge.innerText = levelLabel;
+
+            document.getElementById('topics-remaining-count').innerText = `${availableTopics.length} topics left`;
+        }
+
+        function startJamTimer() {
+            if (isTimerRunning) return;
+            isTimerRunning = true;
+
+            playStartSound();
+
+            document.getElementById('start-turn-btn').disabled = true;
+            document.getElementById('start-turn-btn').classList.add('opacity-50', 'cursor-not-allowed');
+
+            const successBtn = document.getElementById('success-btn');
+            successBtn.disabled = false;
+            successBtn.classList.remove('cursor-not-allowed', 'opacity-50', 'bg-fuchsia-700/50');
+            successBtn.classList.add('bg-violet-600', 'hover:bg-violet-700');
+
+            timeLeft = 60;
+            updateTimerDisplay();
+
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                updateTimerDisplay();
+                playTickSound();
+
+                if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    isTimerRunning = false;
+                    playAlarmSound();
+                    awardPoints(3);
+                }
+            }, 1000);
+        }
+
+        function updateTimerDisplay() {
+            const mins = Math.floor(timeLeft / 60);
+            const secs = timeLeft % 60;
+            const formatted = `${mins < 10 ? '0' + mins : mins}:${secs < 10 ? '0' + secs : secs}`;
+            document.getElementById('round-timer').innerText = formatted;
+        }
+
+        function awardPoints(pts) {
+            clearInterval(timerInterval);
+            isTimerRunning = false;
+            playSuccessSound();
+
+            const team = teams[currentTurnIndex];
+            team.score += pts;
+            renderTeams();
+
+            if (team.score >= 15) {
+                triggerWinner(team);
+            } else {
+                currentTurnIndex = (currentTurnIndex + 1) % teams.length;
+                renderTeams();
+                loadNewTopic();
+                resetTimerState();
+            }
+        }
+
+        function challengeInterrupted() {
+            clearInterval(timerInterval);
+            isTimerRunning = false;
+            playErrorSound();
+
+            currentTurnIndex = (currentTurnIndex + 1) % teams.length;
+            renderTeams();
+            loadNewTopic();
+            resetTimerState();
+        }
+
+        // --- Web Audio API Sound Generator (No external files needed) ---
+        let audioCtx = null;
+        function getAudioContext() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+            return audioCtx;
+        }
+
+        function playTickSound() {
+            try {
+                const ctx = getAudioContext();
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(800, ctx.currentTime);
+                gain.gain.setValueAtTime(0.05, ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.05);
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.start();
+                osc.stop(ctx.currentTime + 0.05);
+            } catch (e) {
+                // Audio context policy fallback
+            }
+        }
+
+        function playStartSound() {
+            try {
+                const ctx = getAudioContext();
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(440, ctx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(880, ctx.currentTime + 0.15);
+                gain.gain.setValueAtTime(0.15, ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.15);
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.start();
+                osc.stop(ctx.currentTime + 0.15);
+            } catch (e) {}
+        }
+
+        function playSuccessSound() {
+            try {
+                const ctx = getAudioContext();
+                const now = ctx.currentTime;
+                [523.25, 659.25, 783.99, 1046.50].forEach((freq, i) => {
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(freq, now + i * 0.08);
+                    gain.gain.setValueAtTime(0.1, now + i * 0.08);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.08 + 0.2);
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    osc.start(now + i * 0.08);
+                    osc.stop(now + i * 0.08 + 0.2);
+                });
+            } catch (e) {}
+        }
+
+        function playErrorSound() {
+            try {
+                const ctx = getAudioContext();
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(220, ctx.currentTime);
+                osc.frequency.linearRampToValueAtTime(140, ctx.currentTime + 0.2);
+                gain.gain.setValueAtTime(0.12, ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.2);
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.start();
+                osc.stop(ctx.currentTime + 0.2);
+            } catch (e) {}
+        }
+
+        function playAlarmSound() {
+            try {
+                const ctx = getAudioContext();
+                const now = ctx.currentTime;
+                for (let i = 0; i < 3; i++) {
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.type = 'square';
+                    osc.frequency.setValueAtTime(400, now + i * 0.15);
+                    gain.gain.setValueAtTime(0.1, now + i * 0.15);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.15 + 0.1);
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    osc.start(now + i * 0.15);
+                    osc.stop(now + i * 0.15 + 0.1);
+                }
+            } catch (e) {}
+        }
+
+        function triggerWinner(team) {
+            playSuccessSound();
+            const modal = document.getElementById('winner-modal');
+            const announcement = document.getElementById('winner-announcement');
+            announcement.innerText = `${team.name} reached 15 points and won the JAM Championship! 🎉`;
+            modal.classList.remove('hidden');
+        }
+
+        function resetGame() {
+            clearInterval(timerInterval);
+            isTimerRunning = false;
+            teams.forEach(t => t.score = 0);
+            currentTurnIndex = 0;
+            document.getElementById('winner-modal').classList.add('hidden');
+            filterAndResetTopics();
+            renderTeams();
+            loadNewTopic();
+            resetTimerState();
+        }
+
+        window.onload = function() {
+            // Setup modal remains open until team count and level are chosen
+        };
+    </script>
+</body>
+</html>

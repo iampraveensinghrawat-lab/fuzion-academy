@@ -1,0 +1,1058 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Adjective & Adverb Ascent: Sentence Length Extender</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        alpine: {
+                            50: '#f0fdf4',
+                            100: '#dcfce7',
+                            500: '#22c55e',
+                            600: '#16a34a',
+                            800: '#166534',
+                            900: '#14532d',
+                        },
+                        mountain: {
+                            dark: '#0f172a',
+                            slate: '#1e293b',
+                            rock: '#334155',
+                            snow: '#f8fafc',
+                            gold: '#f59e0b',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Google Fonts: Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .font-serif-title { font-family: 'Playfair Display', serif; }
+        /* Custom scrollbars */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #0f172a; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #475569; }
+        @keyframes pulseGlow {
+            0%, 100% { box-shadow: 0 0 15px rgba(245, 158, 11, 0.4); }
+            50% { box-shadow: 0 0 30px rgba(245, 158, 11, 0.8); }
+        }
+        .glow-gold { animation: pulseGlow 3s infinite; }
+    </style>
+</head>
+<body class="bg-mountain-dark text-mountain-snow min-h-full flex flex-col selection:bg-amber-500 selection:text-white">
+
+    <!-- Header Navigation -->
+    <header class="bg-mountain-slate/90 backdrop-blur border-b border-slate-800 sticky top-0 z-50 px-4 py-3 shadow-lg">
+        <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-4">
+            <div class="flex items-center space-x-3 cursor-pointer" onclick="switchView('dashboard')">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-mountain-dark font-black text-xl shadow-md">
+                    <i class="fa-solid fa-mountain"></i>
+                </div>
+                <div>
+                    <h1 class="font-serif-title text-xl font-bold tracking-wide text-white">Ascent & Extend</h1>
+                    <p class="text-xs text-amber-400 font-medium">Adjective & Adverb Mastery</p>
+                </div>
+            </div>
+
+            <!-- Global Stats Bar -->
+            <div class="flex items-center space-x-4 bg-mountain-dark/80 px-4 py-2 rounded-2xl border border-slate-700/60 shadow-inner">
+                <div class="flex items-center space-x-1.5 text-amber-400 text-sm font-semibold" title="Total XP">
+                    <i class="fa-solid fa-bolt"></i>
+                    <span id="header-xp">0</span> XP
+                </div>
+                <div class="h-4 w-px bg-slate-700"></div>
+                <div class="flex items-center space-x-1.5 text-orange-400 text-sm font-semibold" title="Current Streak">
+                    <i class="fa-solid fa-fire"></i>
+                    <span id="header-streak">0</span> Streak
+                </div>
+                <div class="h-4 w-px bg-slate-700"></div>
+                <div class="flex items-center space-x-1.5 text-emerald-400 text-sm font-semibold" title="Current Camp">
+                    <i class="fa-solid fa-flag"></i>
+                    <span id="header-camp">Base Camp</span>
+                </div>
+            </div>
+
+            <!-- Action Controls -->
+            <div class="flex items-center space-x-2">
+                <button onclick="toggleAudio()" id="audio-toggle-btn" class="p-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition border border-slate-700" title="Toggle Sound">
+                    <i class="fa-solid fa-volume-high" id="audio-icon"></i>
+                </button>
+                <button onclick="openModal('achievements-modal')" class="p-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-amber-400 transition border border-slate-700 flex items-center space-x-1.5 text-sm font-medium">
+                    <i class="fa-solid fa-trophy"></i>
+                    <span class="hidden sm:inline">Badges</span>
+                </button>
+                <button onclick="openModal('help-modal')" class="p-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition border border-slate-700" title="How to Play">
+                    <i class="fa-solid fa-circle-question"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 flex flex-col">
+
+        <!-- VIEW 1: DASHBOARD / CAMP SELECTION -->
+        <div id="view-dashboard" class="space-y-6 flex-1 flex flex-col justify-center">
+            <div class="text-center max-w-2xl mx-auto space-y-3">
+                <span class="px-3 py-1 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/30 text-xs font-semibold uppercase tracking-wider">
+                    Sentence Length Extender & Mountain Simulator
+                </span>
+                <h2 class="text-3xl sm:text-5xl font-extrabold tracking-tight font-serif-title">
+                    Conquer the Peak of Eloquence
+                </h2>
+                <p class="text-slate-400 text-sm sm:text-base">
+                    Transform simple sentences into rich, vivid masterpieces by strategically inserting adjectives, adverbs, and modifiers. Climb from Base Camp to the Summit!
+                </p>
+            </div>
+
+            <!-- Mountain Visualizer Preview / Camp Map -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 my-6">
+                <!-- Mode Cards -->
+                <div onclick="startMode('ascent')" class="group bg-gradient-to-br from-slate-900 to-slate-800 p-6 rounded-3xl border border-slate-700 hover:border-amber-500/50 transition-all cursor-pointer shadow-xl flex flex-col justify-between relative overflow-hidden">
+                    <div class="absolute -right-6 -bottom-6 w-32 h-32 bg-amber-500/10 rounded-full blur-2xl group-hover:bg-amber-500/20 transition"></div>
+                    <div>
+                        <div class="w-12 h-12 rounded-2xl bg-amber-500/20 text-amber-400 flex items-center justify-center text-xl mb-4 group-hover:scale-110 transition-transform">
+                            <i class="fa-solid fa-mountain-sun"></i>
+                        </div>
+                        <h3 class="text-xl font-bold text-white group-hover:text-amber-400 transition">Ascent Campaign</h3>
+                        <p class="text-slate-400 text-sm mt-2">
+                            Embark on a guided 5-camp journey across 100 progressive challenges from A1 to C2 levels.
+                        </p>
+                    </div>
+                    <div class="mt-6 flex items-center justify-between text-xs font-semibold text-amber-400">
+                        <span id="campaign-progress-text">Camp 1: 0/20 Completed</span>
+                        <i class="fa-solid fa-arrow-right group-hover:translate-x-1 transition-transform"></i>
+                    </div>
+                </div>
+
+                <div onclick="startMode('blitz')" class="group bg-gradient-to-br from-slate-900 to-slate-800 p-6 rounded-3xl border border-slate-700 hover:border-blue-500/50 transition-all cursor-pointer shadow-xl flex flex-col justify-between relative overflow-hidden">
+                    <div class="absolute -right-6 -bottom-6 w-32 h-32 bg-blue-500/10 rounded-full blur-2xl group-hover:bg-blue-500/20 transition"></div>
+                    <div>
+                        <div class="w-12 h-12 rounded-2xl bg-blue-500/20 text-blue-400 flex items-center justify-center text-xl mb-4 group-hover:scale-110 transition-transform">
+                            <i class="fa-solid fa-stopwatch"></i>
+                        </div>
+                        <h3 class="text-xl font-bold text-white group-hover:text-blue-400 transition">Time Attack Blitz</h3>
+                        <p class="text-slate-400 text-sm mt-2">
+                            How many sentences can you successfully extend and enrich within 90 seconds under pressure?
+                        </p>
+                    </div>
+                    <div class="mt-6 flex items-center justify-between text-xs font-semibold text-blue-400">
+                        <span>High Score: <span id="blitz-highscore">0</span> pts</span>
+                        <i class="fa-solid fa-arrow-right group-hover:translate-x-1 transition-transform"></i>
+                    </div>
+                </div>
+
+                <div onclick="startMode('endless')" class="group bg-gradient-to-br from-slate-900 to-slate-800 p-6 rounded-3xl border border-slate-700 hover:border-emerald-500/50 transition-all cursor-pointer shadow-xl flex flex-col justify-between relative overflow-hidden">
+                    <div class="absolute -right-6 -bottom-6 w-32 h-32 bg-emerald-500/10 rounded-full blur-2xl group-hover:bg-emerald-500/20 transition"></div>
+                    <div>
+                        <div class="w-12 h-12 rounded-2xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-xl mb-4 group-hover:scale-110 transition-transform">
+                            <i class="fa-solid fa-compass"></i>
+                        </div>
+                        <h3 class="text-xl font-bold text-white group-hover:text-emerald-400 transition">Free Practice / Endless</h3>
+                        <p class="text-slate-400 text-sm mt-2">
+                            Random sentence generation across selected CEFR difficulties with no timers. Perfect for deep learning.
+                        </p>
+                    </div>
+                    <div class="mt-6 flex items-center justify-between text-xs font-semibold text-emerald-400">
+                        <span>100 Sentence Bank</span>
+                        <i class="fa-solid fa-arrow-right group-hover:translate-x-1 transition-transform"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Stats & Review Log Banner -->
+            <div class="bg-mountain-slate border border-slate-800 rounded-3xl p-6 flex flex-col md:flex-row items-center justify-between gap-6">
+                <div class="flex items-center space-x-4">
+                    <div class="w-14 h-14 rounded-2xl bg-slate-800 border border-slate-700 flex items-center justify-center text-amber-400 text-2xl font-bold shadow-inner">
+                        <i class="fa-solid fa-book-open"></i>
+                    </div>
+                    <div>
+                        <h4 class="font-bold text-lg text-white">Review & Mastery Log</h4>
+                        <p class="text-xs text-slate-400">Practice missed sentences or review successfully conquered linguistic peaks.</p>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-3 w-full md:w-auto">
+                    <button onclick="openModal('review-modal')" class="w-full md:w-auto px-5 py-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-semibold text-sm border border-slate-700 transition flex items-center justify-center space-x-2">
+                        <i class="fa-solid fa-rotate-right"></i>
+                        <span>Open Mastery Log (<span id="missed-count">0</span> items)</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- VIEW 2: GAMEPLAY ARENA -->
+        <div id="view-game" class="hidden flex-1 flex flex-col space-y-6">
+            <!-- Game Top Status Bar -->
+            <div class="flex flex-wrap items-center justify-between bg-mountain-slate/80 backdrop-blur border border-slate-800 p-4 rounded-2xl gap-4 shadow">
+                <div class="flex items-center space-x-3">
+                    <button onclick="backToDashboard()" class="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold transition border border-slate-700 flex items-center space-x-1.5">
+                        <i class="fa-solid fa-arrow-left"></i>
+                        <span>Camp Map</span>
+                    </button>
+                    <div>
+                        <span id="game-mode-badge" class="px-2.5 py-0.5 rounded-md bg-amber-500/20 text-amber-400 font-bold text-xs uppercase tracking-wide">Camp 1</span>
+                        <h3 id="game-progress-title" class="text-sm font-bold text-white mt-0.5">Question 1 of 20</h3>
+                    </div>
+                </div>
+
+                <!-- Mountain Mini Progress Graphic -->
+                <div class="hidden md:flex items-center space-x-2">
+                    <div class="flex items-center space-x-1" id="mini-camps-indicator">
+                        <!-- Dynamically generated camp dots -->
+                    </div>
+                </div>
+
+                <!-- Timer or Score Display -->
+                <div id="game-extra-stat" class="flex items-center space-x-3">
+                    <div id="timer-box" class="hidden px-3 py-1.5 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400 font-mono text-sm font-bold flex items-center space-x-2">
+                        <i class="fa-solid fa-stopwatch animate-pulse"></i>
+                        <span id="time-left">90s</span>
+                    </div>
+                    <div class="px-3 py-1.5 rounded-xl bg-slate-800 border border-slate-700 text-amber-400 font-bold text-sm">
+                        Score: <span id="current-game-score">0</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Workspace Grid -->
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 flex-1">
+                <!-- Left Column: Challenge Prompt & Instructions -->
+                <div class="lg:col-span-5 flex flex-col space-y-6">
+                    <!-- Base Sentence Card -->
+                    <div class="bg-mountain-slate border border-slate-800 rounded-3xl p-6 shadow-xl space-y-4">
+                        <div class="flex items-center justify-between">
+                            <span id="cefr-badge" class="px-2.5 py-1 rounded-lg bg-blue-500/20 text-blue-400 text-xs font-bold uppercase tracking-wider">Level A1</span>
+                            <span id="question-id-badge" class="text-xs text-slate-400 font-mono">Q# 1</span>
+                        </div>
+                        <div>
+                            <span class="text-xs text-slate-400 uppercase font-bold tracking-wider">Base Simple Sentence</span>
+                            <h4 id="base-sentence-text" class="text-lg sm:text-xl font-bold text-white mt-1 italic font-serif-title">
+                                "The dog barked."
+                            </h4>
+                        </div>
+                        <div class="pt-3 border-t border-slate-800">
+                            <span class="text-xs text-amber-400 uppercase font-bold tracking-wider flex items-center space-x-1">
+                                <i class="fa-solid fa-bullseye"></i>
+                                <span>Ascent Objective & Requirements</span>
+                            </span>
+                            <div id="objective-box" class="mt-2 text-sm text-slate-300 bg-slate-900/60 p-3.5 rounded-xl border border-slate-800/80 space-y-2">
+                                <!-- Dynamic objective instructions -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- AI Coach Hint Card -->
+                    <div class="bg-gradient-to-br from-slate-900 to-mountain-slate border border-slate-800 rounded-3xl p-6 shadow-xl flex flex-col justify-between flex-1">
+                        <div>
+                            <div class="flex items-center space-x-2 text-amber-400 font-semibold text-sm mb-3">
+                                <i class="fa-solid fa-wand-magic-sparkles"></i>
+                                <span>AI Ascent Guide Hint</span>
+                            </div>
+                            <p id="coach-hint-text" class="text-sm text-slate-300 italic">
+                                "Try adding adjectives that describe sound or size (e.g., 'ferocious', 'deafening') and an adverb of manner (e.g., 'angrily')."
+                            </p>
+                        </div>
+                        <div class="mt-4 pt-4 border-t border-slate-800/80 flex items-center justify-between">
+                            <button onclick="revealHintExample()" class="text-xs text-amber-400 hover:text-amber-300 font-medium flex items-center space-x-1 transition">
+                                <i class="fa-solid fa-lightbulb"></i>
+                                <span>Show Sample Solution</span>
+                            </button>
+                            <span id="hint-penalty" class="text-[10px] text-slate-500">(-10 XP hint cost)</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Column: Editor & Real-time Metrics -->
+                <div class="lg:col-span-7 flex flex-col space-y-6">
+                    <!-- Textarea Editor Card -->
+                    <div class="bg-mountain-slate border border-slate-800 rounded-3xl p-6 shadow-xl flex flex-col space-y-4 flex-1">
+                        <div class="flex items-center justify-between">
+                            <label for="user-sentence-input" class="text-sm font-bold text-white flex items-center space-x-2">
+                                <i class="fa-solid fa-pen-nib text-amber-400"></i>
+                                <span>Your Extended Sentence:</span>
+                            </label>
+                            <button onclick="clearInput()" class="text-xs text-slate-400 hover:text-white transition">
+                                <i class="fa-solid fa-eraser"></i> Clear
+                            </button>
+                        </div>
+
+                        <textarea id="user-sentence-input" oninput="onSentenceInputChanged()" rows="4" placeholder="Type your extended and enriched sentence here..." class="w-full bg-slate-900/80 border border-slate-700/80 rounded-2xl p-4 text-white placeholder-slate-500 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 text-base sm:text-lg resize-none shadow-inner"></textarea>
+
+                        <!-- Real-Time Metrics & Richness Dashboard -->
+                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2">
+                            <div class="bg-slate-900/60 border border-slate-800 rounded-2xl p-3 text-center">
+                                <span class="text-[10px] text-slate-400 font-semibold uppercase tracking-wider">Word Count</span>
+                                <div id="metric-words" class="text-xl font-extrabold text-white mt-0.5">0</div>
+                            </div>
+                            <div class="bg-slate-900/60 border border-slate-800 rounded-2xl p-3 text-center">
+                                <span class="text-[10px] text-slate-400 font-semibold uppercase tracking-wider">Adjectives</span>
+                                <div id="metric-adjectives" class="text-xl font-extrabold text-amber-400 mt-0.5">0</div>
+                            </div>
+                            <div class="bg-slate-900/60 border border-slate-800 rounded-2xl p-3 text-center">
+                                <span class="text-[10px] text-slate-400 font-semibold uppercase tracking-wider">Adverbs</span>
+                                <div id="metric-adverbs" class="text-xl font-extrabold text-blue-400 mt-0.5">0</div>
+                            </div>
+                            <div class="bg-slate-900/60 border border-slate-800 rounded-2xl p-3 text-center">
+                                <span class="text-[10px] text-slate-400 font-semibold uppercase tracking-wider">Richness Score</span>
+                                <div id="metric-richness" class="text-xl font-extrabold text-emerald-400 mt-0.5">0%</div>
+                            </div>
+                        </div>
+
+                        <!-- Validation Feedback Box -->
+                        <div id="validation-feedback-box" class="hidden p-4 rounded-2xl border text-sm transition-all">
+                            <!-- Populated dynamically on submit -->
+                        </div>
+
+                        <!-- Action Submit Button -->
+                        <div class="pt-2 flex items-center justify-end space-x-3">
+                            <button onclick="submitSentence()" class="w-full sm:w-auto px-8 py-3.5 rounded-2xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-mountain-dark font-extrabold shadow-lg shadow-amber-500/20 transition flex items-center justify-center space-x-2 text-base">
+                                <i class="fa-solid fa-mountain"></i>
+                                <span>Climb Higher / Submit</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- VIEW 3: SUMMIT / CELEBRATION SCREEN -->
+        <div id="view-summit" class="hidden flex-1 flex flex-col items-center justify-center text-center space-y-6 max-w-2xl mx-auto py-12">
+            <div class="w-24 h-24 rounded-3xl bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-mountain-dark text-4xl shadow-2xl glow-gold">
+                <i class="fa-solid fa-flag-checkered"></i>
+            </div>
+            <div class="space-y-2">
+                <span class="px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 text-xs font-semibold uppercase tracking-wider">
+                    Mountain Summit Conquered!
+                </span>
+                <h2 class="text-4xl sm:text-5xl font-extrabold tracking-tight font-serif-title text-white">
+                    You Reached the Peak!
+                </h2>
+                <p class="text-slate-400 text-sm sm:text-base">
+                    Incredible linguistics mastery! You successfully navigated all checkpoints and expanded sentences with exceptional adjectives and adverbs.
+                </p>
+            </div>
+
+            <!-- Summit Summary Card -->
+            <div class="w-full bg-mountain-slate border border-slate-800 rounded-3xl p-6 shadow-xl grid grid-cols-3 gap-4 text-center">
+                <div>
+                    <span class="text-xs text-slate-400 uppercase font-semibold">Total XP Earned</span>
+                    <div id="summit-xp" class="text-2xl font-black text-amber-400 mt-1">0</div>
+                </div>
+                <div>
+                    <span class="text-xs text-slate-400 uppercase font-semibold">Max Streak</span>
+                    <div id="summit-streak" class="text-2xl font-black text-orange-400 mt-1">0</div>
+                </div>
+                <div>
+                    <span class="text-xs text-slate-400 uppercase font-semibold">Accuracy</span>
+                    <div id="summit-accuracy" class="text-2xl font-black text-emerald-400 mt-1">100%</div>
+                </div>
+            </div>
+
+            <div class="flex flex-col sm:flex-row items-center justify-center space-y-3 sm:space-y-0 sm:space-x-4 w-full">
+                <button onclick="backToDashboard()" class="w-full sm:w-auto px-6 py-3.5 rounded-2xl bg-amber-500 hover:bg-amber-400 text-mountain-dark font-extrabold transition shadow-lg">
+                    Return to Camp Map
+                </button>
+                <button onclick="startMode('blitz')" class="w-full sm:w-auto px-6 py-3.5 rounded-2xl bg-slate-800 hover:bg-slate-700 text-white font-semibold transition border border-slate-700">
+                    Try Time Attack Blitz
+                </button>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="bg-mountain-slate/50 border-t border-slate-800 py-4 px-6 text-center text-xs text-slate-500">
+        Adjective & Adverb Ascent • 100-Question Comprehensive Sentence Extender & Gamified Learning Platform
+    </footer>
+
+    <!-- MODALS -->
+
+    <!-- Achievements Modal -->
+    <div id="achievements-modal" class="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm hidden flex items-center justify-center p-4">
+        <div class="bg-mountain-slate border border-slate-800 rounded-3xl max-w-lg w-full p-6 shadow-2xl space-y-6 relative">
+            <button onclick="closeModal('achievements-modal')" class="absolute top-5 right-5 text-slate-400 hover:text-white transition">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+            <div class="flex items-center space-x-3">
+                <div class="w-12 h-12 rounded-2xl bg-amber-500/20 text-amber-400 flex items-center justify-center text-xl">
+                    <i class="fa-solid fa-trophy"></i>
+                </div>
+                <div>
+                    <h3 class="font-bold text-lg text-white">Ascent Achievement Badges</h3>
+                    <p class="text-xs text-slate-400">Unlock prestigious mountaineering and grammar titles.</p>
+                </div>
+            </div>
+
+            <div id="badges-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-96 overflow-y-auto pr-1">
+                <!-- Dynamically populated badges -->
+            </div>
+
+            <div class="pt-2 flex justify-end">
+                <button onclick="closeModal('achievements-modal')" class="px-5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-sm font-semibold border border-slate-700 transition">
+                    Close
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Review & Mastery Log Modal -->
+    <div id="review-modal" class="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm hidden flex items-center justify-center p-4">
+        <div class="bg-mountain-slate border border-slate-800 rounded-3xl max-w-xl w-full p-6 shadow-2xl space-y-6 relative">
+            <button onclick="closeModal('review-modal')" class="absolute top-5 right-5 text-slate-400 hover:text-white transition">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+            <div class="flex items-center space-x-3">
+                <div class="w-12 h-12 rounded-2xl bg-blue-500/20 text-blue-400 flex items-center justify-center text-xl">
+                    <i class="fa-solid fa-rotate-right"></i>
+                </div>
+                <div>
+                    <h3 class="font-bold text-lg text-white">Mastery Review Log</h3>
+                    <p class="text-xs text-slate-400">Sentences that required extra refinement. Practice them again!</p>
+                </div>
+            </div>
+
+            <div id="review-list-container" class="space-y-3 max-h-80 overflow-y-auto pr-1">
+                <div class="text-center py-8 text-slate-500 text-sm">
+                    No missed sentences recorded yet. Great job!
+                </div>
+            </div>
+
+            <div class="pt-2 flex justify-end">
+                <button onclick="closeModal('review-modal')" class="px-5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-sm font-semibold border border-slate-700 transition">
+                    Close
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Help / How to Play Modal -->
+    <div id="help-modal" class="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm hidden flex items-center justify-center p-4">
+        <div class="bg-mountain-slate border border-slate-800 rounded-3xl max-w-lg w-full p-6 shadow-2xl space-y-6 relative">
+            <button onclick="closeModal('help-modal')" class="absolute top-5 right-5 text-slate-400 hover:text-white transition">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+            <div class="flex items-center space-x-3">
+                <div class="w-12 h-12 rounded-2xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-xl">
+                    <i class="fa-solid fa-circle-question"></i>
+                </div>
+                <div>
+                    <h3 class="font-bold text-lg text-white">How to Play</h3>
+                    <p class="text-xs text-slate-400">Master sentence expansion & mountain climbing rules.</p>
+                </div>
+            </div>
+
+            <div class="space-y-4 text-sm text-slate-300">
+                <div class="flex items-start space-x-3 bg-slate-900/60 p-3.5 rounded-2xl border border-slate-800">
+                    <div class="text-amber-400 font-bold">1.</div>
+                    <div><strong class="text-white">Read the Base Sentence:</strong> Every challenge starts with a simple core sentence (e.g., "The cat slept.").</div>
+                </div>
+                <div class="flex items-start space-x-3 bg-slate-900/60 p-3.5 rounded-2xl border border-slate-800">
+                    <div class="text-amber-400 font-bold">2.</div>
+                    <div><strong class="text-white">Meet the Objective:</strong> Add the required number of adjectives, adverbs, and minimum word count while preserving the original meaning.</div>
+                </div>
+                <div class="flex items-start space-x-3 bg-slate-900/60 p-3.5 rounded-2xl border border-slate-800">
+                    <div class="text-amber-400 font-bold">3.</div>
+                    <div><strong class="text-white">Climb the Mountain:</strong> Each successful sentence moves your climber closer to the summit across 5 checkpoint camps!</div>
+                </div>
+            </div>
+
+            <div class="pt-2 flex justify-end">
+                <button onclick="closeModal('help-modal')" class="px-5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-mountain-dark font-extrabold text-sm transition">
+                    Got it!
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- APP LOGIC & 100-QUESTION BANK -->
+    <script>
+        /* ================= WEB AUDIO API SYNTHESIZER ================= */
+        let audioCtx = null;
+        let isAudioMuted = false;
+
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+        }
+
+        function playSound(type) {
+            if (isAudioMuted) return;
+            try {
+                initAudio();
+                if (!audioCtx) return;
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                const now = audioCtx.currentTime;
+
+                if (type === 'click') {
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(400, now);
+                    osc.frequency.exponentialRampToValueAtTime(200, now + 0.05);
+                    gain.gain.setValueAtTime(0.1, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.05);
+                    osc.start(now);
+                    osc.stop(now + 0.05);
+                } else if (type === 'success') {
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(523.25, now); // C5
+                    osc.frequency.setValueAtTime(659.25, now + 0.08); // E5
+                    osc.frequency.setValueAtTime(783.99, now + 0.16); // G5
+                    gain.gain.setValueAtTime(0.15, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+                    osc.start(now);
+                    osc.stop(now + 0.35);
+                } else if (type === 'error') {
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(150, now);
+                    osc.frequency.setValueAtTime(110, now + 0.1);
+                    gain.gain.setValueAtTime(0.2, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.25);
+                    osc.start(now);
+                    osc.stop(now + 0.25);
+                } else if (type === 'summit') {
+                    const notes = [523.25, 587.33, 659.25, 698.46, 783.99, 880, 987.77, 1046.50];
+                    notes.forEach((freq, idx) => {
+                        const o = audioCtx.createOscillator();
+                        const g = audioCtx.createGain();
+                        o.connect(g);
+                        g.connect(audioCtx.destination);
+                        o.frequency.setValueAtTime(freq, now + idx * 0.08);
+                        g.gain.setValueAtTime(0.12, now + idx * 0.08);
+                        g.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.08 + 0.3);
+                        o.start(now + idx * 0.08);
+                        o.stop(now + idx * 0.08 + 0.3);
+                    });
+                }
+            } catch(e) {
+                console.warn("Audio error:", e);
+            }
+        }
+
+        function toggleAudio() {
+            isAudioMuted = !isAudioMuted;
+            const icon = document.getElementById('audio-icon');
+            if (isAudioMuted) {
+                icon.className = "fa-solid fa-volume-xmark text-red-400";
+            } else {
+                icon.className = "fa-solid fa-volume-high";
+                playSound('click');
+            }
+        }
+
+        /* ================= 100-QUESTION COMPREHENSIVE BANK ================= */
+        const questionBank = [];
+        
+        // Helper to generate 100 structured questions across CEFR levels
+        const baseTemplates = [
+            { base: "The dog barked.", level: "A1", reqAdj: 1, reqAdv: 1, minWords: 7, hint: "Add one adjective describing the dog and one adverb for how it barked." },
+            { base: "She drank coffee.", level: "A1", reqAdj: 1, reqAdv: 1, minWords: 7, hint: "Describe the coffee and how she drank it." },
+            { base: "The car drove.", level: "A1", reqAdj: 1, reqAdv: 1, minWords: 7, hint: "What kind of car? How did it drive?" },
+            { base: "Birds fly south.", level: "A1", reqAdj: 1, reqAdv: 1, minWords: 7, hint: "Describe the birds and the manner of flight." },
+            { base: "He wrote a letter.", level: "A1", reqAdj: 1, reqAdv: 1, minWords: 8, hint: "What kind of letter? How did he write?" },
+            { base: "The sun shined.", level: "A1", reqAdj: 1, reqAdv: 1, minWords: 7, hint: "Describe the sun and its radiance." },
+            { base: "Children played outside.", level: "A1", reqAdj: 1, reqAdv: 1, minWords: 8, hint: "Describe the children and their play style." },
+            { base: "A cat slept.", level: "A1", reqAdj: 1, reqAdv: 1, minWords: 7, hint: "Describe the cat and how it slept." },
+            { base: "The train arrived.", level: "A1", reqAdj: 1, reqAdv: 1, minWords: 7, hint: "Describe the train and its arrival." },
+            { base: "Water boiled.", level: "A1", reqAdj: 1, reqAdv: 1, minWords: 7, hint: "Describe the water and the boiling process." },
+            // A2 Level
+            { base: "The chef cooked a meal.", level: "A2", reqAdj: 2, reqAdv: 1, minWords: 10, hint: "Add two adjectives to describe the meal and an adverb describing the chef." },
+            { base: "Students studied for the test.", level: "A2", reqAdj: 2, reqAdv: 1, minWords: 10, hint: "Describe the students and the test with adjectives." },
+            { base: "The musician played guitar.", level: "A2", reqAdj: 2, reqAdv: 1, minWords: 10, hint: "Add vivid adjectives and a manner adverb." },
+            { base: "Rain fell on the roof.", level: "A2", reqAdj: 2, reqAdv: 1, minWords: 10, hint: "Describe the rain and the roof." },
+            { base: "The traveler packed bags.", level: "A2", reqAdj: 2, reqAdv: 1, minWords: 10, hint: "Use descriptive modifiers for bags and traveler." },
+            { base: "Firefighters rescued the cat.", level: "A2", reqAdj: 2, reqAdv: 1, minWords: 10, hint: "Describe the firefighters and the rescue." },
+            { base: "The wind blew strongly.", level: "A2", reqAdj: 2, reqAdv: 2, minWords: 10, hint: "Enhance with double adjectives and adverbs." },
+            { base: "A runner crossed the line.", level: "A2", reqAdj: 2, reqAdv: 1, minWords: 10, hint: "Describe the runner and finish line." },
+            { base: "The baker made bread.", level: "A2", reqAdj: 2, reqAdv: 1, minWords: 10, hint: "Describe the bread and the baker." },
+            { base: "Tourists visited the museum.", level: "A2", reqAdj: 2, reqAdv: 1, minWords: 10, hint: "Describe the tourists and the museum." },
+            // B1 Level
+            { base: "The manager reviewed the report.", level: "B1", reqAdj: 2, reqAdv: 2, minWords: 12, hint: "Add two adjectives and two adverbs to elevate professional tone." },
+            { base: "Scientists conducted an experiment.", level: "B1", reqAdj: 2, reqAdv: 2, minWords: 12, hint: "Incorporate scientific adjectives and precise adverbs." },
+            { base: "The artist painted a portrait.", level: "B1", reqAdj: 2, reqAdv: 2, minWords: 12, hint: "Describe the artistic technique and portrait details." },
+            { base: "An old clock chimed loudly.", level: "B1", reqAdj: 2, reqAdv: 2, minWords: 12, hint: "Expand on the clock's age, appearance, and chime." },
+            { base: "The company launched a product.", level: "B1", reqAdj: 2, reqAdv: 2, minWords: 12, hint: "Describe the innovative product and launch strategy." },
+            { base: "Athletes prepared for the championship.", level: "B1", reqAdj: 2, reqAdv: 2, minWords: 12, hint: "Add descriptors for the athletes and preparation." },
+            { base: "The storm damaged the coastline.", level: "B1", reqAdj: 2, reqAdv: 2, minWords: 12, hint: "Describe the destructive storm and coastline." },
+            { base: "A historian discovered an artifact.", level: "B1", reqAdj: 2, reqAdv: 2, minWords: 12, hint: "Enhance with adjectives of antiquity and adverbs." },
+            { base: "The committee discussed the proposal.", level: "B1", reqAdj: 2, reqAdv: 2, minWords: 12, hint: "Describe the committee members and discussion." },
+            { base: "Engineers designed a new bridge.", level: "B1", reqAdj: 2, reqAdv: 2, minWords: 12, hint: "Describe the bridge's structural qualities." },
+            // B2 Level
+            { base: "Economic policies impacted global markets.", level: "B2", reqAdj: 3, reqAdv: 2, minWords: 15, hint: "Use sophisticated economic adjectives and manner adverbs." },
+            { base: "The novel explored complex themes.", level: "B2", reqAdj: 3, reqAdv: 2, minWords: 15, hint: "Describe the literary elements and thematic depth." },
+            { base: "Researchers analyzed climate data.", level: "B2", reqAdj: 3, reqAdv: 2, minWords: 15, hint: "Incorporate rigorous academic vocabulary." },
+            { base: "The architect designed a skyscraper.", level: "B2", reqAdj: 3, reqAdv: 2, minWords: 15, hint: "Detail the architectural aesthetics and design precision." },
+            { base: "Diplomats negotiated a peace treaty.", level: "B2", reqAdj: 3, reqAdv: 2, minWords: 15, hint: "Describe the diplomatic tension and negotiation." },
+            { base: "Technological advancements transformed industries.", level: "B2", reqAdj: 3, reqAdv: 2, minWords: 15, hint: "Use advanced modifiers for technology and industry." },
+            { base: "The orchestra performed a symphony.", level: "B2", reqAdj: 3, reqAdv: 2, minWords: 15, hint: "Describe the musical performance and acoustic resonance." },
+            { base: "Philosophers debated human consciousness.", level: "B2", reqAdj: 3, reqAdv: 2, minWords: 15, hint: "Incorporate intellectual and cognitive descriptors." },
+            { base: "Astronomers observed a distant galaxy.", level: "B2", reqAdj: 3, reqAdv: 2, minWords: 15, hint: "Describe cosmic phenomena with precise adjectives." },
+            { base: "The corporation restructured operations.", level: "B2", reqAdj: 3, reqAdv: 2, minWords: 15, hint: "Detail corporate restructuring with formal vocabulary." },
+            // C1/C2 Level
+            { base: "The paradigm shifted unexpectedly.", level: "C1", reqAdj: 3, reqAdv: 3, minWords: 18, hint: "Deploy C1-level academic adjectives and nuanced adverbs." },
+            { base: "Bureaucratic inertia hindered progress.", level: "C1", reqAdj: 3, reqAdv: 3, minWords: 18, hint: "Elevate the critique with sophisticated modifiers." },
+            { base: "The rhetorical argument proved persuasive.", level: "C1", reqAdj: 3, reqAdv: 3, minWords: 18, hint: "Analyze rhetorical nuances with advanced vocabulary." },
+            { base: "Neurological pathways govern behavior.", level: "C1", reqAdj: 3, reqAdv: 3, minWords: 18, hint: "Incorporate precise neuroscientific terminology." },
+            { base: "Anomalous data disrupted hypotheses.", level: "C1", reqAdj: 3, reqAdv: 3, minWords: 18, hint: "Detail statistical anomalies and theoretical impact." },
+            { base: "Geopolitical tensions escalated rapidly.", level: "C1", reqAdj: 3, reqAdv: 3, minWords: 18, hint: "Describe international relations with gravitas." },
+            { base: "The aesthetic philosophy resonated deeply.", level: "C2", reqAdj: 3, reqAdv: 3, minWords: 20, hint: "Use exquisite literary and philosophical descriptors." },
+            { base: "Cognitive dissonance impaired judgment.", level: "C2", reqAdj: 3, reqAdv: 3, minWords: 20, hint: "Incorporate advanced psychological terminology." },
+            { base: "The macroeconomic forecast predicted volatility.", level: "C2", reqAdj: 3, reqAdv: 3, minWords: 20, hint: "Detail financial forecasting with professional rigor." },
+            { base: "Quantum mechanics baffled physicists.", level: "C2", reqAdj: 3, reqAdv: 3, minWords: 20, hint: "Describe quantum complexity with superlative richness." }
+        ];
+
+        // Expand template base to 100 questions by cyclical variation
+        for (let i = 0; i < 100; i++) {
+            const template = baseTemplates[i % baseTemplates.length];
+            questionBank.push({
+                id: i + 1,
+                base: template.base,
+                level: template.level,
+                camp: Math.floor(i / 20) + 1, // 5 camps (20 questions each)
+                reqAdj: template.reqAdj,
+                reqAdv: template.reqAdv,
+                minWords: template.minWords + Math.floor(i / 30),
+                hint: template.hint,
+                sample: `With meticulous care, ${template.base.toLowerCase().replace('.', '')} through magnificent and unforeseen circumstances.`
+            });
+        }
+
+        /* ================= GAME STATE ================= */
+        let gameState = {
+            mode: 'ascent', // 'ascent', 'blitz', 'endless'
+            currentQuestionIndex: 0,
+            campIndex: 1, // 1 to 5
+            score: 0,
+            streak: 0,
+            maxStreak: 0,
+            xp: 0,
+            blitzHighScore: 0,
+            missedQuestions: [],
+            unlockedBadges: [],
+            timerInterval: null,
+            timeLeft: 90
+        };
+
+        // Adjective and Adverb heuristic word lists for real-time detection
+        const commonAdjectives = new Set([
+            'big','small','fast','slow','happy','sad','bright','dark','loud','quiet','fierce','deafening','old','new','red','blue','green','golden','silver','ancient','modern','complex','simple','massive','tiny','angry','calm','brave','timid','sudden','rapid','smooth','rough','delicious','stunning','vibrant','magnificent','ferocious','unforeseen','meticulous','bureaucratic','rhetorical','neurological','anomalous','geopolitical','aesthetic','cognitive','macroeconomic','quantum','financial','structural','innovative','destructive','historical','archaeological','scientific','professional','literary','philosophical'
+        ]);
+
+        const commonAdverbs = new Set([
+            'quickly','slowly','angrily','happily','sadly','loudly','quietly','suddenly','rapidly','smoothly','roughly','meticulously','deeply','rapidly','fircely','brilliantly','carefully','recklessly','silently','bussily','frequently','seldom','always','never','effectively','precisely','profoundly','significantly','unexpectedly','gradually','ultimately','virtually','merely','barely'
+        ]);
+
+        // Badge Definitions
+        const badgeDefinitions = [
+            { id: 'first_climb', title: 'Base Camp Pioneer', desc: 'Successfully extend your very first sentence.', icon: 'fa-mountain', unlocked: false },
+            { id: 'streak_5', title: 'Adjective Alchemist', desc: 'Maintain a streak of 5 successful sentence extensions.', icon: 'fa-flask', unlocked: false },
+            { id: 'adverb_ace', title: 'Adverb Ace', desc: 'Successfully use 10 adverbs across sentences.', icon: 'fa-bolt', unlocked: false },
+            { id: 'camp_3', title: 'High Altitude Climber', desc: 'Reach Camp 3 in Ascent Mode.', icon: 'fa-campground', unlocked: false },
+            { id: 'summit_conqueror', title: 'Summit Conqueror', desc: 'Conquer the 100th question and reach the Mountain Summit!', icon: 'fa-flag-checkered', unlocked: false },
+            { id: 'blitz_master', title: 'Blitz Sprinter', desc: 'Score over 100 points in Time Attack Blitz mode.', icon: 'fa-stopwatch', unlocked: false }
+        ];
+
+        /* ================= APP INITIALIZATION ================= */
+        window.onload = function() {
+            loadUserData();
+            updateHeaderStats();
+            renderBadges();
+        };
+
+        function loadUserData() {
+            const saved = localStorage.getItem('ascent_user_state');
+            if (saved) {
+                try {
+                    const parsed = JSON.parse(saved);
+                    gameState.xp = parsed.xp || 0;
+                    gameState.streak = parsed.streak || 0;
+                    gameState.maxStreak = parsed.maxStreak || 0;
+                    gameState.blitzHighScore = parsed.blitzHighScore || 0;
+                    gameState.unlockedBadges = parsed.unlockedBadges || [];
+                    gameState.missedQuestions = parsed.missedQuestions || [];
+                } catch(e) { console.error(e); }
+            }
+        }
+
+        function saveUserData() {
+            localStorage.setItem('ascent_user_state', JSON.stringify({
+                xp: gameState.xp,
+                streak: gameState.streak,
+                maxStreak: gameState.maxStreak,
+                blitzHighScore: gameState.blitzHighScore,
+                unlockedBadges: gameState.unlockedBadges,
+                missedQuestions: gameState.missedQuestions
+            }));
+        }
+
+        function updateHeaderStats() {
+            document.getElementById('header-xp').innerText = gameState.xp;
+            document.getElementById('header-streak').innerText = gameState.streak;
+            
+            const campNames = ["Base Camp", "Camp 1", "Camp 2", "Camp 3", "Camp 4", "Summit Peak"];
+            document.getElementById('header-camp').innerText = campNames[gameState.campIndex] || "Summit";
+            document.getElementById('blitz-highscore').innerText = gameState.blitzHighScore;
+            document.getElementById('missed-count').innerText = gameState.missedQuestions.length;
+            
+            const completedInCamp = (gameState.currentQuestionIndex % 20);
+            document.getElementById('campaign-progress-text').innerText = `Camp ${gameState.campIndex}: ${completedInCamp}/20 Completed`;
+        }
+
+        /* ================= VIEW NAVIGATION ================= */
+        function switchView(viewName) {
+            playSound('click');
+            document.getElementById('view-dashboard').classList.add('hidden');
+            document.getElementById('view-game').classList.add('hidden');
+            document.getElementById('view-summit').classList.add('hidden');
+
+            if (viewName === 'dashboard') {
+                document.getElementById('view-dashboard').classList.remove('hidden');
+                updateHeaderStats();
+            } else if (viewName === 'game') {
+                document.getElementById('view-game').classList.remove('hidden');
+            } else if (viewName === 'summit') {
+                document.getElementById('view-summit').classList.remove('hidden');
+            }
+        }
+
+        function startMode(mode) {
+            playSound('click');
+            gameState.mode = mode;
+            gameState.score = 0;
+            
+            if (mode === 'ascent') {
+                // start from current progress index or 0
+                if (gameState.currentQuestionIndex >= 100) gameState.currentQuestionIndex = 0;
+            } else if (mode === 'blitz') {
+                gameState.currentQuestionIndex = Math.floor(Math.random() * questionBank.length);
+                gameState.timeLeft = 90;
+                startTimer();
+            } else if (mode === 'endless') {
+                gameState.currentQuestionIndex = Math.floor(Math.random() * questionBank.length);
+            }
+
+            switchView('game');
+            loadCurrentQuestion();
+        }
+
+        function backToDashboard() {
+            if (gameState.timerInterval) clearInterval(gameState.timerInterval);
+            switchView('dashboard');
+        }
+
+        /* ================= GAMEPLAY LOGIC ================= */
+        let currentQuestion = null;
+
+        function loadCurrentQuestion() {
+            currentQuestion = questionBank[gameState.currentQuestionIndex];
+            if (!currentQuestion) {
+                // Completed all 100 questions!
+                triggerSummitCelebration();
+                return;
+            }
+
+            gameState.campIndex = currentQuestion.camp;
+            
+            // Populate UI
+            document.getElementById('cefr-badge').innerText = `Level ${currentQuestion.level}`;
+            document.getElementById('question-id-badge').innerText = `Q# ${currentQuestion.id} (Camp ${currentQuestion.camp})`;
+            document.getElementById('base-sentence-text').innerText = `"${currentQuestion.base}"`;
+            
+            const objBox = document.getElementById('objective-box');
+            objBox.innerHTML = `
+                <div class="flex items-center space-x-2"><i class="fa-solid fa-check text-amber-400"></i><span>Minimum Words: <strong>${currentQuestion.minWords}</strong></span></div>
+                <div class="flex items-center space-x-2"><i class="fa-solid fa-check text-amber-400"></i><span>Required Adjectives: <strong>${currentQuestion.reqAdj}</strong></span></div>
+                <div class="flex items-center space-x-2"><i class="fa-solid fa-check text-amber-400"></i><span>Required Adverbs: <strong>${currentQuestion.reqAdv}</strong></span></div>
+            `;
+
+            document.getElementById('coach-hint-text').innerText = `"${currentQuestion.hint}"`;
+            document.getElementById('user-sentence-input').value = '';
+            document.getElementById('validation-feedback-box').classList.add('hidden');
+            
+            updateMiniCampsIndicator();
+            updateRealTimeMetrics();
+            document.getElementById('current-game-score').innerText = gameState.score;
+        }
+
+        function updateMiniCampsIndicator() {
+            const container = document.getElementById('mini-camps-indicator');
+            let html = '';
+            for (let c = 1; c <= 5; c++) {
+                const active = (c === gameState.campIndex);
+                const passed = (c < gameState.campIndex);
+                let bg = 'bg-slate-800 text-slate-500';
+                if (active) bg = 'bg-amber-500 text-mountain-dark font-bold';
+                else if (passed) bg = 'bg-emerald-500/20 text-emerald-400';
+                html += `<div class="w-8 h-8 rounded-xl flex items-center justify-center text-xs border border-slate-700 ${bg}" title="Camp ${c}">C${c}</div>`;
+            }
+            container.innerHTML = html;
+        }
+
+        function clearInput() {
+            playSound('click');
+            document.getElementById('user-sentence-input').value = '';
+            onSentenceInputChanged();
+        }
+
+        function revealHintExample() {
+            playSound('click');
+            gameState.xp = Math.max(0, gameState.xp - 10);
+            updateHeaderStats();
+            const input = document.getElementById('user-sentence-input');
+            input.value = currentQuestion.sample;
+            onSentenceInputChanged();
+        }
+
+        /* ================= REAL-TIME METRICS HEURISTICS ================= */
+        function analyzeSentence(text) {
+            const clean = text.trim();
+            if (!clean) return { words: 0, adjectives: 0, adverbs: 0, richness: 0 };
+            
+            const words = clean.split(/\s+/);
+            const wordCount = words.length;
+
+            let adjCount = 0;
+            let advCount = 0;
+
+            words.forEach(w => {
+                const lower = w.toLowerCase().replace(/[^a-z]/g, '');
+                if (commonAdjectives.has(lower) || lower.endsWith('ful') || lower.endsWith('ous') || lower.endsWith('ive') || lower.endsWith('ic') || lower.endsWith('al') || lower.endsWith('ble')) {
+                    adjCount++;
+                }
+                if (commonAdverbs.has(lower) || lower.endsWith('ly')) {
+                    advCount++;
+                }
+            });
+
+            // Richness percentage calculation based on target requirements
+            let score = 0;
+            if (wordCount >= currentQuestion.minWords) score += 40;
+            else score += (wordCount / currentQuestion.minWords) * 40;
+
+            if (adjCount >= currentQuestion.reqAdj) score += 30;
+            else score += (adjCount / currentQuestion.reqAdj) * 30;
+
+            if (advCount >= currentQuestion.reqAdv) score += 30;
+            else score += (advCount / currentQuestion.reqAdv) * 30;
+
+            return {
+                words: wordCount,
+                adjectives: adjCount,
+                adverbs: advCount,
+                richness: Math.min(100, Math.round(score))
+            };
+        }
+
+        function onSentenceInputChanged() {
+            const val = document.getElementById('user-sentence-input').value;
+            const metrics = analyzeSentence(val);
+
+            document.getElementById('metric-words').innerText = metrics.words;
+            document.getElementById('metric-adjectives').innerText = metrics.adjectives;
+            document.getElementById('metric-adverbs').innerText = metrics.adverbs;
+            
+            const richElem = document.getElementById('metric-richness');
+            richElem.innerText = `${metrics.richness}%`;
+            if (metrics.richness >= 100) richElem.className = "text-xl font-extrabold text-emerald-400 mt-0.5";
+            else if (metrics.richness >= 70) richElem.className = "text-xl font-extrabold text-amber-400 mt-0.5";
+            else richElem.className = "text-xl font-extrabold text-red-400 mt-0.5";
+        }
+
+        /* ================= SUBMIT & VALIDATION ================= */
+        function submitSentence() {
+            const val = document.getElementById('user-sentence-input').value;
+            const metrics = analyzeSentence(val);
+            const feedbackBox = document.getElementById('validation-feedback-box');
+
+            const wordPass = metrics.words >= currentQuestion.minWords;
+            const adjPass = metrics.adjectives >= currentQuestion.reqAdj;
+            const advPass = metrics.adverbs >= currentQuestion.reqAdv;
+
+            feedbackBox.classList.remove('hidden');
+
+            if (wordPass && adjPass && advPass) {
+                // Success!
+                playSound('success');
+                gameState.score += 50 + metrics.richness;
+                gameState.xp += 25;
+                gameState.streak++;
+                if (gameState.streak > gameState.maxStreak) gameState.maxStreak = gameState.streak;
+
+                checkBadgesOnSuccess();
+                saveUserData();
+
+                feedbackBox.className = "p-4 rounded-2xl border bg-emerald-500/10 border-emerald-500/30 text-emerald-300 text-sm space-y-1";
+                feedbackBox.innerHTML = `
+                    <div class="font-bold flex items-center space-x-2"><i class="fa-solid fa-circle-check"></i><span>Summit Step Conquered Successfully! (+50 pts, +25 XP)</span></div>
+                    <p class="text-xs text-emerald-400/80">Your sentence meets all length, adjective, and adverb requirements.</p>
+                `;
+
+                setTimeout(() => {
+                    if (gameState.mode === 'ascent' || gameState.mode === 'endless') {
+                        gameState.currentQuestionIndex++;
+                        loadCurrentQuestion();
+                    } else if (gameState.mode === 'blitz') {
+                        gameState.currentQuestionIndex = Math.floor(Math.random() * questionBank.length);
+                        loadCurrentQuestion();
+                    }
+                }, 1400);
+
+            } else {
+                // Failed criteria
+                playSound('error');
+                gameState.streak = 0;
+                updateHeaderStats();
+
+                // Add to missed log if not already there
+                if (!gameState.missedQuestions.some(q => q.id === currentQuestion.id)) {
+                    gameState.missedQuestions.push(currentQuestion);
+                }
+                saveUserData();
+
+                let missingList = [];
+                if (!wordPass) missingList.push(`Need at least ${currentQuestion.minWords} words (got ${metrics.words})`);
+                if (!adjPass) missingList.push(`Need at least ${currentQuestion.reqAdj} adjectives (got ${metrics.adjectives})`);
+                if (!advPass) missingList.push(`Need at least ${currentQuestion.reqAdv} adverbs (got ${metrics.adverbs})`);
+
+                feedbackBox.className = "p-4 rounded-2xl border bg-red-500/10 border-red-500/30 text-red-300 text-sm space-y-1";
+                feedbackBox.innerHTML = `
+                    <div class="font-bold flex items-center space-x-2"><i class="fa-solid fa-triangle-exclamation"></i><span>Needs More Enrichment:</span></div>
+                    <ul class="list-disc list-inside text-xs text-red-400/90 space-y-0.5">
+                        ${missingList.map(m => `<li>${m}</li>`).join('')}
+                    </ul>
+                `;
+            }
+            updateHeaderStats();
+        }
+
+        function startTimer() {
+            if (gameState.timerInterval) clearInterval(gameState.timerInterval);
+            document.getElementById('timer-box').classList.remove('hidden');
+            gameState.timerInterval = setInterval(() => {
+                gameState.timeLeft--;
+                document.getElementById('time-left').innerText = `${gameState.timeLeft}s`;
+                if (gameState.timeLeft <= 0) {
+                    clearInterval(gameState.timerInterval);
+                    playSound('summit');
+                    if (gameState.score > gameState.blitzHighScore) {
+                        gameState.blitzHighScore = gameState.score;
+                        if (gameState.blitzHighScore >= 100) unlockBadge('blitz_master');
+                        saveUserData();
+                    }
+                    alert(`Time's up! Blitz Score: ${gameState.score}`);
+                    backToDashboard();
+                }
+            }, 1000);
+        }
+
+        function triggerSummitCelebration() {
+            playSound('summit');
+            unlockBadge('summit_conqueror');
+            saveUserData();
+            document.getElementById('summit-xp').innerText = gameState.xp;
+            document.getElementById('summit-streak').innerText = gameState.maxStreak;
+            switchView('summit');
+        }
+
+        /* ================= BADGES & MODALS ================= */
+        function renderBadges() {
+            const container = document.getElementById('badges-grid');
+            let html = '';
+            badgeDefinitions.forEach(b => {
+                const unlocked = gameState.unlockedBadges.includes(b.id);
+                const bg = unlocked ? 'bg-amber-500/10 border-amber-500/40 text-amber-400' : 'bg-slate-900/40 border-slate-800 text-slate-600';
+                const iconColor = unlocked ? 'text-amber-400' : 'text-slate-600';
+                html += `
+                    <div class="flex items-start space-x-3 p-3.5 rounded-2xl border ${bg}">
+                        <div class="w-10 h-10 rounded-xl bg-slate-800 border border-slate-700 flex items-center justify-center text-lg ${iconColor} flex-shrink-0">
+                            <i class="fa-solid ${b.icon}"></i>
+                        </div>
+                        <div>
+                            <h4 class="font-bold text-xs sm:text-sm ${unlocked ? 'text-white' : 'text-slate-500'}">${b.title}</h4>
+                            <p class="text-[11px] text-slate-400 mt-0.5">${b.desc}</p>
+                            <span class="inline-block mt-1 text-[10px] font-semibold px-2 py-0.5 rounded ${unlocked ? 'bg-amber-500/20 text-amber-300' : 'bg-slate-800 text-slate-500'}">
+                                ${unlocked ? 'Unlocked' : 'Locked'}
+                            </span>
+                        </div>
+                    </div>
+                `;
+            });
+            container.innerHTML = html;
+        }
+
+        function unlockBadge(id) {
+            if (!gameState.unlockedBadges.includes(id)) {
+                gameState.unlockedBadges.push(id);
+                renderBadges();
+            }
+        }
+
+        function checkBadgesOnSuccess() {
+            unlockBadge('first_climb');
+            if (gameState.streak >= 5) unlockBadge('streak_5');
+            if (gameState.campIndex >= 3) unlockBadge('camp_3');
+        }
+
+        function openModal(id) {
+            playSound('click');
+            document.getElementById(id).classList.remove('hidden');
+            if (id === 'achievements-modal') renderBadges();
+            if (id === 'review-modal') renderReviewLog();
+        }
+
+        function closeModal(id) {
+            playSound('click');
+            document.getElementById(id).classList.add('hidden');
+        }
+
+        function renderReviewLog() {
+            const container = document.getElementById('review-list-container');
+            if (gameState.missedQuestions.length === 0) {
+                container.innerHTML = `<div class="text-center py-8 text-slate-500 text-sm">No missed sentences recorded yet. Great job!</div>`;
+                return;
+            }
+            let html = '';
+            gameState.missedQuestions.forEach((q, idx) => {
+                html += `
+                    <div class="bg-slate-900/60 border border-slate-800 rounded-2xl p-4 flex items-center justify-between gap-4">
+                        <div>
+                            <span class="text-[10px] px-2 py-0.5 rounded bg-blue-500/20 text-blue-400 font-bold">Level ${q.level}</span>
+                            <h4 class="font-bold text-white text-sm mt-1">"${q.base}"</h4>
+                            <p class="text-xs text-slate-400 mt-0.5">${q.hint}</p>
+                        </div>
+                        <button onclick="practiceMissed(${idx})" class="px-3.5 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-mountain-dark font-bold text-xs transition flex-shrink-0">
+                            Practice
+                        </button>
+                    </div>
+                `;
+            });
+            container.innerHTML = html;
+        }
+
+        function practiceMissed(idx) {
+            const q = gameState.missedQuestions[idx];
+            // Find index in questionBank
+            const qIdx = questionBank.findIndex(item => item.id === q.id);
+            if (qIdx !== -1) {
+                gameState.currentQuestionIndex = qIdx;
+                closeModal('review-modal');
+                switchView('game');
+                loadCurrentQuestion();
+            }
+        }
+    </script>
+</body>
+</html>
