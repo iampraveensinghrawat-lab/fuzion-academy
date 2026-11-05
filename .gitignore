@@ -28,3 +28,14 @@ next-env.d.ts
 .DS_Store
 *.pem
 Thumbs.db
+
+# Android Build Output & Gradle
+.gradle/
+build/
+android/app/build/
+android/.gradle/
+android/local.properties
+android/captures/
+android/.idea/
+android/*.iml
+android/app/*.iml
