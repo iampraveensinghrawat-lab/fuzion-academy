@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAppStore } from '@/lib/store';
 import {
   Flame,
@@ -15,6 +15,8 @@ import {
   CalendarCheck,
   CheckCircle2,
   Clock,
+  ExternalLink,
+  HelpCircle,
 } from 'lucide-react';
 import { GAMES_CATALOG } from '@/lib/gamesData';
 
@@ -33,6 +35,23 @@ export default function DashboardTab() {
     toggleHomework,
     speakingHistory,
   } = useAppStore();
+
+  const [liveQuizzes, setLiveQuizzes] = useState<any[]>([]);
+
+  useEffect(() => {
+    fetch('/api/quizzes')
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.quizzes && Array.isArray(data.quizzes)) {
+          // Filter quizzes for student's batch or 'All Batches'
+          const relevant = data.quizzes.filter(
+            (q: any) => q.batch === 'All Batches' || q.batch === studentBatch
+          );
+          setLiveQuizzes(relevant);
+        }
+      })
+      .catch((err) => console.warn('Quizzes fetch notice:', err));
+  }, [studentBatch]);
 
   const featuredGames = GAMES_CATALOG.filter((g) => g.isPopular).slice(0, 4);
 
@@ -243,6 +262,39 @@ export default function DashboardTab() {
               </div>
             ))}
           </div>
+
+          {/* Active Online Quizzes (Cross-Device Synced) */}
+          {liveQuizzes.length > 0 && (
+            <div className="bg-white rounded-2xl p-4 border border-indigo-100 shadow-sm space-y-3">
+              <div className="flex items-center gap-2">
+                <HelpCircle className="w-4 h-4 text-indigo-600" />
+                <h3 className="font-bold text-xs text-gray-900 uppercase">
+                  Assigned Batch Quizzes
+                </h3>
+              </div>
+              <div className="space-y-2">
+                {liveQuizzes.map((quiz) => (
+                  <a
+                    key={quiz.id}
+                    href={quiz.url}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="p-3 bg-indigo-50/60 hover:bg-indigo-100/70 border border-indigo-100 rounded-xl flex items-center justify-between text-xs transition-colors group"
+                  >
+                    <div>
+                      <p className="font-bold text-gray-900 group-hover:text-indigo-700">
+                        {quiz.title}
+                      </p>
+                      <p className="text-[10px] text-gray-500 mt-0.5">
+                        {quiz.questions} Questions • {quiz.batch}
+                      </p>
+                    </div>
+                    <ExternalLink className="w-3.5 h-3.5 text-indigo-500 group-hover:translate-x-0.5 transition-transform" />
+                  </a>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Quick PDF study activity shortcut */}
           <div className="bg-indigo-50/70 border border-indigo-100 rounded-2xl p-4">

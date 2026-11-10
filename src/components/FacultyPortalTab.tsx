@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAppStore, StudentRecord } from '@/lib/store';
 import {
   Users,
@@ -64,22 +64,78 @@ export default function FacultyPortalTab() {
   // Quiz creator state
   const [quizTitle, setQuizTitle] = useState('');
   const [quizUrl, setQuizUrl] = useState('');
-  const [quizList, setQuizList] = useState([
-    {
-      id: 'q-1',
-      title: 'Tenses & Irregular Verbs Mastery Quiz',
-      url: 'https://gemini.google.com',
-      batch: 'All Batches',
-      questions: 15,
-    },
-    {
-      id: 'q-2',
-      title: 'Business Idioms & Phrasal Verbs Challenge',
-      url: 'https://gemini.google.com',
-      batch: 'B1-Evening',
-      questions: 20,
-    },
-  ]);
+  const [quizBatch, setQuizBatch] = useState('All Batches');
+  const [quizQuestions, setQuizQuestions] = useState(15);
+  const [quizCreating, setQuizCreating] = useState(false);
+  const [quizList, setQuizList] = useState<any[]>([]);
+
+  // Fetch live cloud quizzes, games, and materials on mount
+  useEffect(() => {
+    fetch('/api/quizzes')
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.quizzes && Array.isArray(data.quizzes)) {
+          setQuizList(data.quizzes);
+        }
+      })
+      .catch((err) => console.warn('Cloud quizzes fetch notice:', err));
+
+    fetch('/api/games')
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.games && Array.isArray(data.games)) {
+          data.games.forEach((g: any) => addGame(g));
+        }
+      })
+      .catch((err) => console.warn('Cloud games fetch notice:', err));
+
+    fetch('/api/materials')
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.materials && Array.isArray(data.materials)) {
+          data.materials.forEach((m: any) => addMaterial(m));
+        }
+      })
+      .catch((err) => console.warn('Cloud materials fetch notice:', err));
+  }, []);
+
+  const handleCreateQuiz = async () => {
+    if (!quizTitle.trim()) return;
+    setQuizCreating(true);
+    try {
+      const res = await fetch('/api/quizzes', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: quizTitle.trim(),
+          url: quizUrl.trim() || 'https://gemini.google.com',
+          batch: quizBatch,
+          questions: quizQuestions,
+        }),
+      });
+      const data = await res.json();
+      if (res.ok && data.quiz) {
+        setQuizList((prev) => [data.quiz, ...prev]);
+        setQuizTitle('');
+        setQuizUrl('');
+      } else {
+        alert(data.error || 'Failed to save quiz to database');
+      }
+    } catch (err: any) {
+      alert(err.message || 'Error creating quiz');
+    } finally {
+      setQuizCreating(false);
+    }
+  };
+
+  const handleDeleteQuiz = async (id: string) => {
+    try {
+      await fetch(`/api/quizzes?id=${encodeURIComponent(id)}`, { method: 'DELETE' });
+      setQuizList((prev) => prev.filter((q) => q.id !== id));
+    } catch (err) {
+      console.warn('Delete quiz notice:', err);
+    }
+  };
 
   // HTML Game Uploader state
   const [gameFile, setGameFile] = useState<File | null>(null);
@@ -141,17 +197,13 @@ export default function FacultyPortalTab() {
       let savedGame: any;
 
       try {
-        const res = await fetch('/api/games-upload', {
+        const res = await fetch('/api/games', {
           method: 'POST',
           body: formData,
         });
         const data = await res.json();
         if (res.ok && data.game) {
-          savedGame = {
-            ...data.game,
-            // If server write succeeded or returned dataUrl, ensure we use dataUrl in browser for instant playback
-            filePath: data.game.filePath.startsWith('data:') ? data.game.filePath : clientDataUrl,
-          };
+          savedGame = data.game;
         } else {
           throw new Error(data.error || 'Server upload notice');
         }
@@ -213,7 +265,7 @@ export default function FacultyPortalTab() {
       formData.append('category', pdfCategory);
       formData.append('description', pdfDescription);
 
-      const res = await fetch('/api/materials-upload', {
+      const res = await fetch('/api/materials', {
         method: 'POST',
         body: formData,
       });
@@ -683,43 +735,51 @@ export default function FacultyPortalTab() {
           </div>
 
           {/* Form */}
-          <div className="p-5 bg-indigo-50/70 border border-indigo-200 rounded-2xl space-y-3">
-            <h3 className="font-bold text-xs text-indigo-950 uppercase">New Online Quiz Link</h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div className="p-5 bg-indigo-50/70 border border-indigo-200 rounded-2xl space-y-4">
+            <h3 className="font-bold text-xs text-indigo-950 uppercase">Create New Online Quiz (Cross-Device Synced)</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
               <input
                 type="text"
-                placeholder="Quiz Title (e.g. Advanced Passive Voice Challenge)"
+                placeholder="Quiz Title (e.g. Passive Voice Mastery)"
                 value={quizTitle}
                 onChange={(e) => setQuizTitle(e.target.value)}
-                className="p-2.5 rounded-xl border border-indigo-200 text-xs bg-white"
+                className="p-2.5 rounded-xl border border-indigo-200 text-xs bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 font-medium"
               />
               <input
                 type="url"
-                placeholder="Paste Gemini / Form Quiz URL"
+                placeholder="Quiz / Form Link (e.g. Google Forms / Gemini)"
                 value={quizUrl}
                 onChange={(e) => setQuizUrl(e.target.value)}
-                className="p-2.5 rounded-xl border border-indigo-200 text-xs bg-white"
+                className="p-2.5 rounded-xl border border-indigo-200 text-xs bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 font-medium"
+              />
+              <select
+                value={quizBatch}
+                onChange={(e) => setQuizBatch(e.target.value)}
+                className="p-2.5 rounded-xl border border-indigo-200 text-xs bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 font-medium"
+              >
+                <option value="All Batches">All Batches</option>
+                <option value="A1-Morning">A1-Morning</option>
+                <option value="B1-Evening">B1-Evening</option>
+                <option value="IELTS-Mastery">IELTS-Mastery</option>
+                <option value="Business-Fluency">Business-Fluency</option>
+              </select>
+              <input
+                type="number"
+                min="5"
+                max="100"
+                placeholder="Questions count"
+                value={quizQuestions}
+                onChange={(e) => setQuizQuestions(Number(e.target.value))}
+                className="p-2.5 rounded-xl border border-indigo-200 text-xs bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 font-medium"
               />
             </div>
             <button
-              onClick={() => {
-                if (!quizTitle || !quizUrl) return;
-                setQuizList([
-                  {
-                    id: `q-${Date.now()}`,
-                    title: quizTitle,
-                    url: quizUrl,
-                    batch: 'All Batches',
-                    questions: 10,
-                  },
-                  ...quizList,
-                ]);
-                setQuizTitle('');
-                setQuizUrl('');
-              }}
-              className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-xl shadow-sm"
+              onClick={handleCreateQuiz}
+              disabled={quizCreating || !quizTitle.trim()}
+              className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 disabled:bg-gray-300 text-white font-bold text-xs rounded-xl shadow-sm flex items-center gap-2 transition-all"
             >
-              Add Quiz to Library
+              {quizCreating ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Plus className="w-3.5 h-3.5" />}
+              <span>{quizCreating ? 'Saving to Database...' : 'Save & Publish Quiz to All Devices'}</span>
             </button>
           </div>
 
@@ -728,7 +788,7 @@ export default function FacultyPortalTab() {
             {quizList.map((q) => (
               <div
                 key={q.id}
-                className="p-4 bg-gray-50 border border-gray-100 rounded-2xl flex items-center justify-between"
+                className="p-4 bg-gray-50 border border-gray-100 rounded-2xl flex items-center justify-between hover:border-indigo-200 transition-all"
               >
                 <div>
                   <h4 className="font-bold text-xs sm:text-sm text-gray-900">{q.title}</h4>
@@ -736,14 +796,26 @@ export default function FacultyPortalTab() {
                     href={q.url}
                     target="_blank"
                     rel="noreferrer"
-                    className="text-[11px] text-indigo-600 hover:underline"
+                    className="text-[11px] text-indigo-600 hover:underline flex items-center gap-1 mt-0.5"
                   >
-                    {q.url}
+                    <span>{q.url}</span>
+                    <ExternalLink className="w-3 h-3" />
                   </a>
                 </div>
-                <span className="px-2.5 py-1 rounded bg-indigo-100 text-indigo-700 text-xs font-bold">
-                  {q.batch}
-                </span>
+                <div className="flex items-center gap-2">
+                  <span className="px-2.5 py-1 rounded bg-indigo-100 text-indigo-700 text-xs font-bold">
+                    {q.batch}
+                  </span>
+                  {q.isCustom && (
+                    <button
+                      onClick={() => handleDeleteQuiz(q.id)}
+                      className="p-1.5 rounded-lg text-rose-500 hover:bg-rose-50"
+                      title="Delete Quiz"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  )}
+                </div>
               </div>
             ))}
           </div>

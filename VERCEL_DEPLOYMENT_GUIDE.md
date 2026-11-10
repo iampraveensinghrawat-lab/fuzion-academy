@@ -33,7 +33,7 @@ Before clicking "Deploy", expand the **Environment Variables** section in Vercel
 
 | Key | Value | Description |
 | :--- | :--- | :--- |
-| `NEXT_PUBLIC_SUPABASE_URL` | `https://amzptluvdjihwluolufa.supabase.co` | Supabase Database URL |
+| `NEXT_PUBLIC_SUPABASE_URL` | `https://amzptluvdjlhwluolufa.supabase.co` | Supabase Database URL |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | `sb_publishable_fRFkl6m5y3sPhusPtn5CzQ_LeKq94wI` | Supabase Publishable Key |
 | `GEMINI_API_KEY` | `AQ.Ab8RN6JxuPLktXD5fr9Dki5jO53hFg6x1HBnId4sDL0rUDOosw` | Google Gemini API Key |
 | `NEXT_PUBLIC_ACADEMY_NAME` | `Fuzion Academy` | Academy Branding |

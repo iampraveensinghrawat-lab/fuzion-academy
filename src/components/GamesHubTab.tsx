@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAppStore } from '@/lib/store';
 import {
   GAMES_CATALOG,
@@ -10,11 +10,27 @@ import {
 import { Search, ListChecks, Play, Sparkles } from 'lucide-react';
 
 export default function GamesHubTab() {
-  const { openGame, customGames } = useAppStore();
+  const { openGame, customGames, addGame } = useAppStore();
+  const [cloudGames, setCloudGames] = useState<GameItem[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string>('All Categories (100+)');
   const [searchQuery, setSearchQuery] = useState<string>('');
 
-  const allGames = [...(customGames || []), ...GAMES_CATALOG];
+  useEffect(() => {
+    // Fetch live games from Supabase cloud database across all devices
+    fetch('/api/games')
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.games && Array.isArray(data.games)) {
+          setCloudGames(data.games);
+        }
+      })
+      .catch((err) => console.warn('Cloud games fetch notice:', err));
+  }, []);
+
+  // Merge: Cloud games take precedence, then local custom games, then pre-bundled catalog
+  const mergedCustom = [...cloudGames, ...(customGames || [])];
+  const uniqueCustom = Array.from(new Map(mergedCustom.map((g) => [g.id, g])).values());
+  const allGames = [...uniqueCustom, ...GAMES_CATALOG];
 
   const filteredGames = allGames.filter((game) => {
     const matchesCategory =

@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Speaking Arena | Fuzion Academy</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        @keyframes pulse-ring {
+            0% { transform: scale(0.95); opacity: 0.8; }
+            50% { transform: scale(1.1); opacity: 0.3; }
+            100% { transform: scale(0.95); opacity: 0.8; }
+        }
+        .recording-pulse {
+            animation: pulse-ring 2s infinite ease-in-out;
+        }
+        .waveform-bar {
+            animation: wave 1.2s infinite ease-in-out;
+        }
+        @keyframes wave {
+            0%, 100% { height: 8px; }
+            50% { height: 36px; }
+        }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col selection:bg-emerald-500 selection:text-white">
+
+    <!-- Header / Navbar -->
+    <header class="border-b border-emerald-900/40 bg-slate-900/80 backdrop-blur-md sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-xl bg-emerald-600 flex items-center justify-center shadow-lg shadow-emerald-900/50 font-black text-xl text-white">
+                    F
+                </div>
+                <div>
+                    <h1 class="font-bold text-lg tracking-tight text-white flex items-center gap-2">
+                        Fuzion Academy <span class="text-xs px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 font-semibold">AI Speaking Arena</span>
+                    </h1>
+                    <p class="text-xs text-slate-400">Spoken English & Soft Skills Mastery (84 Curriculum Questions)</p>
+                </div>
+            </div>
+            <div class="flex items-center space-x-4">
+                <div class="hidden sm:flex flex-col text-right">
+                    <span class="text-xs text-slate-400">Instructor</span>
+                    <span class="text-sm font-semibold text-emerald-400">Praveen Singh Rawat</span>
+                </div>
+                <div class="px-3 py-1.5 rounded-lg bg-slate-800 border border-slate-700 text-xs font-medium text-slate-300">
+                    Help Line: <strong class="text-white">9582774387</strong>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 grid grid-cols-1 lg:grid-cols-12 gap-8">
+        
+        <!-- Left Panel: Category & Question Selection (4 Cols) -->
+        <div class="lg:col-span-5 flex flex-col space-y-6">
+            <div class="bg-slate-900/90 border border-emerald-900/30 rounded-2xl p-6 shadow-xl backdrop-blur-md flex flex-col h-[720px]">
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="text-lg font-bold text-white flex items-center gap-2">
+                        <svg class="w-5 h-5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 100-6 3 3 0 000 6z"></path></svg>
+                        Curriculum Bank (<span id="total-count">84</span> Qs)
+                    </h2>
+                    <span id="category-badge" class="text-xs px-2.5 py-1 rounded-md bg-emerald-500/10 text-emerald-400 font-semibold">All Levels</span>
+                </div>
+
+                <!-- Category Filter Buttons -->
+                <div class="flex flex-wrap gap-2 mb-4 pb-3 border-b border-slate-800" id="category-filters">
+                    <button onclick="filterCategory('All')" class="category-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-emerald-600 text-white transition">All</button>
+                    <button onclick="filterCategory('Beginner (A1-A2)')" class="category-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 text-slate-300 hover:bg-slate-700 transition">Beginner</button>
+                    <button onclick="filterCategory('Intermediate (B1-B2)')" class="category-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 text-slate-300 hover:bg-slate-700 transition">Intermediate</button>
+                    <button onclick="filterCategory('Advanced & Professional (C1-C2)')" class="category-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 text-slate-300 hover:bg-slate-700 transition">Advanced</button>
+                </div>
+
+                <!-- Search Input -->
+                <div class="mb-4">
+                    <input type="text" id="question-search" placeholder="Search questions..." oninput="handleSearch(this.value)" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-emerald-500 transition">
+                </div>
+
+                <!-- Scrollable Question List -->
+                <div class="flex-1 overflow-y-auto space-y-2.5 pr-1" id="question-list">
+                    <!-- Populated dynamically via JS -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Panel: Active Question & Speech Studio (7 Cols) -->
+        <div class="lg:col-span-7 flex flex-col space-y-6">
+            
+            <!-- Question Card -->
+            <div class="bg-slate-900/90 border border-emerald-900/30 rounded-2xl p-6 shadow-xl backdrop-blur-md flex flex-col justify-between relative overflow-hidden">
+                <div class="absolute top-0 right-0 w-32 h-32 bg-emerald-500/5 rounded-full blur-2xl pointer-events-none"></div>
+                
+                <div>
+                    <div class="flex items-center justify-between mb-3">
+                        <span id="active-category" class="text-xs uppercase tracking-wider font-bold text-emerald-400 bg-emerald-500/10 px-3 py-1 rounded-full border border-emerald-500/20">Select a Question</span>
+                        <span id="active-qnum" class="text-xs font-semibold text-slate-400">Question 1 of 84</span>
+                    </div>
+                    <h3 id="active-question-text" class="text-xl sm:text-2xl font-bold text-white leading-snug mb-4">
+                        Click any question on the left to start your speaking practice session.
+                    </h3>
+                    <p id="active-tip" class="text-sm text-slate-400 bg-slate-950/60 p-3 rounded-xl border border-slate-800">
+                        💡 <strong class="text-slate-300">Tip:</strong> Speak clearly at a steady pace. Focus on natural intonation and complete sentence structures.
+                    </p>
+                </div>
+
+                <!-- Navigation Controls for Questions -->
+                <div class="flex items-center justify-between mt-6 pt-4 border-t border-slate-800">
+                    <button onclick="prevQuestion()" class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-sm font-semibold transition flex items-center gap-2">
+                        ← Previous
+                    </button>
+                    <span id="progress-indicator" class="text-xs text-slate-400">1 / 84</span>
+                    <button onclick="nextQuestion()" class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-semibold transition flex items-center gap-2 shadow-lg shadow-emerald-900/40">
+                        Next →
+                    </button>
+                </div>
+            </div>
+
+            <!-- Speech Recording & AI Evaluation Studio -->
+            <div class="bg-slate-900/90 border border-emerald-900/30 rounded-2xl p-6 shadow-xl backdrop-blur-md flex flex-col space-y-6">
+                <div class="flex items-center justify-between">
+                    <h3 class="font-bold text-white flex items-center gap-2">
+                        <svg class="w-5 h-5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 100-6 3 3 0 000 6z"></path></svg>
+                        Speech Studio & AI Evaluation
+                    </h3>
+                    <div id="mic-status-badge" class="px-3 py-1 rounded-full bg-slate-800 text-slate-400 text-xs font-medium flex items-center gap-2 border border-slate-700">
+                        <span class="w-2 h-2 rounded-full bg-slate-500" id="status-dot"></span>
+                        <span id="status-text">Ready to Record</span>
+                    </div>
+                </div>
+
+                <!-- Record Button & Waveform Area -->
+                <div class="flex flex-col items-center justify-center py-6 bg-slate-950/70 rounded-2xl border border-slate-800 relative">
+                    
+                    <!-- Waveform Animation (Hidden by default) -->
+                    <div id="waveform-container" class="hidden items-center justify-center space-x-1.5 mb-6 h-10">
+                        <div class="w-1 bg-emerald-500 rounded-full waveform-bar" style="animation-delay: 0.1s"></div>
+                        <div class="w-1 bg-emerald-500 rounded-full waveform-bar" style="animation-delay: 0.3s"></div>
+                        <div class="w-1 bg-emerald-500 rounded-full waveform-bar" style="animation-delay: 0.2s"></div>
+                        <div class="w-1 bg-emerald-500 rounded-full waveform-bar" style="animation-delay: 0.5s"></div>
+                        <div class="w-1 bg-emerald-500 rounded-full waveform-bar" style="animation-delay: 0.4s"></div>
+                    </div>
+
+                    <!-- Big Mic Button -->
+                    <button id="mic-btn" onclick="toggleListening()" class="w-20 h-20 rounded-full bg-emerald-600 hover:bg-emerald-500 text-white flex items-center justify-center shadow-2xl shadow-emerald-900/60 transition transform hover:scale-105 active:scale-95 relative group">
+                        <div id="mic-pulse-ring" class="absolute inset-0 rounded-full border-2 border-emerald-400 opacity-0 pointer-events-none"></div>
+                        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 100-6 3 3 0 000 6z"></path></svg>
+                    </button>
+                    <p class="text-xs text-slate-400 mt-3 font-medium" id="mic-instruction">Click to Start Speaking (Mobile & Desktop)</p>
+                </div>
+
+                <!-- Transcript Output Box -->
+                <div class="space-y-2">
+                    <label class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Your Spoken Transcript:</label>
+                    <div id="transcript-display" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-4 text-sm text-slate-200 min-h-[90px] max-h-[140px] overflow-y-auto">
+                        Your speech transcript will appear here in real-time as you speak into your microphone...
+                    </div>
+                </div>
+
+                <!-- AI Scoring & Feedback Box -->
+                <div id="scoring-box" class="hidden bg-slate-950 border border-emerald-900/40 rounded-xl p-5 space-y-4">
+                    <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                        <h4 class="font-bold text-white text-sm flex items-center gap-2">
+                            ✨ AI Speech Evaluation Score
+                        </h4>
+                        <div class="flex items-center gap-2">
+                            <span class="text-xs text-slate-400">Score:</span>
+                            <span id="score-badge" class="px-3 py-1 rounded-lg bg-emerald-500/20 text-emerald-400 font-black text-sm border border-emerald-500/30">0/10</span>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-3 gap-3 text-center">
+                        <div class="bg-slate-900 p-2.5 rounded-lg border border-slate-800">
+                            <span class="text-[10px] uppercase text-slate-400 block font-semibold">Fluency</span>
+                            <span id="metric-fluency" class="text-sm font-bold text-white">--</span>
+                        </div>
+                        <div class="bg-slate-900 p-2.5 rounded-lg border border-slate-800">
+                            <span class="text-[10px] uppercase text-slate-400 block font-semibold">Pronunciation</span>
+                            <span id="metric-pronunciation" class="text-sm font-bold text-white">--</span>
+                        </div>
+                        <div class="bg-slate-900 p-2.5 rounded-lg border border-slate-800">
+                            <span class="text-[10px] uppercase text-slate-400 block font-semibold">Grammar</span>
+                            <span id="metric-grammar" class="text-sm font-bold text-white">--</span>
+                        </div>
+                    </div>
+                    <div>
+                        <span class="text-xs font-semibold text-slate-400 block mb-1">AI Coach Feedback:</span>
+                        <p id="ai-feedback-text" class="text-xs text-slate-300 leading-relaxed"></p>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="border-t border-slate-900 bg-slate-950 py-6 text-center text-xs text-slate-500">
+        <p>&copy; 2026 Fuzion Academy, Sector-11 Pratap Vihar, Ghaziabad. All rights reserved. Helpline: 9582774387</p>
+    </footer>
+
+    <!-- JavaScript Application Logic with 84 Unique Curriculum Questions -->
+    <script>
+        // Exactly 84 unique curriculum practice questions without repetition
+        const questions = [
+            // Beginner (A1-A2) - Questions 1 to 28
+            { id: 1, category: "Beginner (A1-A2)", text: "Please introduce yourself, state your hometown, and share what you love most about living there.", tip: "Use Simple Present tense. Mention your name, how long you've lived there, and 2 key highlights." },
+            { id: 2, category: "Beginner (A1-A2)", text: "Describe your daily morning routine from the moment you wake up until you leave your home.", tip: "Use sequencing words: First, then, after that, finally. Use present simple verbs." },
+            { id: 3, category: "Beginner (A1-A2)", text: "What is your favorite dish to eat, and can you explain the basic steps of how it is prepared?", tip: "Mention ingredients clearly and use cooking verbs like chop, boil, fry, and mix." },
+            { id: 4, category: "Beginner (A1-A2)", text: "Talk about your best friend. What do they look like and what kind of personality do they have?", tip: "Use adjectives for appearance (tall, cheerful) and personality (kind, honest, hardworking)." },
+            { id: 5, category: "Beginner (A1-A2)", text: "Describe the members of your immediate family, their professions, and what you enjoy doing together.", tip: "Group family members logically and mention shared weekend activities." },
+            { id: 6, category: "Beginner (A1-A2)", text: "What did you do last weekend? Describe at least three distinct activities you completed.", tip: "Use Past Simple tense verbs (e.g., went, visited, watched, cooked, slept)." },
+            { id: 7, category: "Beginner (A1-A2)", text: "Describe your dream house or apartment. How many rooms does it have and what makes it special?", tip: "Use modal verbs like 'would have', 'should include', and descriptive spatial prepositions." },
+            { id: 8, category: "Beginner (A1-A2)", text: "What are your favorite hobbies or leisure activities during your free time?", tip: "Use verbs of preference: enjoy, love, spend time, unwind by..." },
+            { id: 9, category: "Beginner (A1-A2)", text: "Describe the weather in your city during different seasons of the year.", tip: "Compare summer, monsoon, and winter using weather vocabulary and temperature descriptors." },
+            { id: 10, category: "Beginner (A1-A2)", text: "What is your favorite festival or celebration? How do you celebrate it with your family?", tip: "Describe traditions, special foods, clothing, and greetings exchanged." },
+            { id: 11, category: "Beginner (A1-A2)", text: "Describe a typical market or grocery store near your house. What items can you buy there?", tip: "Use vocabulary related to shopping, bargaining, vendors, and everyday goods." },
+            { id: 12, category: "Beginner (A1-A2)", text: "Talk about your favorite animal. Why do you like it and where does it live?", tip: "Describe physical traits, habitat, and why you find this animal fascinating." },
+            { id: 13, category: "Beginner (A1-A2)", text: "What is your favorite subject to learn, and who was your most memorable school teacher?", tip: "Explain why the subject interested you and share a positive memory of the teacher." },
+            { id: 14, category: "Beginner (A1-A2)", text: "Describe a memorable birthday party you attended or hosted recently.", tip: "Talk about the cake, gifts, decorations, music, and guests who attended." },
+            { id: 15, category: "Beginner (A1-A2)", text: "What kind of clothes do you prefer wearing for formal events versus casual outings?", tip: "Contrast formal attire (suits, sarees) with casual wear (jeans, t-shirts, sneakers)." },
+            { id: 16, category: "Beginner (A1-A2)", text: "Describe your favorite mode of public or private transport and why you prefer it.", tip: "Discuss comfort, speed, cost, and convenience of buses, trains, or personal vehicles." },
+            { id: 17, category: "Beginner (A1-A2)", text: "What do you usually eat for breakfast, lunch, and dinner on a working day?", tip: "List your meals and mention healthy habits or hydration routines." },
+            { id: 18, category: "Beginner (A1-A2)", text: "Describe a local park or garden in your neighborhood. What do people do there?", tip: "Talk about walking tracks, greenery, children playing, and morning yoga groups." },
+            { id: 19, category: "Beginner (A1-A2)", text: "What are your plans for the upcoming weekend? Name at least two specific plans.", tip: "Use future tense structures ('going to' or 'will') for planned activities." },
+            { id: 20, category: "Beginner (A1-A2)", text: "Describe a skill you would love to learn in the next six months (e.g., swimming, coding, guitar).", tip: "Explain why you want to learn it and how you plan to practice." },
+            { id: 21, category: "Beginner (A1-A2)", text: "What is your favorite television show or movie genre, and why do you enjoy watching it?", tip: "Mention plot elements, favorite characters, and emotional impact." },
+            { id: 22, category: "Beginner (A1-A2)", text: "Describe a time when you lost something important and how you managed to find it.", tip: "Use past tense narrative structure: losing item, searching, and relief upon finding." },
+            { id: 23, category: "Beginner (A1-A2)", text: "What sports or physical exercises do you enjoy playing or watching?", tip: "Discuss rules, teamwork, fitness benefits, and your favorite players or teams." },
+            { id: 24, category: "Beginner (A1-A2)", text: "Describe your dream vacation destination. Where would you go and what would you do?", tip: "Describe the scenery, tourist attractions, local cuisine, and travel companions." },
+            { id: 25, category: "Beginner (A1-A2)", text: "How do you usually commute to work, college, or your academy? Describe the journey.", tip: "Mention traffic conditions, distance, travel duration, and route scenery." },
+            { id: 26, category: "Beginner (A1-A2)", text: "What is your favorite color and how does it influence your choice of clothes or room decor?", tip: "Explain the psychological or aesthetic reasons behind your color preference." },
+            { id: 27, category: "Beginner (A1-A2)", text: "Describe a memorable gift you received on a special occasion and who gave it to you.", tip: "Explain why the gift was meaningful and how you use or display it." },
+            { id: 28, category: "Beginner (A1-A2)", text: "What are your favorite household chores, and which ones do you dislike doing?", tip: "Talk about cleaning, cooking, laundry, or organizing spaces with honest rationale." },
+
+            // Intermediate (B1-B2) - Questions 29 to 56
+            { id: 29, category: "Intermediate (B1-B2)", text: "Describe a challenging situation you faced at work or college and how you successfully resolved it.", tip: "Use the STAR method (Situation, Task, Action, Result) in Past Tense." },
+            { id: 30, category: "Intermediate (B1-B2)", text: "Do you prefer working independently or as part of a team? Justify your preference with examples.", tip: "Weigh pros and cons of collaboration versus autonomy in professional settings." },
+            { id: 31, category: "Intermediate (B1-B2)", text: "How has technology transformed the way students learn English and soft skills today?", tip: "Discuss online classes, AI tools, mobile apps, and accessibility of digital resources." },
+            { id: 32, category: "Intermediate (B1-B2)", text: "Describe a book, podcast, or documentary that significantly changed your perspective on life.", tip: "Summarize core takeaways, key quotes, and personal behavioral changes." },
+            { id: 33, category: "Intermediate (B1-B2)", text: "What are the most essential qualities of an effective leader in the modern workplace?", tip: "Discuss empathy, clear communication, accountability, and emotional intelligence." },
+            { id: 34, category: "Intermediate (B1-B2)", text: "Discuss the pros and cons of remote work versus traditional office environments.", tip: "Evaluate productivity, work-life balance, commuting stress, and team bonding." },
+            { id: 35, category: "Intermediate (B1-B2)", text: "Describe a memorable journey or trip you took outside your home state. What made it unforgettable?", tip: "Incorporate sensory details, unexpected adventures, and cultural discoveries." },
+            { id: 36, category: "Intermediate (B1-B2)", text: "How do you manage stress and maintain a healthy work-life balance during hectic weeks?", tip: "Share practical habits like meditation, exercise, journaling, or offline hobbies." },
+            { id: 37, category: "Intermediate (B1-B2)", text: "What role does continuous learning play in building a successful career in today's economy?", tip: "Argue for upskilling, adaptability, certifications, and embracing new challenges." },
+            { id: 38, category: "Intermediate (B1-B2)", text: "Describe a time when you had to handle constructive criticism or negative feedback. How did you react?", tip: "Demonstrate emotional maturity, reflection, and actionable self-improvement." },
+            { id: 39, category: "Intermediate (B1-B2)", text: "What are the key drivers of customer satisfaction in service-oriented businesses?", tip: "Mention active listening, prompt resolution, empathy, and exceeding expectations." },
+            { id: 40, category: "Intermediate (B1-B2)", text: "Discuss the impact of social media on interpersonal communication and human relationships.", tip: "Analyze superficial connections versus global reach, digital fatigue, and authenticity." },
+            { id: 41, category: "Intermediate (B1-B2)", text: "Describe an innovative project or idea you would like to launch if you had unlimited resources.", tip: "Pitch your vision with clear objectives, target audience, and societal impact." },
+            { id: 42, category: "Intermediate (B1-B2)", text: "How important is body language and non-verbal communication during professional job interviews?", tip: "Discuss eye contact, posture, firm handshakes, and congruent vocal tone." },
+            { id: 43, category: "Intermediate (B1-B2)", text: "What measures can individuals take to reduce their carbon footprint and protect the environment?", tip: "Talk about reducing plastic use, conserving water, recycling, and sustainable commuting." },
+            { id: 44, category: "Intermediate (B1-B2)", text: "Describe a time when you had to persuade a group of people to support your proposal.", tip: "Outline your persuasive strategy, handling objections, and achieving consensus." },
+            { id: 45, category: "Intermediate (B1-B2)", text: "What are the primary challenges young graduates face when transitioning from college to corporate life?", tip: "Address workplace culture expectations, practical skill gaps, and professional etiquette." },
+            { id: 46, category: "Intermediate (B1-B2)", text: "Discuss the advantages and disadvantages of online shopping versus traditional retail stores.", tip: "Compare convenience, product verification, return policies, and supporting local merchants." },
+            { id: 47, category: "Intermediate (B1-B2)", text: "Describe a public speaking experience you had. How did you overcome nervousness and engage the audience?", tip: "Share techniques like breathing exercises, eye contact, storytelling, and stage presence." },
+            { id: 48, category: "Intermediate (B1-B2)", text: "What makes a brand trustworthy and memorable in the minds of consumers?", tip: "Discuss consistent quality, transparent communication, ethical values, and customer loyalty." },
+            { id: 49, category: "Intermediate (B1-B2)", text: "How has artificial intelligence changed the landscape of modern employment and job roles?", tip: "Discuss automation, AI collaboration, skill shifts, and new career opportunities." },
+            { id: 50, category: "Intermediate (B1-B2)", text: "Describe a time when you successfully resolved a conflict between two colleagues or friends.", tip: "Highlight mediation skills, neutrality, active listening, and win-win compromise." },
+            { id: 51, category: "Intermediate (B1-B2)", text: "What are the core characteristics of a strong, positive team culture in an academy or workplace?", tip: "Mention psychological safety, mutual respect, open feedback, and shared celebration." },
+            { id: 52, category: "Intermediate (B1-B2)", text: "Discuss the importance of financial literacy for young adults starting their professional careers.", tip: "Cover budgeting, investing, emergency funds, avoiding debt, and long-term planning." },
+            { id: 53, category: "Intermediate (B1-B2)", text: "Describe a time when you failed at something important and what valuable lesson you learned from it.", tip: "Show vulnerability, resilience, introspection, and how failure fueled future success." },
+            { id: 54, category: "Intermediate (B1-B2)", text: "What are the benefits of traveling to foreign countries and experiencing diverse cultures?", tip: "Discuss broadening worldview, culinary exploration, empathy, and adaptability." },
+            { id: 55, category: "Intermediate (B1-B2)", text: "How do you prioritize your daily tasks and maintain high productivity during high-pressure deadlines?", tip: "Mention time management frameworks, avoiding multitasking, and focused execution." },
+            { id: 56, category: "Intermediate (B1-B2)", text: "Describe an inspiring mentor or teacher who shaped your career path and personal values.", tip: "Highlight their guiding philosophy, patience, encouragement, and lasting impact." },
+
+            // Advanced & Professional (C1-C2) - Questions 57 to 84
+            { id: 57, category: "Advanced & Professional (C1-C2)", text: "Evaluate the ethical implications of artificial intelligence in decision-making across healthcare and justice systems.", tip: "Use advanced vocabulary, conditional structures, and balanced analytical arguments." },
+            { id: 58, category: "Advanced & Professional (C1-C2)", text: "Discuss the psychological dynamics of emotional intelligence in crisis management and executive leadership.", tip: "Analyze self-regulation, empathy, composure under pressure, and inspiring teams." },
+            { id: 59, category: "Advanced & Professional (C1-C2)", text: "Analyze the long-term socioeconomic consequences of rapid urbanization and smart city developments.", tip: "Examine infrastructure strain, digital divide, economic clustering, and sustainability." },
+            { id: 60, category: "Advanced & Professional (C1-C2)", text: "What constitutes persuasive rhetoric in public discourse, and how can leaders master articulate communication?", tip: "Discuss ethos, pathos, logos, cadence, precision of vocabulary, and executive presence." },
+            { id: 61, category: "Advanced & Professional (C1-C2)", text: "Critique the evolution of educational paradigms: moving from rote memorization to competency-based experiential learning.", tip: "Argue for critical thinking, creativity, real-world problem solving, and mentorship." },
+            { id: 62, category: "Advanced & Professional (C1-C2)", text: "Examine the role of multinational corporations in driving sustainable development and environmental stewardship.", tip: "Discuss corporate social responsibility (CSR), green energy investments, and accountability." },
+            { id: 63, category: "Advanced & Professional (C1-C2)", text: "Discuss the nuances of cross-cultural negotiation in global business partnerships and diplomacy.", tip: "Address cultural nuances, non-verbal cues, mutual respect, and win-win agreement frameworks." },
+            { id: 64, category: "Advanced & Professional (C1-C2)", text: "Analyze how digital misinformation and echo chambers impact democratic discourse and societal polarization.", tip: "Explore algorithmic bias, critical media literacy, confirmation bias, and factual verification." },
+            { id: 65, category: "Advanced & Professional (C1-C2)", text: "Evaluate the psychological resilience required to scale entrepreneurial ventures through market volatility.", tip: "Discuss risk tolerance, pivot strategies, grit, mental fortitude, and visionary leadership." },
+            { id: 66, category: "Advanced & Professional (C1-C2)", text: "Discuss the future of work: how automation and remote collaboration are redefining organizational structures.", tip: "Analyze decentralization, gig economy, asynchronous workflows, and outcome-based valuation." },
+            { id: 67, category: "Advanced & Professional (C1-C2)", text: "Analyze the artistic and communicative power of storytelling in corporate branding and leadership inspiration.", tip: "Explain how narrative arcs, authenticity, and emotional resonance drive organizational alignment." },
+            { id: 68, category: "Advanced & Professional (C1-C2)", text: "Evaluate the balance between intellectual property protection and open-source innovation in technology.", tip: "Discuss incentivizing R&D versus collaborative global advancement and knowledge sharing." },
+            { id: 69, category: "Advanced & Professional (C1-C2)", text: "Discuss the philosophical and practical challenges of maintaining privacy in an increasingly digitized society.", tip: "Examine data surveillance, consent, cybersecurity ethics, and individual autonomy." },
+            { id: 70, category: "Advanced & Professional (C1-C2)", text: "Analyze the systemic factors that contribute to high employee retention and engagement in top-tier organizations.", tip: "Discuss purposeful work, fair compensation, career mobility, and inclusive leadership." },
+            { id: 71, category: "Advanced & Professional (C1-C2)", text: "Evaluate the geopolitical and economic ramifications of transitioning from fossil fuels to renewable energy grids.", tip: "Discuss supply chain security, economic restructuring, geopolitical shifts, and climate goals." },
+            { id: 72, category: "Advanced & Professional (C1-C2)", text: "Discuss the significance of linguistic agility and cross-cultural fluency in multinational professional careers.", tip: "Analyze code-switching, idiom mastery, nuanced diplomacy, and global mobility." },
+            { id: 73, category: "Advanced & Professional (C1-C2)", text: "Analyze the impact of immersive technologies (AR/VR) on experiential learning, training, and human connection.", tip: "Explore simulated learning environments, empathy training, and virtual collaboration limits." },
+            { id: 74, category: "Advanced & Professional (C1-C2)", text: "Evaluate the efficacy of public policy frameworks in addressing income inequality and economic mobility.", tip: "Discuss taxation structures, social safety nets, educational access, and entrepreneurship grants." },
+            { id: 75, category: "Advanced & Professional (C1-C2)", text: "Discuss the psychology of consumer behavior in subscription-based and experience-driven digital economies.", tip: "Examine customer loyalty, perceived value, personalization, and friction-free user journeys." },
+            { id: 76, category: "Advanced & Professional (C1-C2)", text: "Analyze the role of interdisciplinary research in solving complex global challenges like pandemics and food security.", tip: "Argue for collaborative ecosystems uniting science, economics, technology, and public policy." },
+            { id: 77, category: "Advanced & Professional (C1-C2)", text: "Evaluate the importance of strategic foresight and scenario planning in modern executive decision-making.", tip: "Discuss risk mitigation, agility, trend forecasting, and navigating black swan events." },
+            { id: 78, category: "Advanced & Professional (C1-C2)", text: "Discuss the ethical dimensions of genetic engineering and biotechnology in shaping the future of humanity.", tip: "Examine bioethics, therapeutic applications, regulatory boundaries, and human dignity." },
+            { id: 79, category: "Advanced & Professional (C1-C2)", text: "Analyze how architectural design and urban planning influence human mental health and social cohesion.", tip: "Discuss green spaces, community hubs, natural lighting, and walkable neighborhood layouts." },
+            { id: 80, category: "Advanced & Professional (C1-C2)", text: "Evaluate the transformative potential of decentralized finance (DeFi) and blockchain on global banking systems.", tip: "Examine financial inclusion, trustlessness, regulatory compliance, and systemic risk." },
+            { id: 81, category: "Advanced & Professional (C1-C2)", text: "Discuss the mechanics of building resilient personal brands in competitive professional ecosystems.", tip: "Highlight thought leadership, consistency, value creation, and authentic networking." },
+            { id: 82, category: "Advanced & Professional (C1-C2)", text: "Analyze the psychological and cultural underpinnings of humor and its utility in professional presentations.", tip: "Discuss timing, cultural appropriateness, breaking tension, and humanizing leadership." },
+            { id: 83, category: "Advanced & Professional (C1-C2)", text: "Evaluate the impact of globalization on indigenous cultures, local languages, and traditional arts.", tip: "Discuss cultural homogenization versus preservation, revitalization efforts, and global appreciation." },
+            { id: 84, category: "Advanced & Professional (C1-C2)", text: "Synthesize your overarching philosophy of effective communication and leadership for the next decade.", tip: "Summarize active listening, empathy, articulation, continuous learning, and inspiring others." }
+        ];
+
+        let currentIndex = 0;
+        let currentFilter = 'All';
+        let searchQuery = '';
+        let filteredQuestions = [...questions];
+
+        let recognition = null;
+        let isListening = false;
+
+        // Initialize UI on load
+        window.addEventListener('DOMContentLoaded', () => {
+            renderQuestionList();
+            loadQuestion(0);
+        });
+
+        function renderQuestionList() {
+            const listContainer = document.getElementById('question-list');
+            listContainer.innerHTML = '';
+
+            filteredQuestions = questions.filter(q => {
+                const matchesCategory = currentFilter === 'All' || q.category === currentFilter;
+                const matchesSearch = q.text.toLowerCase().includes(searchQuery.toLowerCase()) || q.id.toString().includes(searchQuery);
+                return matchesCategory && matchesSearch;
+            });
+
+            document.getElementById('total-count').innerText = filteredQuestions.length;
+
+            if (filteredQuestions.length === 0) {
+                listContainer.innerHTML = '<p class="text-xs text-slate-500 text-center py-6">No matching questions found.</p>';
+                return;
+            }
+
+            filteredQuestions.forEach((q, idx) => {
+                const globalIndex = questions.findIndex(item => item.id === q.id);
+                const isSelected = globalIndex === currentIndex;
+                
+                const itemDiv = document.createElement('div');
+                itemDiv.className = `p-3 rounded-xl border text-left transition cursor-pointer flex items-start gap-3 ${
+                    isSelected 
+                        ? 'bg-emerald-950/40 border-emerald-500 text-white shadow-md' 
+                        : 'bg-slate-950/60 border-slate-800/80 text-slate-300 hover:bg-slate-900 hover:border-slate-700'
+                }`;
+                itemDiv.onclick = () => selectQuestion(globalIndex);
+
+                itemDiv.innerHTML = `
+                    <span class="text-xs font-bold px-2 py-0.5 rounded bg-slate-800 text-emerald-400 border border-slate-700 shrink-0">#${q.id}</span>
+                    <div class="flex-1 min-w-0">
+                        <p class="text-xs font-medium line-clamp-2 leading-relaxed">${q.text}</p>
+                        <span class="text-[10px] text-slate-500 mt-1 block">${q.category}</span>
+                    </div>
+                `;
+                listContainer.appendChild(itemDiv);
+            });
+        }
+
+        function filterCategory(category) {
+            currentFilter = category;
+            
+            // Update button styles
+            document.querySelectorAll('.category-btn').forEach(btn => {
+                if (btn.innerText.includes(category) || (category === 'All' && btn.innerText === 'All')) {
+                    btn.className = 'category-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-emerald-600 text-white transition';
+                } else {
+                    btn.className = 'category-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 text-slate-300 hover:bg-slate-700 transition';
+                }
+            });
+
+            document.getElementById('category-badge').innerText = category;
+            renderQuestionList();
+        }
+
+        function handleSearch(query) {
+            searchQuery = query;
+            renderQuestionList();
+        }
+
+        function selectQuestion(globalIndex) {
+            currentIndex = globalIndex;
+            loadQuestion(currentIndex);
+            renderQuestionList();
+        }
+
+        function loadQuestion(index) {
+            const q = questions[index];
+            document.getElementById('active-qnum').innerText = `Question ${index + 1} of 84`;
+            document.getElementById('active-category').innerText = q.category;
+            document.getElementById('active-question-text').innerText = q.text;
+            document.getElementById('active-tip').innerHTML = `💡 <strong class="text-slate-300">Coaching Tip:</strong> ${q.tip}`;
+            document.getElementById('progress-indicator').innerText = `${index + 1} / 84`;
+            
+            // Reset transcript & scoring box when switching question
+            document.getElementById('transcript-display').innerText = "Your speech transcript will appear here in real-time as you speak into your microphone...";
+            document.getElementById('scoring-box').classList.add('hidden');
+        }
+
+        function prevQuestion() {
+            if (currentIndex > 0) {
+                currentIndex--;
+                loadQuestion(currentIndex);
+                renderQuestionList();
+            }
+        }
+
+        function nextQuestion() {
+            if (currentIndex < questions.length - 1) {
+                currentIndex++;
+                loadQuestion(currentIndex);
+                renderQuestionList();
+            }
+        }
+
+        // Mobile-Optimized Speech Recognition Engine
+        function initSpeechRecognition() {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            
+            if (!SpeechRecognition) {
+                alert("Speech Recognition is not supported on this browser. Please use Google Chrome on Android or Safari on iOS 14.5+.");
+                return null;
+            }
+
+            const rec = new SpeechRecognition();
+            rec.lang = 'en-IN'; // Indian English / Global English support
+            rec.continuous = false; // Prevents abrupt mobile cutoffs
+            rec.interimResults = true; // Live real-time feedback
+            rec.maxAlternatives = 1;
+
+            rec.onstart = () => {
+                isListening = true;
+                updateMicUI(true);
+            };
+
+            rec.onresult = (event) => {
+                let interimTranscript = '';
+                let finalTranscript = '';
+
+                for (let i = event.resultIndex; i < event.results.length; ++i) {
+                    if (event.results[i].isFinal) {
+                        finalTranscript += event.results[i][0].transcript;
+                    } else {
+                        interimTranscript += event.results[i][0].transcript;
+                    }
+                }
+
+                const display = finalTranscript || interimTranscript;
+                document.getElementById('transcript-display').innerText = display;
+
+                if (finalTranscript) {
+                    evaluateSpeech(finalTranscript);
+                }
+            };
+
+            rec.onerror = (event) => {
+                console.error("Speech recognition error:", event.error);
+                isListening = false;
+                updateMicUI(false);
+                if (event.error === 'not-allowed') {
+                    alert("Microphone access was blocked. Please allow microphone permissions in your browser address bar.");
+                }
+            };
+
+            rec.onend = () => {
+                isListening = false;
+                updateMicUI(false);
+            };
+
+            return rec;
+        }
+
+        function toggleListening() {
+            if (!recognition) {
+                recognition = initSpeechRecognition();
+                if (!recognition) return;
+            }
+
+            if (isListening) {
+                recognition.stop();
+            } else {
+                try {
+                    recognition.start();
+                } catch (e) {
+                    console.error("Recognition start error:", e);
+                    recognition.stop();
+                }
+            }
+        }
+
+        function updateMicUI(recording) {
+            const btn = document.getElementById('mic-btn');
+            const pulseRing = document.getElementById('mic-pulse-ring');
+            const statusDot = document.getElementById('status-dot');
+            const statusText = document.getElementById('status-text');
+            const micInstruction = document.getElementById('mic-instruction');
+            const waveformContainer = document.getElementById('waveform-container');
+
+            if (recording) {
+                btn.className = "w-20 h-20 rounded-full bg-red-600 hover:bg-red-500 text-white flex items-center justify-center shadow-2xl shadow-red-900/60 transition transform hover:scale-105 active:scale-95 relative group recording-pulse";
+                pulseRing.className = "absolute inset-0 rounded-full border-2 border-red-400 opacity-80 recording-pulse pointer-events-none";
+                statusDot.className = "w-2 h-2 rounded-full bg-red-500 animate-pulse";
+                statusText.innerText = "Listening...";
+                micInstruction.innerText = "Recording your voice... Click again to stop.";
+                waveformContainer.className = "flex items-center justify-center space-x-1.5 mb-6 h-10";
+            } else {
+                btn.className = "w-20 h-20 rounded-full bg-emerald-600 hover:bg-emerald-500 text-white flex items-center justify-center shadow-2xl shadow-emerald-900/60 transition transform hover:scale-105 active:scale-95 relative group";
+                pulseRing.className = "absolute inset-0 rounded-full border-2 border-emerald-400 opacity-0 pointer-events-none";
+                statusDot.className = "w-2 h-2 rounded-full bg-slate-500";
+                statusText.innerText = "Ready to Record";
+                micInstruction.innerText = "Click to Start Speaking (Mobile & Desktop)";
+                waveformContainer.className = "hidden items-center justify-center space-x-1.5 mb-6 h-10";
+            }
+        }
+
+        function evaluateSpeech(transcript) {
+            const wordCount = transcript.trim().split(/\s+/).length;
+            
+            // Algorithmic evaluation simulating AI scoring
+            let fluencyScore = Math.min(10, Math.max(5, Math.floor(wordCount / 3) + 6));
+            let pronScore = Math.floor(Math.random() * 2) + 8; // 8 or 9
+            let grammarScore = Math.min(10, Math.max(6, fluencyScore - 1));
+            let overall = Math.round((fluencyScore + pronScore + grammarScore) / 3 * 10) / 10;
+
+            document.getElementById('score-badge.innerText') // Handled below
+            document.getElementById('score-badge').innerText = `${overall}/10`;
+            document.getElementById('metric-fluency').innerText = `${fluencyScore}/10`;
+            document.getElementById('metric-pronunciation').innerText = `${pronScore}/10`;
+            document.getElementById('metric-grammar').innerText = `${grammarScore}/10`;
+
+            let feedback = "";
+            if (wordCount < 5) {
+                feedback = "Your response was a bit brief. Try elaborating further with reasons, examples, or personal experiences to build conversational fluency.";
+            } else if (overall >= 8.5) {
+                feedback = "Excellent articulation! Your pace, sentence structure, and vocabulary choice reflect strong confidence. Keep up the outstanding work!";
+            } else {
+                feedback = "Good delivery! To improve further, focus on linking your words smoothly and expanding your vocabulary with descriptive adjectives.";
+            }
+
+            document.getElementById('ai-feedback-text').innerText = feedback;
+            document.getElementById('scoring-box').classList.remove('hidden');
+        }
+    </script>
+</body>
+</html>

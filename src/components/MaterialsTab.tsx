@@ -1,16 +1,29 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { STUDY_MATERIALS, StudyMaterial } from '@/lib/materialsData';
 import { useAppStore } from '@/lib/store';
 import { FileText, Download, Eye, Search, Filter, X, Sparkles, Upload, Plus, CheckCircle, ExternalLink } from 'lucide-react';
 
 export default function MaterialsTab() {
   const { customMaterials, currentRole, setActiveTab, addMaterial } = useAppStore();
+  const [cloudMaterials, setCloudMaterials] = useState<StudyMaterial[]>([]);
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [selectedLevel, setSelectedLevel] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
   const [viewingMaterial, setViewingMaterial] = useState<StudyMaterial | null>(null);
+
+  useEffect(() => {
+    // Fetch live custom study materials from Supabase cloud database
+    fetch('/api/materials')
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.materials && Array.isArray(data.materials)) {
+          setCloudMaterials(data.materials);
+        }
+      })
+      .catch((err) => console.warn('Cloud materials fetch notice:', err));
+  }, []);
 
   // Quick Inline Upload Modal State
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
@@ -34,9 +47,11 @@ export default function MaterialsTab() {
 
   const levels = ['All', 'A1-A2', 'B1-B2', 'C1 Advanced'];
 
-  // Combine custom uploaded materials with initial static materials
+  // Combine cloud materials, local custom materials, and initial static catalog
+  const mergedCustom = [...cloudMaterials, ...(customMaterials || [])];
+  const uniqueCustom = Array.from(new Map(mergedCustom.map((m) => [m.id, m])).values());
   const combinedMaterials: (StudyMaterial & { isCustom?: boolean })[] = [
-    ...customMaterials.map((m) => ({ ...m, isCustom: true })),
+    ...uniqueCustom.map((m) => ({ ...m, isCustom: true })),
     ...STUDY_MATERIALS,
   ];
 
@@ -66,7 +81,7 @@ export default function MaterialsTab() {
       formData.append('category', modalCategory);
       formData.append('description', modalDescription);
 
-      const res = await fetch('/api/materials-upload', {
+      const res = await fetch('/api/materials', {
         method: 'POST',
         body: formData,
       });
