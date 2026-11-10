@@ -11,10 +11,10 @@ export default function TeacherLoginPage() {
   const router = useRouter();
   const { login } = useAuthStore();
 
-  const [emailOrMobile, setEmailOrMobile] = useState('teacher@fuzion.com');
-  const [password, setPassword] = useState('Password@123');
+  const [emailOrMobile, setEmailOrMobile] = useState('');
+  const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [rememberMe, setRememberMe] = useState(true);
+  const [rememberMe, setRememberMe] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [isPendingApproval, setIsPendingApproval] = useState(false);

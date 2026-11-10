@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { StudyMaterial } from '@/lib/materialsData';
+import { GameItem } from '@/lib/gamesData';
 
 export type UserRole = 'student' | 'teacher' | 'parent';
 
@@ -66,8 +67,9 @@ export interface AppState {
   // Homework & Assignments
   homeworks: { id: string; title: string; batch: string; dueDate: string; completed: boolean }[];
   
-  // Custom Uploaded Materials
+  // Custom Uploaded Materials & Games
   customMaterials: StudyMaterial[];
+  customGames: GameItem[];
   
   // Actions
   setRole: (role: UserRole) => void;
@@ -77,9 +79,11 @@ export interface AppState {
   closeGame: () => void;
   setCertificateModalOpen: (open: boolean) => void;
   
-  // Material Upload Actions
+  // Game & Material Upload Actions
   addMaterial: (material: StudyMaterial) => void;
   deleteMaterial: (id: string) => void;
+  addGame: (game: GameItem) => void;
+  deleteGame: (id: string) => void;
   
   // Student Management Actions
   addStudent: (student: Omit<StudentRecord, 'id'>) => void;
@@ -112,6 +116,7 @@ export const useAppStore = create<AppState>()(
       activePlayingGame: null,
       certificateModalOpen: false,
       customMaterials: [],
+      customGames: [],
 
       // Initial Student Records matching Screenshot 2026-11-04 004922.png
       students: [
@@ -275,6 +280,14 @@ export const useAppStore = create<AppState>()(
 
       deleteMaterial: (id) => set((state) => ({
         customMaterials: state.customMaterials.filter((m) => m.id !== id)
+      })),
+
+      addGame: (game) => set((state) => ({
+        customGames: [game, ...state.customGames.filter((g) => g.id !== game.id)]
+      })),
+
+      deleteGame: (id) => set((state) => ({
+        customGames: state.customGames.filter((g) => g.id !== id)
       })),
     }),
     {

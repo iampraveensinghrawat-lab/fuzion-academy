@@ -4,7 +4,6 @@ const config: CapacitorConfig = {
   appId: 'com.fuzionacademy.app',
   appName: 'Fuzion Academy',
   webDir: 'public',
-  bundledWebRuntime: false,
   server: {
     // When deploying to Play Store, the app connects directly to your live Vercel domain:
     // url: 'https://fuzion-academy.vercel.app',

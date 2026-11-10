@@ -18,6 +18,11 @@ import {
   XCircle,
   Save,
   Gamepad2,
+  Play,
+  Sparkles,
+  ExternalLink,
+  Loader2,
+  Award,
 } from 'lucide-react';
 
 export default function FacultyPortalTab() {
@@ -31,6 +36,10 @@ export default function FacultyPortalTab() {
     customMaterials,
     addMaterial,
     deleteMaterial,
+    customGames,
+    addGame,
+    deleteGame,
+    openGame,
     setActiveTab,
   } = useAppStore();
 
@@ -72,9 +81,109 @@ export default function FacultyPortalTab() {
     },
   ]);
 
-  // Uploader state
-  const [uploadedGameTitle, setUploadedGameTitle] = useState('');
-  const [uploadSuccess, setUploadSuccess] = useState(false);
+  // HTML Game Uploader state
+  const [gameFile, setGameFile] = useState<File | null>(null);
+  const [gameTitle, setGameTitle] = useState('');
+  const [gameCategory, setGameCategory] = useState<'Grammar' | 'Vocab' | 'Idioms' | 'Business' | 'Speaking' | 'Translation' | 'IELTS' | 'Fluency'>('Speaking');
+  const [gameCefrLevel, setGameCefrLevel] = useState<'A1 Beginner' | 'A2 Elementary' | 'B1 Intermediate' | 'B2 Upper Intermediate' | 'C1 Advanced'>('B1 Intermediate');
+  const [gameXpReward, setGameXpReward] = useState<number>(50);
+  const [gameQuestionsCount, setGameQuestionsCount] = useState<number>(50);
+  const [gameDescription, setGameDescription] = useState('');
+  const [gameUploading, setGameUploading] = useState(false);
+  const [gameUploadSuccess, setGameUploadSuccess] = useState(false);
+  const [gameErrorMessage, setGameErrorMessage] = useState('');
+  const [lastUploadedGame, setLastUploadedGame] = useState<any | null>(null);
+
+  const handleGameFileSelect = (file: File) => {
+    setGameFile(file);
+    setGameUploadSuccess(false);
+    setGameErrorMessage('');
+    // Auto populate clean title from filename if empty
+    if (!gameTitle.trim()) {
+      const cleanName = file.name
+        .replace(/\.[^/.]+$/, '')
+        .replace(/[-_]/g, ' ')
+        .replace(/\b\w/g, (c) => c.toUpperCase());
+      setGameTitle(cleanName);
+    }
+  };
+
+  const handleUploadGame = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!gameFile) {
+      setGameErrorMessage('Please select a standalone .html game file first.');
+      return;
+    }
+
+    setGameUploading(true);
+    setGameErrorMessage('');
+    setGameUploadSuccess(false);
+
+    try {
+      // 1. Read file as Data URL to guarantee it works client-side in iframe on Vercel
+      const clientDataUrl = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result as string);
+        reader.onerror = () => reject(new Error('Failed to read game HTML file'));
+        reader.readAsDataURL(gameFile);
+      });
+
+      // 2. Prepare FormData for API persistence
+      const formData = new FormData();
+      formData.append('file', gameFile);
+      formData.append('title', gameTitle.trim() || gameFile.name.replace('.html', ''));
+      formData.append('category', gameCategory);
+      formData.append('cefrLevel', gameCefrLevel);
+      formData.append('xpReward', String(gameXpReward));
+      formData.append('questionsCount', String(gameQuestionsCount));
+      formData.append('description', gameDescription);
+
+      let savedGame: any;
+
+      try {
+        const res = await fetch('/api/games-upload', {
+          method: 'POST',
+          body: formData,
+        });
+        const data = await res.json();
+        if (res.ok && data.game) {
+          savedGame = {
+            ...data.game,
+            // If server write succeeded or returned dataUrl, ensure we use dataUrl in browser for instant playback
+            filePath: data.game.filePath.startsWith('data:') ? data.game.filePath : clientDataUrl,
+          };
+        } else {
+          throw new Error(data.error || 'Server upload notice');
+        }
+      } catch (apiErr: any) {
+        // Fallback: save directly to local Zustand store with clientDataUrl
+        console.warn('API games-upload fallback to clientDataUrl:', apiErr);
+        savedGame = {
+          id: `custom-game-${Date.now()}`,
+          title: gameTitle.trim() || gameFile.name.replace('.html', '').replace(/[-_]/g, ' '),
+          category: gameCategory,
+          cefrLevel: gameCefrLevel,
+          description: gameDescription.trim() || 'Custom standalone HTML5 game added by faculty.',
+          questionsCount: gameQuestionsCount || 50,
+          xpReward: gameXpReward || 50,
+          filePath: clientDataUrl,
+          isCustom: true,
+          isPopular: true,
+        };
+      }
+
+      addGame(savedGame);
+      setLastUploadedGame(savedGame);
+      setGameUploadSuccess(true);
+      setGameFile(null);
+      setGameTitle('');
+      setGameDescription('');
+    } catch (err: any) {
+      setGameErrorMessage(err.message || 'Failed to process game upload.');
+    } finally {
+      setGameUploading(false);
+    }
+  };
 
   // PDF Uploader state
   const [pdfFile, setPdfFile] = useState<File | null>(null);
@@ -643,45 +752,296 @@ export default function FacultyPortalTab() {
 
       {/* 6. Sub-Tab: HTML Game Uploader */}
       {activeSubTab === 'uploader' && (
-        <div className="bg-white rounded-3xl p-6 sm:p-8 border border-indigo-100 shadow-sm space-y-6">
+        <div className="bg-white rounded-3xl p-6 sm:p-8 border border-indigo-100 shadow-sm space-y-8 animate-fade-in">
           <div>
-            <h2 className="text-lg font-black text-gray-900">Upload New HTML ESL Game</h2>
-            <p className="text-xs text-gray-500 mt-1">
-              Upload standalone single-file HTML5 games. They are automatically sandboxed and added to the 100+ Games Arcade without touching code!
+            <div className="flex items-center gap-2">
+              <span className="w-8 h-8 rounded-xl bg-indigo-100 text-indigo-700 flex items-center justify-center font-bold text-base">
+                🎮
+              </span>
+              <h2 className="text-lg sm:text-xl font-black text-gray-900">
+                Upload New HTML ESL Game
+              </h2>
+            </div>
+            <p className="text-xs sm:text-sm text-gray-500 mt-1">
+              Upload standalone single-file HTML5 games (e.g. Speaking Arena, Vocabulary Duel). They are instantly sandboxed, awarded XP, and published directly to the 100+ Games Arcade!
             </p>
           </div>
 
-          <div className="border-2 border-dashed border-indigo-300 rounded-3xl p-8 text-center bg-indigo-50/40 space-y-4">
-            <div className="w-16 h-16 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center mx-auto">
-              <Upload className="w-8 h-8" />
-            </div>
-            <div>
-              <p className="text-sm font-bold text-gray-800">
-                Drag and drop your standalone .html game here
-              </p>
-              <p className="text-xs text-gray-500 mt-1">or browse files from your computer</p>
-            </div>
-            <input
-              type="file"
-              accept=".html"
-              className="text-xs text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-indigo-600 file:text-white hover:file:bg-indigo-700"
-              onChange={(e) => {
-                if (e.target.files?.[0]) {
-                  setUploadedGameTitle(e.target.files[0].name.replace('.html', ''));
-                  setUploadSuccess(true);
-                }
-              }}
-            />
-          </div>
+          <form onSubmit={handleUploadGame} className="space-y-6">
+            {/* File Dropzone */}
+            <div className={`border-2 border-dashed rounded-3xl p-8 text-center transition-colors space-y-3 ${
+              gameFile ? 'border-emerald-400 bg-emerald-50/40' : 'border-indigo-300 bg-indigo-50/40 hover:bg-indigo-50/70'
+            }`}>
+              <div className={`w-16 h-16 rounded-2xl flex items-center justify-center mx-auto shadow-sm ${
+                gameFile ? 'bg-emerald-100 text-emerald-600' : 'bg-indigo-100 text-indigo-600'
+              }`}>
+                {gameFile ? <CheckCircle className="w-8 h-8" /> : <Upload className="w-8 h-8" />}
+              </div>
 
-          {uploadSuccess && (
-            <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-2xl flex items-center gap-3 text-emerald-800 text-xs font-bold">
-              <CheckCircle className="w-5 h-5 text-emerald-600" />
-              <span>
-                Game &ldquo;{uploadedGameTitle}&rdquo; registered and ready for catalog assignment!
-              </span>
+              <div>
+                <p className="text-sm font-bold text-gray-800">
+                  {gameFile
+                    ? `Selected: ${gameFile.name} (${Math.round(gameFile.size / 1024)} KB)`
+                    : 'Drag and drop your standalone .html game here'}
+                </p>
+                <p className="text-xs text-gray-500 mt-0.5">
+                  Accepts single-file HTML5 games (.html, .htm) with embedded CSS &amp; JavaScript
+                </p>
+              </div>
+
+              <input
+                type="file"
+                accept=".html,.htm"
+                required
+                className="text-xs text-gray-600 file:mr-4 file:py-2.5 file:px-5 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-indigo-600 file:text-white hover:file:bg-indigo-700 cursor-pointer shadow-sm"
+                onChange={(e) => {
+                  if (e.target.files?.[0]) {
+                    handleGameFileSelect(e.target.files[0]);
+                  }
+                }}
+              />
             </div>
-          )}
+
+            {/* Form Fields Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {/* Game Title */}
+              <div className="md:col-span-2 lg:col-span-1">
+                <label className="block text-xs font-bold text-gray-700 mb-1">
+                  Game Title <span className="text-rose-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  placeholder="e.g. Speaking Arena - Spoken English Battle"
+                  required
+                  value={gameTitle}
+                  onChange={(e) => setGameTitle(e.target.value)}
+                  className="w-full p-2.5 rounded-xl border border-gray-200 text-xs bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 font-medium"
+                />
+              </div>
+
+              {/* Category */}
+              <div>
+                <label className="block text-xs font-bold text-gray-700 mb-1">
+                  Arcade Category
+                </label>
+                <select
+                  value={gameCategory}
+                  onChange={(e) => setGameCategory(e.target.value as any)}
+                  className="w-full p-2.5 rounded-xl border border-gray-200 text-xs bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 font-medium"
+                >
+                  <option value="Speaking">Speaking &amp; Roleplay</option>
+                  <option value="Grammar">Grammar &amp; Structure</option>
+                  <option value="Vocab">Vocabulary &amp; Words</option>
+                  <option value="Idioms">Idioms &amp; Phrases</option>
+                  <option value="Business">Business English</option>
+                  <option value="Fluency">Fluency Sprint</option>
+                  <option value="IELTS">IELTS &amp; Exams</option>
+                  <option value="Translation">Hindi-to-English Translation</option>
+                </select>
+              </div>
+
+              {/* CEFR Level */}
+              <div>
+                <label className="block text-xs font-bold text-gray-700 mb-1">
+                  CEFR Difficulty Level
+                </label>
+                <select
+                  value={gameCefrLevel}
+                  onChange={(e) => setGameCefrLevel(e.target.value as any)}
+                  className="w-full p-2.5 rounded-xl border border-gray-200 text-xs bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 font-medium"
+                >
+                  <option value="A1 Beginner">A1 Beginner</option>
+                  <option value="A2 Elementary">A2 Elementary</option>
+                  <option value="B1 Intermediate">B1 Intermediate</option>
+                  <option value="B2 Upper Intermediate">B2 Upper Intermediate</option>
+                  <option value="C1 Advanced">C1 Advanced</option>
+                </select>
+              </div>
+
+              {/* XP Reward */}
+              <div>
+                <label className="block text-xs font-bold text-gray-700 mb-1">
+                  XP Reward on Completion
+                </label>
+                <select
+                  value={gameXpReward}
+                  onChange={(e) => setGameXpReward(Number(e.target.value))}
+                  className="w-full p-2.5 rounded-xl border border-gray-200 text-xs bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 font-medium"
+                >
+                  <option value={25}>+25 XP (Quick Practice)</option>
+                  <option value={50}>+50 XP (Standard Game)</option>
+                  <option value={75}>+75 XP (Challenging)</option>
+                  <option value={100}>+100 XP (Mastery Challenge)</option>
+                </select>
+              </div>
+
+              {/* Questions / Rounds */}
+              <div>
+                <label className="block text-xs font-bold text-gray-700 mb-1">
+                  Questions / Rounds Count
+                </label>
+                <input
+                  type="number"
+                  min="5"
+                  max="200"
+                  value={gameQuestionsCount}
+                  onChange={(e) => setGameQuestionsCount(Number(e.target.value))}
+                  className="w-full p-2.5 rounded-xl border border-gray-200 text-xs bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 font-medium"
+                />
+              </div>
+
+              {/* Description */}
+              <div className="md:col-span-2 lg:col-span-3">
+                <label className="block text-xs font-bold text-gray-700 mb-1">
+                  Game Description &amp; Instructions
+                </label>
+                <textarea
+                  rows={2}
+                  placeholder="e.g. Practice impromptu speaking rounds with conversational AI prompts, timed responses, and fluency scoring."
+                  value={gameDescription}
+                  onChange={(e) => setGameDescription(e.target.value)}
+                  className="w-full p-2.5 rounded-xl border border-gray-200 text-xs bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 font-medium"
+                />
+              </div>
+            </div>
+
+            {/* Error Message */}
+            {gameErrorMessage && (
+              <div className="p-4 bg-rose-50 border border-rose-200 rounded-2xl flex items-center gap-3 text-rose-800 text-xs font-bold">
+                <XCircle className="w-5 h-5 text-rose-600 flex-shrink-0" />
+                <span>{gameErrorMessage}</span>
+              </div>
+            )}
+
+            {/* Success Message Card with Action Buttons */}
+            {gameUploadSuccess && lastUploadedGame && (
+              <div className="p-5 bg-emerald-50 border border-emerald-200 rounded-2xl space-y-3">
+                <div className="flex items-center gap-3 text-emerald-800 text-xs font-bold">
+                  <CheckCircle className="w-5 h-5 text-emerald-600 flex-shrink-0" />
+                  <span>
+                    Game &ldquo;{lastUploadedGame.title}&rdquo; is now published and live in the 100+ Games Arcade!
+                  </span>
+                </div>
+                <div className="flex flex-wrap items-center gap-3 pt-1">
+                  <button
+                    type="button"
+                    onClick={() => openGame(lastUploadedGame)}
+                    className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold flex items-center gap-2 shadow-sm transition-all"
+                  >
+                    <Play className="w-3.5 h-3.5 fill-current" />
+                    <span>Play &amp; Test Game Now</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setActiveTab('games')}
+                    className="px-4 py-2 rounded-xl bg-white border border-emerald-300 text-emerald-700 hover:bg-emerald-100 text-xs font-bold flex items-center gap-2 transition-all"
+                  >
+                    <Sparkles className="w-3.5 h-3.5 text-emerald-600" />
+                    <span>View in 100+ Games Hub</span>
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Submit Button */}
+            <div className="flex items-center justify-end gap-3 pt-2">
+              <button
+                type="submit"
+                disabled={gameUploading || !gameFile}
+                className={`px-6 py-3 rounded-2xl font-black text-xs sm:text-sm flex items-center gap-2 shadow-md transition-all ${
+                  gameUploading || !gameFile
+                    ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                    : 'bg-[#4338ca] hover:bg-[#3730a3] text-white hover:shadow-lg'
+                }`}
+              >
+                {gameUploading ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <span>Publishing to Arcade...</span>
+                  </>
+                ) : (
+                  <>
+                    <Upload className="w-4 h-4" />
+                    <span>Upload &amp; Publish Game to 100+ Games Arcade</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </form>
+
+          {/* Uploaded Custom Games Catalog */}
+          <div className="pt-6 border-t border-gray-100 space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="font-extrabold text-sm sm:text-base text-gray-900 flex items-center gap-2">
+                  <Gamepad2 className="w-4 h-4 text-indigo-600" />
+                  <span>Faculty Uploaded Games ({customGames.length})</span>
+                </h3>
+                <p className="text-xs text-gray-500 mt-0.5">
+                  Games added here appear immediately across student and teacher accounts.
+                </p>
+              </div>
+            </div>
+
+            {customGames.length === 0 ? (
+              <div className="p-8 text-center bg-gray-50 rounded-2xl border border-gray-100">
+                <p className="text-xs font-medium text-gray-500">
+                  No custom games uploaded yet. Select an HTML file above (e.g. <span className="font-semibold text-gray-700">speaking_arena.html</span>) and click &ldquo;Upload &amp; Publish&rdquo;!
+                </p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {customGames.map((game) => (
+                  <div
+                    key={game.id}
+                    className="p-4 bg-white rounded-2xl border border-indigo-100 shadow-sm hover:border-indigo-300 transition-all flex flex-col justify-between"
+                  >
+                    <div>
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-700">
+                          {game.category}
+                        </span>
+                        <span className="text-[10px] font-bold text-gray-400">
+                          {game.cefrLevel}
+                        </span>
+                      </div>
+                      <h4 className="font-bold text-sm text-gray-900 line-clamp-1">
+                        {game.title}
+                      </h4>
+                      <p className="text-xs text-gray-500 mt-1 line-clamp-2">
+                        {game.description}
+                      </p>
+                      <div className="flex items-center gap-2 mt-3 text-[11px] font-semibold text-indigo-700">
+                        <Award className="w-3.5 h-3.5" />
+                        <span>+{game.xpReward} XP Reward</span>
+                        <span className="text-gray-300">•</span>
+                        <span>{game.questionsCount} Questions</span>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2 mt-4 pt-3 border-t border-gray-50">
+                      <button
+                        type="button"
+                        onClick={() => openGame(game)}
+                        className="flex-1 py-2 px-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold flex items-center justify-center gap-1.5 transition-colors"
+                      >
+                        <Play className="w-3.5 h-3.5 fill-current" />
+                        <span>Play Game</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => deleteGame(game.id)}
+                        className="p-2 rounded-xl text-rose-500 hover:bg-rose-50 hover:text-rose-700 transition-colors"
+                        title="Delete Game"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       )}
 

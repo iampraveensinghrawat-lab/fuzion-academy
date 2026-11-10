@@ -10,11 +10,13 @@ import {
 import { Search, ListChecks, Play, Sparkles } from 'lucide-react';
 
 export default function GamesHubTab() {
-  const { openGame } = useAppStore();
+  const { openGame, customGames } = useAppStore();
   const [selectedCategory, setSelectedCategory] = useState<string>('All Categories (100+)');
   const [searchQuery, setSearchQuery] = useState<string>('');
 
-  const filteredGames = GAMES_CATALOG.filter((game) => {
+  const allGames = [...(customGames || []), ...GAMES_CATALOG];
+
+  const filteredGames = allGames.filter((game) => {
     const matchesCategory =
       selectedCategory === 'All Categories (100+)' || game.category === selectedCategory;
     const matchesSearch =
@@ -82,9 +84,16 @@ export default function GamesHubTab() {
             <div>
               {/* Top Row: Category pill & CEFR level */}
               <div className="flex items-center justify-between mb-3">
-                <span className="text-[10px] font-black tracking-wider uppercase px-2.5 py-1 rounded-full bg-indigo-50 text-indigo-700">
-                  {game.category}
-                </span>
+                <div className="flex items-center gap-1.5">
+                  <span className="text-[10px] font-black tracking-wider uppercase px-2.5 py-1 rounded-full bg-indigo-50 text-indigo-700">
+                    {game.category}
+                  </span>
+                  {(game as any).isCustom && (
+                    <span className="text-[9px] font-black tracking-wider uppercase px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300">
+                      Faculty Game
+                    </span>
+                  )}
+                </div>
                 <span className="text-[11px] font-semibold text-gray-400">
                   {game.cefrLevel}
                 </span>
