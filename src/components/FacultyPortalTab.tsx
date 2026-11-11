@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useAppStore, StudentRecord } from '@/lib/store';
+import { supabase } from '@/lib/supabase';
 import {
   Users,
   CalendarCheck,
@@ -184,44 +185,96 @@ export default function FacultyPortalTab() {
         reader.readAsDataURL(gameFile);
       });
 
-      // 2. Prepare FormData for API persistence
-      const formData = new FormData();
-      formData.append('file', gameFile);
-      formData.append('title', gameTitle.trim() || gameFile.name.replace('.html', ''));
-      formData.append('category', gameCategory);
-      formData.append('cefrLevel', gameCefrLevel);
-      formData.append('xpReward', String(gameXpReward));
-      formData.append('questionsCount', String(gameQuestionsCount));
-      formData.append('description', gameDescription);
+      let publicUrl = '';
+      const timestamp = Date.now();
+      const cleanName = gameFile.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+      const storagePath = `${timestamp}_${cleanName}`;
+      const cleanTitle = gameTitle.trim() || gameFile.name.replace('.html', '').replace(/[-_]/g, ' ');
+
+      // Direct-to-Cloud Upload via Supabase (Bypasses Vercel 4.5MB Serverless Limit)
+      if (supabase) {
+        try {
+          const { error: uploadErr } = await supabase.storage
+            .from('games')
+            .upload(storagePath, gameFile, {
+              contentType: 'text/html',
+              upsert: true,
+            });
+
+          if (!uploadErr) {
+            const { data: urlData } = supabase.storage
+              .from('games')
+              .getPublicUrl(storagePath);
+            publicUrl = urlData.publicUrl;
+          }
+        } catch (storageErr) {
+          console.warn('Direct games storage upload notice:', storageErr);
+        }
+      }
 
       let savedGame: any;
 
-      try {
+      if (publicUrl) {
         const res = await fetch('/api/games', {
           method: 'POST',
-          body: formData,
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            title: cleanTitle,
+            category: gameCategory,
+            cefrLevel: gameCefrLevel,
+            description: gameDescription,
+            questionsCount: gameQuestionsCount,
+            xpReward: gameXpReward,
+            fileUrl: publicUrl,
+          }),
         });
-        const data = await res.json();
-        if (res.ok && data.game) {
-          savedGame = data.game;
-        } else {
-          throw new Error(data.error || 'Server upload notice');
+        const resText = await res.text();
+        try {
+          const data = JSON.parse(resText);
+          if (res.ok && data.game) {
+            savedGame = data.game;
+          }
+        } catch (e) {}
+      }
+
+      if (!savedGame) {
+        // Fallback via FormData or Data URL
+        try {
+          const formData = new FormData();
+          formData.append('file', gameFile);
+          formData.append('title', cleanTitle);
+          formData.append('category', gameCategory);
+          formData.append('cefrLevel', gameCefrLevel);
+          formData.append('xpReward', String(gameXpReward));
+          formData.append('questionsCount', String(gameQuestionsCount));
+          formData.append('description', gameDescription);
+
+          const res = await fetch('/api/games', {
+            method: 'POST',
+            body: formData,
+          });
+          const resText = await res.text();
+          const data = JSON.parse(resText);
+          if (res.ok && data.game) {
+            savedGame = data.game;
+          } else {
+            throw new Error(data.error || 'Server upload notice');
+          }
+        } catch (apiErr: any) {
+          console.warn('API games-upload fallback to clientDataUrl:', apiErr);
+          savedGame = {
+            id: `custom-game-${timestamp}`,
+            title: cleanTitle,
+            category: gameCategory,
+            cefrLevel: gameCefrLevel,
+            description: gameDescription.trim() || 'Custom standalone HTML5 game added by faculty.',
+            questionsCount: gameQuestionsCount || 50,
+            xpReward: gameXpReward || 50,
+            filePath: clientDataUrl,
+            isCustom: true,
+            isPopular: true,
+          };
         }
-      } catch (apiErr: any) {
-        // Fallback: save directly to local Zustand store with clientDataUrl
-        console.warn('API games-upload fallback to clientDataUrl:', apiErr);
-        savedGame = {
-          id: `custom-game-${Date.now()}`,
-          title: gameTitle.trim() || gameFile.name.replace('.html', '').replace(/[-_]/g, ' '),
-          category: gameCategory,
-          cefrLevel: gameCefrLevel,
-          description: gameDescription.trim() || 'Custom standalone HTML5 game added by faculty.',
-          questionsCount: gameQuestionsCount || 50,
-          xpReward: gameXpReward || 50,
-          filePath: clientDataUrl,
-          isCustom: true,
-          isPopular: true,
-        };
       }
 
       addGame(savedGame);
@@ -258,24 +311,87 @@ export default function FacultyPortalTab() {
     setPdfUploadSuccess(false);
 
     try {
-      const formData = new FormData();
-      formData.append('file', pdfFile);
-      formData.append('title', pdfTitle || pdfFile.name.replace(/\.[^/.]+$/, ''));
-      formData.append('level', pdfLevel);
-      formData.append('category', pdfCategory);
-      formData.append('description', pdfDescription);
+      let publicUrl = '';
+      const timestamp = Date.now();
+      const cleanName = pdfFile.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+      const storagePath = `${timestamp}_${cleanName}`;
+      const cleanTitle = pdfTitle.trim() || pdfFile.name.replace(/\.[^/.]+$/, '');
 
-      const res = await fetch('/api/materials', {
-        method: 'POST',
-        body: formData,
-      });
+      // 1. Direct-to-Cloud Upload via Supabase (Bypasses Vercel 4.5MB Serverless Limit)
+      if (supabase) {
+        const { error: uploadErr } = await supabase.storage
+          .from('study-materials')
+          .upload(storagePath, pdfFile, {
+            contentType: 'application/pdf',
+            upsert: true,
+          });
 
-      const data = await res.json();
+        if (uploadErr) {
+          throw new Error(`Cloud storage upload failed: ${uploadErr.message}`);
+        }
+
+        const { data: urlData } = supabase.storage
+          .from('study-materials')
+          .getPublicUrl(storagePath);
+
+        publicUrl = urlData.publicUrl;
+      }
+
+      // 2. Register metadata via API
+      let res: Response;
+      if (publicUrl) {
+        res = await fetch('/api/materials', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            title: cleanTitle,
+            fileName: cleanName,
+            fileUrl: publicUrl,
+            level: pdfLevel,
+            category: pdfCategory,
+            description: pdfDescription,
+          }),
+        });
+      } else {
+        const formData = new FormData();
+        formData.append('file', pdfFile);
+        formData.append('title', cleanTitle);
+        formData.append('level', pdfLevel);
+        formData.append('category', pdfCategory);
+        formData.append('description', pdfDescription);
+
+        res = await fetch('/api/materials', {
+          method: 'POST',
+          body: formData,
+        });
+      }
+
+      const resText = await res.text();
+      let data: any = {};
+      try {
+        data = JSON.parse(resText);
+      } catch (jsonErr) {
+        if (!res.ok) {
+          throw new Error(resText.includes('Request Entity Too Large') ? 'File size exceeds serverless limits. Please ensure Supabase storage is active.' : resText);
+        }
+      }
+
       if (!res.ok) {
         throw new Error(data.error || 'Upload failed');
       }
 
-      addMaterial(data.material);
+      const createdMaterial = data.material || {
+        id: `mat-upload-${timestamp}`,
+        title: cleanTitle,
+        fileName: cleanName,
+        filePath: publicUrl,
+        level: pdfLevel,
+        category: pdfCategory,
+        description: pdfDescription,
+        isCustom: true,
+      };
+
+      addMaterial(createdMaterial);
       setPdfUploadSuccess(true);
       setPdfFile(null);
       setPdfTitle('');

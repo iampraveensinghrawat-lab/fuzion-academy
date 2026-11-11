@@ -37,6 +37,60 @@ export async function GET() {
 
 export async function POST(req: NextRequest) {
   try {
+    const contentType = req.headers.get('content-type') || '';
+
+    // A. Direct JSON Metadata Registration (Used when client uploads directly to Supabase Storage, bypassing Vercel 4.5MB limit)
+    if (contentType.includes('application/json')) {
+      const body = await req.json();
+      const { title, category, cefrLevel, description, questionsCount, xpReward, fileUrl } = body;
+
+      if (!fileUrl) {
+        return NextResponse.json({ error: 'File URL is required' }, { status: 400 });
+      }
+
+      const timestamp = Date.now();
+      const gameId = `game-${timestamp}`;
+      const cleanTitle = (title || '').trim() || 'Custom ESL Game';
+
+      const { error: dbError } = await supabaseServer.from('games').insert([
+        {
+          id: gameId,
+          title: cleanTitle,
+          category: category || 'Speaking',
+          cefr_level: cefrLevel || 'B1 Intermediate',
+          description: description?.trim() || `Custom interactive game added by faculty: ${cleanTitle}`,
+          questions_count: parseInt(questionsCount, 10) || 50,
+          xp_reward: parseInt(xpReward, 10) || 50,
+          file_url: fileUrl,
+          is_custom: true,
+        },
+      ]);
+
+      if (dbError) {
+        console.warn('Supabase games insert notice:', dbError.message);
+      }
+
+      const newGame = {
+        id: gameId,
+        title: cleanTitle,
+        category: category || 'Speaking',
+        cefrLevel: cefrLevel || 'B1 Intermediate',
+        description: description?.trim() || `Custom interactive game added by faculty: ${cleanTitle}`,
+        questionsCount: parseInt(questionsCount, 10) || 50,
+        xpReward: parseInt(xpReward, 10) || 50,
+        filePath: fileUrl,
+        isCustom: true,
+        isPopular: true,
+      };
+
+      return NextResponse.json({
+        success: true,
+        game: newGame,
+        message: 'Game successfully registered in cloud catalog!',
+      });
+    }
+
+    // B. Fallback: FormData Upload via Server
     const formData = await req.formData();
     const file = formData.get('file') as File | null;
     const title = (formData.get('title') as string) || '';

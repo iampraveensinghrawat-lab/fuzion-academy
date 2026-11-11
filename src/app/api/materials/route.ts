@@ -35,6 +35,57 @@ export async function GET() {
 
 export async function POST(req: NextRequest) {
   try {
+    const contentType = req.headers.get('content-type') || '';
+
+    // A. Direct JSON Metadata Registration (Used when client uploads directly to Supabase Storage, bypassing Vercel 4.5MB limit)
+    if (contentType.includes('application/json')) {
+      const body = await req.json();
+      const { title, fileName, fileUrl, level, category, description } = body;
+
+      if (!fileUrl) {
+        return NextResponse.json({ error: 'File URL is required' }, { status: 400 });
+      }
+
+      const timestamp = Date.now();
+      const materialId = `mat-upload-${timestamp}`;
+      const cleanTitle = (title || '').trim() || (fileName || 'study_material.pdf').replace(/\.[^/.]+$/, '');
+      const cleanFileName = (fileName || `${cleanTitle}.pdf`).replace(/[^a-zA-Z0-9._-]/g, '_');
+
+      const { error: dbError } = await supabaseServer.from('study_materials').insert([
+        {
+          id: materialId,
+          title: cleanTitle,
+          file_name: cleanFileName,
+          file_url: fileUrl,
+          category: category || 'Speaking & Discussion',
+          cefr_level: level || 'A1-A2',
+          description: description?.trim() || `Uploaded by faculty on ${new Date().toLocaleDateString()}`,
+        },
+      ]);
+
+      if (dbError) {
+        console.warn('Supabase study_materials insert notice:', dbError.message);
+      }
+
+      const newMaterial = {
+        id: materialId,
+        title: cleanTitle,
+        fileName: cleanFileName,
+        filePath: fileUrl,
+        level: level || 'A1-A2',
+        category: category || 'Speaking & Discussion',
+        description: description?.trim() || `Uploaded by faculty on ${new Date().toLocaleDateString()}`,
+        isCustom: true,
+      };
+
+      return NextResponse.json({
+        success: true,
+        material: newMaterial,
+        message: 'PDF successfully registered and synchronized across all devices!',
+      });
+    }
+
+    // B. Fallback: FormData Upload via Server
     const formData = await req.formData();
     const file = formData.get('file') as File | null;
     const title = (formData.get('title') as string) || '';

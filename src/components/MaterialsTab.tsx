@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { STUDY_MATERIALS, StudyMaterial } from '@/lib/materialsData';
 import { useAppStore } from '@/lib/store';
+import { supabase } from '@/lib/supabase';
 import { FileText, Download, Eye, Search, Filter, X, Sparkles, Upload, Plus, CheckCircle, ExternalLink } from 'lucide-react';
 
 export default function MaterialsTab() {
@@ -74,22 +75,89 @@ export default function MaterialsTab() {
     setModalError('');
 
     try {
-      const formData = new FormData();
-      formData.append('file', modalFile);
-      formData.append('title', modalTitle || modalFile.name.replace(/\.[^/.]+$/, ''));
-      formData.append('level', modalLevel);
-      formData.append('category', modalCategory);
-      formData.append('description', modalDescription);
+      const timestamp = Date.now();
+      const cleanName = modalFile.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+      const storagePath = `${timestamp}_${cleanName}`;
+      const cleanTitle = modalTitle.trim() || modalFile.name.replace(/\.[^/.]+$/, '');
+      let publicUrl = '';
 
-      const res = await fetch('/api/materials', {
-        method: 'POST',
-        body: formData,
-      });
+      // 1. Direct-to-Cloud Upload via Supabase (Bypasses Vercel 4.5MB Serverless Payload Limit)
+      if (supabase) {
+        const { error: uploadErr } = await supabase.storage
+          .from('study-materials')
+          .upload(storagePath, modalFile, {
+            contentType: 'application/pdf',
+            upsert: true,
+          });
 
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Failed to upload PDF');
+        if (uploadErr) {
+          throw new Error(`Cloud storage upload failed: ${uploadErr.message}`);
+        }
 
-      addMaterial(data.material);
+        const { data: urlData } = supabase.storage
+          .from('study-materials')
+          .getPublicUrl(storagePath);
+
+        publicUrl = urlData.publicUrl;
+      }
+
+      // 2. Register metadata via API
+      let res: Response;
+      if (publicUrl) {
+        res = await fetch('/api/materials', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            title: cleanTitle,
+            fileName: cleanName,
+            fileUrl: publicUrl,
+            level: modalLevel,
+            category: modalCategory,
+            description: modalDescription,
+          }),
+        });
+      } else {
+        // Fallback to FormData
+        const formData = new FormData();
+        formData.append('file', modalFile);
+        formData.append('title', cleanTitle);
+        formData.append('level', modalLevel);
+        formData.append('category', modalCategory);
+        formData.append('description', modalDescription);
+
+        res = await fetch('/api/materials', {
+          method: 'POST',
+          body: formData,
+        });
+      }
+
+      let data: any = {};
+      const resText = await res.text();
+      try {
+        data = JSON.parse(resText);
+      } catch (jsonErr) {
+        if (!res.ok) {
+          throw new Error(resText.includes('Request Entity Too Large') ? 'File size exceeds serverless limits. Please ensure Supabase storage is active.' : resText);
+        }
+      }
+
+      if (!res.ok) {
+        throw new Error(data.error || 'Failed to save PDF material');
+      }
+
+      const createdMaterial = data.material || {
+        id: `mat-upload-${timestamp}`,
+        title: cleanTitle,
+        fileName: cleanName,
+        filePath: publicUrl,
+        level: modalLevel,
+        category: modalCategory,
+        description: modalDescription,
+        isCustom: true,
+      };
+
+      addMaterial(createdMaterial);
+      setCloudMaterials((prev) => [createdMaterial, ...prev]);
       setModalSuccess(true);
       setTimeout(() => {
         setIsUploadModalOpen(false);
