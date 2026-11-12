@@ -41,9 +41,19 @@ export default function GameModal() {
     if (path.startsWith('http')) {
       setLoadingGame(true);
       fetch(path)
-        .then((res) => res.text())
+        .then((res) => {
+          if (!res.ok) throw new Error(`HTTP ${res.status}`);
+          return res.text();
+        })
         .then((text) => {
-          if (text.includes('<html') || text.includes('<!DOCTYPE') || text.includes('<body') || text.includes('<script')) {
+          if (
+            text.includes('<html') ||
+            text.includes('<!DOCTYPE') ||
+            text.includes('<body') ||
+            text.includes('<script') ||
+            text.includes('<div') ||
+            text.includes('<canvas')
+          ) {
             setHtmlDoc(text);
           } else {
             // Fallback: proxy via game-runner API

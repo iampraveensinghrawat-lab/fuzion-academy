@@ -15,6 +15,7 @@ export async function GET(req: NextRequest) {
     const isHttps = parsedUrl.protocol === 'https:';
     const isAllowedHost =
       parsedUrl.hostname.endsWith('.supabase.co') ||
+      parsedUrl.hostname.endsWith('.vercel.app') ||
       parsedUrl.hostname === 'fuzion-academy.vercel.app' ||
       parsedUrl.hostname === 'localhost';
 
