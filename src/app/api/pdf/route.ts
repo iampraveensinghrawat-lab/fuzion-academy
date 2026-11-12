@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import fs from 'fs';
 import path from 'path';
+import { supabaseServer } from '@/lib/supabaseServer';
 
 export const dynamic = 'force-dynamic';
 
@@ -46,14 +47,48 @@ export async function GET(req: NextRequest) {
           });
           if (fuzzyMatch) {
             targetPath = path.join(materialsDir, fuzzyMatch);
-          } else {
-            console.warn(`[PDF API] File not found: "${fileName}" in ${materialsDir}`);
-            return new NextResponse(`PDF "${fileName}" was not found in the materials library.`, {
-              status: 404,
-              headers: { 'Content-Type': 'text/plain; charset=utf-8' },
-            });
           }
         }
+      }
+
+      // If file does not exist on local disk, check Supabase Cloud Storage & Database
+      if (!fs.existsSync(targetPath)) {
+        try {
+          // 1. Query study_materials table
+          const { data: dbMatches } = await supabaseServer
+            .from('study_materials')
+            .select('*')
+            .ilike('file_name', `%${fileName}%`)
+            .limit(1);
+
+          if (dbMatches && dbMatches.length > 0 && dbMatches[0].file_url) {
+            return NextResponse.redirect(dbMatches[0].file_url);
+          }
+
+          // 2. Query storage bucket directly
+          const cleanSearch = fileName.replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
+          const { data: storageFiles } = await supabaseServer.storage.from('study-materials').list();
+          if (storageFiles && storageFiles.length > 0) {
+            const found = storageFiles.find((f: any) => {
+              const cleanF = f.name.replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
+              return cleanF.includes(cleanSearch) || cleanSearch.includes(cleanF);
+            });
+            if (found) {
+              const { data: pUrl } = supabaseServer.storage.from('study-materials').getPublicUrl(found.name);
+              if (pUrl?.publicUrl) {
+                return NextResponse.redirect(pUrl.publicUrl);
+              }
+            }
+          }
+        } catch (cloudErr) {
+          console.warn('[PDF API] Supabase cloud fallback notice:', cloudErr);
+        }
+
+        console.warn(`[PDF API] File not found: "${fileName}" in ${materialsDir} or Supabase cloud`);
+        return new NextResponse(`PDF "${fileName}" was not found in the materials library.`, {
+          status: 404,
+          headers: { 'Content-Type': 'text/plain; charset=utf-8' },
+        });
       }
     }
 

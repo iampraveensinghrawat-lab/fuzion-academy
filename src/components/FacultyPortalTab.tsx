@@ -1409,7 +1409,7 @@ export default function FacultyPortalTab() {
 
                     <div className="flex items-center gap-2">
                       <a
-                        href={mat.filePath.startsWith('/api/pdf') ? mat.filePath : `/api/pdf?file=${encodeURIComponent(mat.fileName)}`}
+                        href={mat.filePath && (mat.filePath.startsWith('http') || mat.filePath.startsWith('/api/pdf')) ? mat.filePath : `/api/pdf?file=${encodeURIComponent(mat.fileName)}`}
                         target="_blank"
                         rel="noreferrer"
                         className="px-3 py-1 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 rounded-lg font-bold text-[11px]"

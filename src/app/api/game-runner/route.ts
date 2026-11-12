@@ -9,6 +9,28 @@ export async function GET(req: NextRequest) {
     return new NextResponse('URL parameter is required', { status: 400 });
   }
 
+  // SSRF Protection: Validate URL scheme and origin against allowed storage domains
+  try {
+    const parsedUrl = new URL(url);
+    const isHttps = parsedUrl.protocol === 'https:';
+    const isAllowedHost =
+      parsedUrl.hostname.endsWith('.supabase.co') ||
+      parsedUrl.hostname === 'fuzion-academy.vercel.app' ||
+      parsedUrl.hostname === 'localhost';
+
+    if (!isHttps && parsedUrl.hostname !== 'localhost') {
+      return new NextResponse('Only secure HTTPS URLs are allowed', { status: 403 });
+    }
+
+    if (!isAllowedHost) {
+      return new NextResponse('Forbidden: Target domain is not an authorized cloud storage origin', {
+        status: 403,
+      });
+    }
+  } catch (err) {
+    return new NextResponse('Invalid URL format', { status: 400 });
+  }
+
   try {
     const response = await fetch(url);
     if (!response.ok) {

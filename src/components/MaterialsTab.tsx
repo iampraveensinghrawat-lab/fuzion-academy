@@ -173,6 +173,21 @@ export default function MaterialsTab() {
     }
   };
 
+  // Helper to resolve accurate preview & download URLs whether cloud-hosted or bundled
+  const getPdfUrl = (filePath: string, fileName: string, isDownload = false) => {
+    if (!filePath) return '';
+    // 1. Cloud-hosted PDF (Supabase Storage, CDN, external)
+    if (filePath.startsWith('http://') || filePath.startsWith('https://')) {
+      return filePath;
+    }
+    // 2. Bundled local Next.js API route
+    if (filePath.startsWith('/api/pdf')) {
+      return isDownload ? `${filePath}${filePath.includes('?') ? '&' : '?'}download=1` : filePath;
+    }
+    // 3. Fallback to /api/pdf by file name
+    return `/api/pdf?file=${encodeURIComponent(fileName || filePath)}${isDownload ? '&download=1' : ''}`;
+  };
+
   return (
     <div className="space-y-6 animate-fade-in pb-16">
       {/* 1. Header Banner */}
@@ -298,7 +313,7 @@ export default function MaterialsTab() {
               </button>
 
               <a
-                href={mat.filePath.startsWith('/api/pdf') ? `${mat.filePath}&download=1` : `/api/pdf?file=${encodeURIComponent(mat.fileName)}&download=1`}
+                href={getPdfUrl(mat.filePath, mat.fileName, true)}
                 download={mat.fileName}
                 className="py-2 px-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold text-xs rounded-xl flex items-center justify-center gap-1 transition-colors"
                 title="Download PDF"
@@ -321,7 +336,7 @@ export default function MaterialsTab() {
               </div>
               <div className="flex items-center gap-2">
                 <a
-                  href={viewingMaterial.filePath.startsWith('/api/pdf') ? viewingMaterial.filePath : `/api/pdf?file=${encodeURIComponent(viewingMaterial.fileName)}`}
+                  href={getPdfUrl(viewingMaterial.filePath, viewingMaterial.fileName, false)}
                   target="_blank"
                   rel="noreferrer"
                   className="px-3 py-1 bg-white/10 hover:bg-white/20 text-indigo-100 rounded-lg text-xs font-bold flex items-center gap-1 transition-colors"
@@ -332,7 +347,7 @@ export default function MaterialsTab() {
                 </a>
 
                 <a
-                  href={viewingMaterial.filePath.startsWith('/api/pdf') ? `${viewingMaterial.filePath}&download=1` : `/api/pdf?file=${encodeURIComponent(viewingMaterial.fileName)}&download=1`}
+                  href={getPdfUrl(viewingMaterial.filePath, viewingMaterial.fileName, true)}
                   download={viewingMaterial.fileName}
                   className="px-3 py-1 bg-pink-600 hover:bg-pink-700 text-white rounded-lg text-xs font-bold flex items-center gap-1 shadow-sm transition-colors"
                 >
@@ -350,7 +365,7 @@ export default function MaterialsTab() {
 
             <div className="flex-1 w-full bg-slate-800 relative flex flex-col">
               <iframe
-                src={viewingMaterial.filePath.startsWith('/api/pdf') ? viewingMaterial.filePath : `/api/pdf?file=${encodeURIComponent(viewingMaterial.fileName)}`}
+                src={getPdfUrl(viewingMaterial.filePath, viewingMaterial.fileName, false)}
                 title={viewingMaterial.title}
                 className="w-full h-full border-0 flex-1"
               />
