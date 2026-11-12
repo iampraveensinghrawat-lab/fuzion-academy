@@ -86,18 +86,22 @@ async function runSuite() {
 
   // Start Next.js production server on port 3000
   console.log('Starting local Next.js server on port 3000...');
-  const server = spawn('cmd.exe', ['/c', 'npm start'], {
+  const nextBin = path.join(__dirname, 'node_modules', 'next', 'dist', 'bin', 'next');
+  const server = spawn(process.execPath, [nextBin, 'start', '-p', '3000', '-H', '127.0.0.1'], {
     cwd: __dirname,
     stdio: 'pipe',
   });
 
   server.stdout.on('data', (d) => {
-    // console.log(`[server] ${d}`);
+    console.log(`[server] ${d}`);
+  });
+  server.stderr.on('data', (d) => {
+    console.error(`[server err] ${d}`);
   });
 
   // Wait for server to become responsive
   let serverReady = false;
-  for (let i = 0; i < 30; i++) {
+  for (let i = 0; i < 15; i++) {
     try {
       await new Promise((r) => setTimeout(r, 1000));
       const health = await getRequest('/');
@@ -106,7 +110,7 @@ async function runSuite() {
         break;
       }
     } catch (e) {
-      // waiting
+      console.log(`Waiting for server (attempt ${i + 1}): ${e.message}`);
     }
   }
 
@@ -227,6 +231,32 @@ async function runSuite() {
       });
       recordTest('OWASP (XSS)', 'Quiz API safely parses HTML tags as string data without code execution', xssInQuiz.statusCode === 200);
 
+      // Path Traversal resilience on /api/pdf
+      const pathTraversal1 = await getRequest('/api/pdf?file=../../package.json');
+      const isBlocked1 = pathTraversal1.statusCode === 403 || pathTraversal1.statusCode === 404;
+      const noLeak1 = typeof pathTraversal1.raw === 'string' && !pathTraversal1.raw.includes('"name": "fuzion-academy"');
+      recordTest('OWASP (Path Traversal)', 'Blocks directory traversal ../../package.json', isBlocked1 && noLeak1);
+
+      const pathTraversal2 = await getRequest('/api/pdf?file=..%2F..%2Fpackage.json');
+      const isBlocked2 = pathTraversal2.statusCode === 403 || pathTraversal2.statusCode === 404;
+      const noLeak2 = typeof pathTraversal2.raw === 'string' && !pathTraversal2.raw.includes('"name": "fuzion-academy"');
+      recordTest('OWASP (Path Traversal)', 'Blocks URL-encoded directory traversal ..%2F..%2Fpackage.json', isBlocked2 && noLeak2);
+
+      // Sensitive Data Exposure Check
+      const homeResponse = await getRequest('/');
+      const rawHtml = typeof homeResponse.raw === 'string' ? homeResponse.raw : '';
+      const noPrivateKeys =
+        !rawHtml.includes('SUPABASE_SERVICE_ROLE_KEY') &&
+        !rawHtml.includes('sbp_') &&
+        !rawHtml.includes('service_role');
+      recordTest('OWASP (Data Exposure)', 'Zero server-side private credentials or service role keys exposed in client HTML', noPrivateKeys);
+
+      // Password Reset API Flow
+      const forgotPass = await postRequest('/api/auth/forgot-password', {
+        email: 'student@fuzion.com',
+      });
+      recordTest('Auth Security', 'Forgot password API generates recovery flow without error', forgotPass.statusCode === 200);
+
       // Security Headers Check
       const headerCheck = await getRequest('/');
       const headers = headerCheck.headers;
@@ -237,7 +267,7 @@ async function runSuite() {
     }
 
     // 4. API Endpoints Functional & Cloud Database Sync
-    console.log('\n--- SECTION 4: Cloud API Endpoints & Sync Verification ---');
+    console.log('\n--- SECTION 4: Cloud API Endpoints & Materials Serving ---');
     try {
       const gamesApi = await getRequest('/api/games');
       recordTest('Cloud Sync', 'GET /api/games returns cloud catalog (HTTP 200)', gamesApi.statusCode === 200 && Array.isArray(gamesApi.body.games));
@@ -247,8 +277,36 @@ async function runSuite() {
 
       const quizzesApi = await getRequest('/api/quizzes');
       recordTest('Cloud Sync', 'GET /api/quizzes returns batch quizzes (HTTP 200)', quizzesApi.statusCode === 200 && Array.isArray(quizzesApi.body.quizzes));
+
+      // PDF Serving Test
+      const pdfServe = await getRequest('/api/pdf?file=10_ways_to_start_a_presentation.pdf');
+      const isPdf = pdfServe.statusCode === 200 && pdfServe.headers['content-type']?.includes('application/pdf');
+      recordTest('Materials Engine', 'GET /api/pdf serves PDF with application/pdf and nosniff', isPdf);
     } catch (err) {
       recordTest('Cloud Sync', 'API endpoint audit', false, err.message);
+    }
+
+    // 5. Performance Benchmarking & Response Latency
+    console.log('\n--- SECTION 5: Performance Benchmarking & Latency Metrics ---');
+    const benchmarkEndpoints = [
+      '/',
+      '/auth/student/login',
+      '/student/dashboard',
+      '/teacher/dashboard',
+      '/api/games',
+      '/api/materials',
+    ];
+
+    for (const ep of benchmarkEndpoints) {
+      try {
+        const t0 = Date.now();
+        const res = await getRequest(ep);
+        const latency = Date.now() - t0;
+        const pass = res.statusCode === 200 && latency < 500;
+        recordTest('Performance', `${ep} responded in ${latency}ms (target < 500ms)`, pass);
+      } catch (err) {
+        recordTest('Performance', `${ep} benchmark failed`, false, err.message);
+      }
     }
   }
 

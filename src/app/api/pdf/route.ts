@@ -22,11 +22,16 @@ export async function GET(req: NextRequest) {
       // keep original
     }
 
-    // Strip leading slashes or /materials/ if passed as a full path
-    fileName = fileName.replace(/^\/?materials\//i, '').replace(/^[/\\]+/, '');
+    // Strip path traversal attempts and isolate filename
+    fileName = path.basename(fileName.replace(/^\/?materials\//i, '').replace(/^[/\\]+/, ''));
 
-    const materialsDir = path.join(process.cwd(), 'public', 'materials');
-    let targetPath = path.join(materialsDir, fileName);
+    const materialsDir = path.resolve(process.cwd(), 'public', 'materials');
+    let targetPath = path.resolve(materialsDir, fileName);
+
+    // Security check: strictly restrict filesystem access to materials directory
+    if (!targetPath.startsWith(materialsDir)) {
+      return new NextResponse('Access denied: Invalid file path', { status: 403 });
+    }
 
     // If file does not exist directly, attempt smart matching
     if (!fs.existsSync(targetPath)) {
