@@ -8,6 +8,7 @@ export interface GameItem {
   xpReward: number;
   filePath: string;
   isPopular?: boolean;
+  isCustom?: boolean;
 }
 
 export const GAME_CATEGORIES = [

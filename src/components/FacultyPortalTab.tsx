@@ -24,6 +24,8 @@ import {
   ExternalLink,
   Loader2,
   Award,
+  RefreshCw,
+  X,
 } from 'lucide-react';
 
 export default function FacultyPortalTab() {
@@ -37,9 +39,11 @@ export default function FacultyPortalTab() {
     customMaterials,
     addMaterial,
     deleteMaterial,
+    updateMaterial,
     customGames,
     addGame,
     deleteGame,
+    updateGame,
     openGame,
     setActiveTab,
   } = useAppStore();
@@ -162,6 +166,216 @@ export default function FacultyPortalTab() {
         .replace(/[-_]/g, ' ')
         .replace(/\b\w/g, (c) => c.toUpperCase());
       setGameTitle(cleanName);
+    }
+  };
+
+  // Replace Game State & Handlers
+  const [replacingGame, setReplacingGame] = useState<any | null>(null);
+  const [replaceGameFile, setReplaceGameFile] = useState<File | null>(null);
+  const [replaceGameTitle, setReplaceGameTitle] = useState('');
+  const [replaceGameCategory, setReplaceGameCategory] = useState<any>('Speaking');
+  const [replaceGameCefrLevel, setReplaceGameCefrLevel] = useState<any>('B1 Intermediate');
+  const [replaceGameXpReward, setReplaceGameXpReward] = useState<number>(50);
+  const [replaceGameQuestionsCount, setReplaceGameQuestionsCount] = useState<number>(50);
+  const [replaceGameDescription, setReplaceGameDescription] = useState('');
+  const [replaceGameUploading, setReplaceGameUploading] = useState(false);
+  const [replaceGameError, setReplaceGameError] = useState('');
+
+  const openReplaceGameModal = (game: any) => {
+    setReplacingGame(game);
+    setReplaceGameTitle(game.title);
+    setReplaceGameCategory(game.category);
+    setReplaceGameCefrLevel(game.cefrLevel);
+    setReplaceGameXpReward(game.xpReward);
+    setReplaceGameQuestionsCount(game.questionsCount);
+    setReplaceGameDescription(game.description || '');
+    setReplaceGameFile(null);
+    setReplaceGameError('');
+  };
+
+  const handleDeleteGame = async (id: string, title?: string) => {
+    if (title && !window.confirm(`Are you sure you want to remove "${title}"?`)) {
+      return;
+    }
+    try {
+      await fetch(`/api/games?id=${encodeURIComponent(id)}`, { method: 'DELETE' });
+    } catch (e) {
+      console.warn('Delete game notice:', e);
+    }
+    deleteGame(id);
+  };
+
+  const handleModalReplaceGame = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!replacingGame) return;
+
+    setReplaceGameUploading(true);
+    setReplaceGameError('');
+
+    try {
+      let publicUrl = replacingGame.filePath;
+
+      if (replaceGameFile && supabase) {
+        const timestamp = Date.now();
+        const cleanName = replaceGameFile.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+        const storagePath = `${timestamp}_${cleanName}`;
+
+        const { error: uploadErr } = await supabase.storage
+          .from('games')
+          .upload(storagePath, replaceGameFile, {
+            contentType: 'text/html',
+            upsert: true,
+          });
+
+        if (uploadErr) {
+          throw new Error(`Cloud storage upload failed: ${uploadErr.message}`);
+        }
+
+        const { data: urlData } = supabase.storage
+          .from('games')
+          .getPublicUrl(storagePath);
+
+        publicUrl = urlData.publicUrl;
+      }
+
+      const updatedPayload = {
+        id: replacingGame.id,
+        title: replaceGameTitle.trim() || replacingGame.title,
+        category: replaceGameCategory,
+        cefrLevel: replaceGameCefrLevel,
+        description: replaceGameDescription.trim(),
+        questionsCount: replaceGameQuestionsCount,
+        xpReward: replaceGameXpReward,
+        fileUrl: publicUrl,
+      };
+
+      await fetch('/api/games', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updatedPayload),
+      });
+
+      const updatedGame = {
+        id: replacingGame.id,
+        title: replaceGameTitle.trim() || replacingGame.title,
+        category: replaceGameCategory,
+        cefrLevel: replaceGameCefrLevel,
+        description: replaceGameDescription.trim(),
+        questionsCount: replaceGameQuestionsCount,
+        xpReward: replaceGameXpReward,
+        filePath: publicUrl,
+        isCustom: true,
+        isPopular: true,
+      };
+
+      updateGame(replacingGame.id, updatedGame);
+      setReplacingGame(null);
+    } catch (err: any) {
+      setReplaceGameError(err.message || 'Failed to replace game');
+    } finally {
+      setReplaceGameUploading(false);
+    }
+  };
+
+  // Replace Material State & Handlers
+  const [replacingMaterial, setReplacingMaterial] = useState<any | null>(null);
+  const [replaceMaterialFile, setReplaceMaterialFile] = useState<File | null>(null);
+  const [replaceMaterialTitle, setReplaceMaterialTitle] = useState('');
+  const [replaceMaterialLevel, setReplaceMaterialLevel] = useState('A1-A2');
+  const [replaceMaterialCategory, setReplaceMaterialCategory] = useState('Speaking & Discussion');
+  const [replaceMaterialDescription, setReplaceMaterialDescription] = useState('');
+  const [replaceMaterialUploading, setReplaceMaterialUploading] = useState(false);
+  const [replaceMaterialError, setReplaceMaterialError] = useState('');
+
+  const openReplaceMaterialModal = (mat: any) => {
+    setReplacingMaterial(mat);
+    setReplaceMaterialTitle(mat.title);
+    setReplaceMaterialLevel(mat.level);
+    setReplaceMaterialCategory(mat.category);
+    setReplaceMaterialDescription(mat.description || '');
+    setReplaceMaterialFile(null);
+    setReplaceMaterialError('');
+  };
+
+  const handleDeleteMaterial = async (id: string, title?: string) => {
+    if (title && !window.confirm(`Are you sure you want to remove "${title}"?`)) {
+      return;
+    }
+    try {
+      await fetch(`/api/materials?id=${encodeURIComponent(id)}`, { method: 'DELETE' });
+    } catch (e) {
+      console.warn('Delete material notice:', e);
+    }
+    deleteMaterial(id);
+  };
+
+  const handleModalReplaceMaterial = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!replacingMaterial) return;
+
+    setReplaceMaterialUploading(true);
+    setReplaceMaterialError('');
+
+    try {
+      let publicUrl = replacingMaterial.filePath;
+      let cleanName = replacingMaterial.fileName;
+
+      if (replaceMaterialFile && supabase) {
+        const timestamp = Date.now();
+        cleanName = replaceMaterialFile.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+        const storagePath = `${timestamp}_${cleanName}`;
+
+        const { error: uploadErr } = await supabase.storage
+          .from('study-materials')
+          .upload(storagePath, replaceMaterialFile, {
+            contentType: 'application/pdf',
+            upsert: true,
+          });
+
+        if (uploadErr) {
+          throw new Error(`Cloud storage upload failed: ${uploadErr.message}`);
+        }
+
+        const { data: urlData } = supabase.storage
+          .from('study-materials')
+          .getPublicUrl(storagePath);
+
+        publicUrl = urlData.publicUrl;
+      }
+
+      const updatedPayload = {
+        id: replacingMaterial.id,
+        title: replaceMaterialTitle.trim() || replacingMaterial.title,
+        fileName: cleanName,
+        fileUrl: publicUrl,
+        level: replaceMaterialLevel,
+        category: replaceMaterialCategory,
+        description: replaceMaterialDescription.trim(),
+      };
+
+      await fetch('/api/materials', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updatedPayload),
+      });
+
+      const updatedMat = {
+        id: replacingMaterial.id,
+        title: replaceMaterialTitle.trim() || replacingMaterial.title,
+        fileName: cleanName,
+        filePath: publicUrl,
+        level: replaceMaterialLevel,
+        category: replaceMaterialCategory,
+        description: replaceMaterialDescription.trim(),
+        isCustom: true,
+      };
+
+      updateMaterial(replacingMaterial.id, updatedMat);
+      setReplacingMaterial(null);
+    } catch (err: any) {
+      setReplaceMaterialError(err.message || 'Failed to replace PDF material');
+    } finally {
+      setReplaceMaterialUploading(false);
     }
   };
 
@@ -1218,7 +1432,16 @@ export default function FacultyPortalTab() {
                       </button>
                       <button
                         type="button"
-                        onClick={() => deleteGame(game.id)}
+                        onClick={() => openReplaceGameModal(game)}
+                        className="py-2 px-2.5 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-700 text-xs font-bold flex items-center justify-center gap-1 transition-colors"
+                        title="Replace this activity or upload new HTML file"
+                      >
+                        <RefreshCw className="w-3.5 h-3.5" />
+                        <span>Replace</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleDeleteGame(game.id, game.title)}
                         className="p-2 rounded-xl text-rose-500 hover:bg-rose-50 hover:text-rose-700 transition-colors"
                         title="Delete Game"
                       >
@@ -1417,7 +1640,15 @@ export default function FacultyPortalTab() {
                         Preview
                       </a>
                       <button
-                        onClick={() => deleteMaterial(mat.id)}
+                        onClick={() => openReplaceMaterialModal(mat)}
+                        className="px-2.5 py-1 bg-amber-50 text-amber-700 hover:bg-amber-100 rounded-lg font-bold text-[11px] flex items-center gap-1"
+                        title="Replace this PDF or update details"
+                      >
+                        <RefreshCw className="w-3 h-3" />
+                        <span>Replace</span>
+                      </button>
+                      <button
+                        onClick={() => handleDeleteMaterial(mat.id, mat.title)}
                         className="p-1.5 text-rose-500 hover:bg-rose-50 rounded-lg"
                         title="Delete Material"
                       >
@@ -1473,6 +1704,319 @@ export default function FacultyPortalTab() {
                 <span>Print Attendance Sheet</span>
               </button>
             </div>
+          </div>
+        </div>
+      )}
+      {/* Replace Activity / Game Modal */}
+      {replacingGame && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-sm p-4 animate-fade-in">
+          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-lg p-6 sm:p-8 space-y-6 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                <div className="w-10 h-10 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center">
+                  <RefreshCw className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="font-extrabold text-base text-gray-900">
+                    Replace Activity / Game
+                  </h3>
+                  <p className="text-xs text-gray-500">
+                    Upload a new standalone .html game file or edit settings.
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => setReplacingGame(null)}
+                className="p-1 rounded-lg hover:bg-gray-100 text-gray-400"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleModalReplaceGame} className="space-y-4">
+              <div>
+                <label className="block text-xs font-bold text-gray-700 mb-1">
+                  Replacement .html Game File (Optional)
+                </label>
+                <div className="border-2 border-dashed border-gray-200 hover:border-amber-400 rounded-2xl p-4 text-center transition-colors">
+                  <input
+                    type="file"
+                    accept=".html,.htm"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) setReplaceGameFile(file);
+                    }}
+                    className="hidden"
+                    id="faculty-replace-game-input"
+                  />
+                  <label htmlFor="faculty-replace-game-input" className="cursor-pointer block">
+                    <Upload className="w-6 h-6 text-amber-500 mx-auto mb-1.5" />
+                    <span className="text-xs font-bold text-gray-800 block">
+                      {replaceGameFile ? replaceGameFile.name : 'Click to select new .html game'}
+                    </span>
+                    <span className="text-[11px] text-gray-400 block mt-0.5">
+                      {replaceGameFile
+                        ? `${(replaceGameFile.size / 1024).toFixed(1)} KB selected`
+                        : 'Leave empty to keep existing HTML file'}
+                    </span>
+                  </label>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-gray-700 mb-1">Activity Title</label>
+                <input
+                  type="text"
+                  value={replaceGameTitle}
+                  onChange={(e) => setReplaceGameTitle(e.target.value)}
+                  className="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-xs font-medium focus:ring-2 focus:ring-amber-500 focus:outline-none"
+                  required
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 mb-1">Category</label>
+                  <select
+                    value={replaceGameCategory}
+                    onChange={(e) => setReplaceGameCategory(e.target.value as any)}
+                    className="w-full px-3 py-2 rounded-xl border border-gray-200 text-xs font-medium focus:ring-2 focus:ring-amber-500 focus:outline-none"
+                  >
+                    <option value="Grammar">Grammar</option>
+                    <option value="Vocab">Vocab</option>
+                    <option value="Idioms">Idioms</option>
+                    <option value="Business">Business</option>
+                    <option value="Speaking">Speaking</option>
+                    <option value="Translation">Translation</option>
+                    <option value="IELTS">IELTS</option>
+                    <option value="Fluency">Fluency</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 mb-1">CEFR Level</label>
+                  <select
+                    value={replaceGameCefrLevel}
+                    onChange={(e) => setReplaceGameCefrLevel(e.target.value as any)}
+                    className="w-full px-3 py-2 rounded-xl border border-gray-200 text-xs font-medium focus:ring-2 focus:ring-amber-500 focus:outline-none"
+                  >
+                    <option value="A1 Beginner">A1 Beginner</option>
+                    <option value="A2 Elementary">A2 Elementary</option>
+                    <option value="B1 Intermediate">B1 Intermediate</option>
+                    <option value="B2 Upper Intermediate">B2 Upper Intermediate</option>
+                    <option value="C1 Advanced">C1 Advanced</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 mb-1">XP Reward</label>
+                  <input
+                    type="number"
+                    value={replaceGameXpReward}
+                    onChange={(e) => setReplaceGameXpReward(parseInt(e.target.value, 10) || 50)}
+                    className="w-full px-3 py-2 rounded-xl border border-gray-200 text-xs font-medium focus:ring-2 focus:ring-amber-500 focus:outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 mb-1">Questions Count</label>
+                  <input
+                    type="number"
+                    value={replaceGameQuestionsCount}
+                    onChange={(e) => setReplaceGameQuestionsCount(parseInt(e.target.value, 10) || 50)}
+                    className="w-full px-3 py-2 rounded-xl border border-gray-200 text-xs font-medium focus:ring-2 focus:ring-amber-500 focus:outline-none"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-gray-700 mb-1">Description</label>
+                <textarea
+                  value={replaceGameDescription}
+                  onChange={(e) => setReplaceGameDescription(e.target.value)}
+                  rows={2}
+                  className="w-full px-4 py-2 rounded-xl border border-gray-200 text-xs font-medium focus:ring-2 focus:ring-amber-500 focus:outline-none"
+                />
+              </div>
+
+              {replaceGameError && (
+                <div className="p-3 bg-red-50 border border-red-200 text-red-700 text-xs rounded-xl">
+                  {replaceGameError}
+                </div>
+              )}
+
+              <div className="flex items-center justify-end gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setReplacingGame(null)}
+                  className="px-4 py-2 text-xs font-semibold text-gray-600 hover:bg-gray-100 rounded-xl"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={replaceGameUploading}
+                  className="px-5 py-2 rounded-xl text-xs font-bold text-white bg-amber-600 hover:bg-amber-700 flex items-center gap-2"
+                >
+                  {replaceGameUploading ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      <span>Saving...</span>
+                    </>
+                  ) : (
+                    <>
+                      <RefreshCw className="w-4 h-4" />
+                      <span>Save &amp; Replace Activity</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Replace PDF Material Modal */}
+      {replacingMaterial && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-sm p-4 animate-fade-in">
+          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-lg p-6 sm:p-8 space-y-6">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                <div className="w-10 h-10 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center">
+                  <RefreshCw className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="font-extrabold text-base text-gray-900">
+                    Replace PDF Study Material
+                  </h3>
+                  <p className="text-xs text-gray-500">
+                    Upload a replacement .pdf file or update document title/level.
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => setReplacingMaterial(null)}
+                className="p-1 rounded-lg hover:bg-gray-100 text-gray-400"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleModalReplaceMaterial} className="space-y-4">
+              <div>
+                <label className="block text-xs font-bold text-gray-700 mb-1">
+                  Replacement PDF File (Optional)
+                </label>
+                <div className="border-2 border-dashed border-gray-200 hover:border-amber-400 rounded-2xl p-4 text-center transition-colors">
+                  <input
+                    type="file"
+                    accept=".pdf,application/pdf"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) setReplaceMaterialFile(file);
+                    }}
+                    className="hidden"
+                    id="faculty-replace-pdf-input"
+                  />
+                  <label htmlFor="faculty-replace-pdf-input" className="cursor-pointer block">
+                    <Upload className="w-6 h-6 text-amber-500 mx-auto mb-1.5" />
+                    <span className="text-xs font-bold text-gray-800 block">
+                      {replaceMaterialFile ? replaceMaterialFile.name : 'Click to select new .pdf file'}
+                    </span>
+                    <span className="text-[11px] text-gray-400 block mt-0.5">
+                      {replaceMaterialFile
+                        ? `${(replaceMaterialFile.size / (1024 * 1024)).toFixed(2)} MB selected`
+                        : 'Leave empty to keep existing PDF file'}
+                    </span>
+                  </label>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-gray-700 mb-1">Document Title</label>
+                <input
+                  type="text"
+                  value={replaceMaterialTitle}
+                  onChange={(e) => setReplaceMaterialTitle(e.target.value)}
+                  className="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-xs font-medium focus:ring-2 focus:ring-amber-500 focus:outline-none"
+                  required
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 mb-1">CEFR Level</label>
+                  <select
+                    value={replaceMaterialLevel}
+                    onChange={(e) => setReplaceMaterialLevel(e.target.value)}
+                    className="w-full px-3 py-2 rounded-xl border border-gray-200 text-xs font-medium focus:ring-2 focus:ring-amber-500 focus:outline-none"
+                  >
+                    <option value="A1-A2">A1-A2 Elementary</option>
+                    <option value="B1-B2">B1-B2 Intermediate</option>
+                    <option value="C1 Advanced">C1 Advanced</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 mb-1">Category</label>
+                  <select
+                    value={replaceMaterialCategory}
+                    onChange={(e) => setReplaceMaterialCategory(e.target.value)}
+                    className="w-full px-3 py-2 rounded-xl border border-gray-200 text-xs font-medium focus:ring-2 focus:ring-amber-500 focus:outline-none"
+                  >
+                    <option value="Speaking & Discussion">Speaking & Discussion</option>
+                    <option value="Grammar Practice">Grammar Practice</option>
+                    <option value="Debates & Discussions">Debates & Discussions</option>
+                    <option value="Pronunciation & Phonetics">Pronunciation & Phonetics</option>
+                    <option value="ESL Games & Activities">ESL Games & Activities</option>
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-gray-700 mb-1">Description</label>
+                <textarea
+                  value={replaceMaterialDescription}
+                  onChange={(e) => setReplaceMaterialDescription(e.target.value)}
+                  rows={2}
+                  className="w-full px-4 py-2 rounded-xl border border-gray-200 text-xs font-medium focus:ring-2 focus:ring-amber-500 focus:outline-none"
+                />
+              </div>
+
+              {replaceMaterialError && (
+                <div className="p-3 bg-red-50 border border-red-200 text-red-700 text-xs rounded-xl">
+                  {replaceMaterialError}
+                </div>
+              )}
+
+              <div className="flex items-center justify-end gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setReplacingMaterial(null)}
+                  className="px-4 py-2 text-xs font-semibold text-gray-600 hover:bg-gray-100 rounded-xl"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={replaceMaterialUploading}
+                  className="px-5 py-2 rounded-xl text-xs font-bold text-white bg-amber-600 hover:bg-amber-700 flex items-center gap-2"
+                >
+                  {replaceMaterialUploading ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      <span>Saving...</span>
+                    </>
+                  ) : (
+                    <>
+                      <RefreshCw className="w-4 h-4" />
+                      <span>Save &amp; Replace PDF</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

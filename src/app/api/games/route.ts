@@ -186,6 +186,59 @@ export async function POST(req: NextRequest) {
   }
 }
 
+export async function PUT(req: NextRequest) {
+  try {
+    const body = await req.json();
+    const { id, title, category, cefrLevel, description, questionsCount, xpReward, fileUrl } = body;
+
+    if (!id) {
+      return NextResponse.json({ error: 'Game ID is required' }, { status: 400 });
+    }
+
+    const updates: any = {};
+    if (title) updates.title = title.trim();
+    if (category) updates.category = category;
+    if (cefrLevel) updates.cefr_level = cefrLevel;
+    if (description !== undefined) updates.description = description.trim();
+    if (questionsCount !== undefined) updates.questions_count = parseInt(questionsCount, 10);
+    if (xpReward !== undefined) updates.xp_reward = parseInt(xpReward, 10);
+    if (fileUrl) updates.file_url = fileUrl;
+
+    const { data, error } = await supabaseServer
+      .from('games')
+      .update(updates)
+      .eq('id', id)
+      .select()
+      .maybeSingle();
+
+    if (error) {
+      console.warn('Supabase games update notice:', error.message);
+    }
+
+    const updatedGame = {
+      id,
+      title: title || data?.title,
+      category: category || data?.category || 'Speaking',
+      cefrLevel: cefrLevel || data?.cefr_level || 'B1 Intermediate',
+      description: description !== undefined ? description : data?.description,
+      questionsCount: questionsCount !== undefined ? parseInt(questionsCount, 10) : (data?.questions_count || 50),
+      xpReward: xpReward !== undefined ? parseInt(xpReward, 10) : (data?.xp_reward || 50),
+      filePath: fileUrl || data?.file_url,
+      isCustom: true,
+      isPopular: true,
+    };
+
+    return NextResponse.json({
+      success: true,
+      game: updatedGame,
+      message: 'Activity / Game updated successfully!',
+    });
+  } catch (err: any) {
+    console.error('Update game error:', err);
+    return NextResponse.json({ error: err.message || 'Failed to update game' }, { status: 500 });
+  }
+}
+
 export async function DELETE(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);

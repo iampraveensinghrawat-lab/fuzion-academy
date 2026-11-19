@@ -174,6 +174,56 @@ export async function POST(req: NextRequest) {
   }
 }
 
+export async function PUT(req: NextRequest) {
+  try {
+    const body = await req.json();
+    const { id, title, fileName, fileUrl, level, category, description } = body;
+
+    if (!id) {
+      return NextResponse.json({ error: 'Material ID is required' }, { status: 400 });
+    }
+
+    const updates: any = {};
+    if (title) updates.title = title.trim();
+    if (fileName) updates.file_name = fileName.replace(/[^a-zA-Z0-9._-]/g, '_');
+    if (fileUrl) updates.file_url = fileUrl;
+    if (level) updates.cefr_level = level;
+    if (category) updates.category = category;
+    if (description !== undefined) updates.description = description.trim();
+
+    const { data, error } = await supabaseServer
+      .from('study_materials')
+      .update(updates)
+      .eq('id', id)
+      .select()
+      .maybeSingle();
+
+    if (error) {
+      console.warn('Supabase study_materials update notice:', error.message);
+    }
+
+    const updatedMaterial = {
+      id,
+      title: title || data?.title,
+      fileName: fileName || data?.file_name,
+      filePath: fileUrl || data?.file_url,
+      level: level || data?.cefr_level || 'A1-A2',
+      category: category || data?.category || 'Speaking & Discussion',
+      description: description !== undefined ? description : data?.description,
+      isCustom: true,
+    };
+
+    return NextResponse.json({
+      success: true,
+      material: updatedMaterial,
+      message: 'PDF Study Material updated successfully!',
+    });
+  } catch (err: any) {
+    console.error('Update material error:', err);
+    return NextResponse.json({ error: err.message || 'Failed to update material' }, { status: 500 });
+  }
+}
+
 export async function DELETE(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);

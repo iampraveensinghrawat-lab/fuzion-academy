@@ -4,15 +4,26 @@ import React, { useState, useEffect } from 'react';
 import { STUDY_MATERIALS, StudyMaterial } from '@/lib/materialsData';
 import { useAppStore } from '@/lib/store';
 import { supabase } from '@/lib/supabase';
-import { FileText, Download, Eye, Search, Filter, X, Sparkles, Upload, Plus, CheckCircle, ExternalLink } from 'lucide-react';
+import { FileText, Download, Eye, Search, Filter, X, Sparkles, Upload, Plus, CheckCircle, ExternalLink, Trash2, RefreshCw, Loader2 } from 'lucide-react';
 
 export default function MaterialsTab() {
-  const { customMaterials, currentRole, setActiveTab, addMaterial } = useAppStore();
+  const { customMaterials, currentRole, setActiveTab, addMaterial, deleteMaterial, updateMaterial, deletedMaterialIds } = useAppStore();
   const [cloudMaterials, setCloudMaterials] = useState<StudyMaterial[]>([]);
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [selectedLevel, setSelectedLevel] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
   const [viewingMaterial, setViewingMaterial] = useState<StudyMaterial | null>(null);
+
+  // Replace PDF Modal State
+  const [replacingMaterial, setReplacingMaterial] = useState<StudyMaterial | null>(null);
+  const [replaceFile, setReplaceFile] = useState<File | null>(null);
+  const [replaceTitle, setReplaceTitle] = useState('');
+  const [replaceLevel, setReplaceLevel] = useState('A1-A2');
+  const [replaceCategory, setReplaceCategory] = useState('Speaking & Discussion');
+  const [replaceDescription, setReplaceDescription] = useState('');
+  const [replaceUploading, setReplaceUploading] = useState(false);
+  const [replaceError, setReplaceError] = useState('');
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   useEffect(() => {
     // Fetch live custom study materials from Supabase cloud database
@@ -51,10 +62,11 @@ export default function MaterialsTab() {
   // Combine cloud materials, local custom materials, and initial static catalog
   const mergedCustom = [...cloudMaterials, ...(customMaterials || [])];
   const uniqueCustom = Array.from(new Map(mergedCustom.map((m) => [m.id, m])).values());
+  const customIds = new Set(uniqueCustom.map((m) => m.id));
   const combinedMaterials: (StudyMaterial & { isCustom?: boolean })[] = [
     ...uniqueCustom.map((m) => ({ ...m, isCustom: true })),
-    ...STUDY_MATERIALS,
-  ];
+    ...STUDY_MATERIALS.filter((m) => !customIds.has(m.id)),
+  ].filter((m) => !(deletedMaterialIds || []).includes(m.id));
 
   const filteredMaterials = combinedMaterials.filter((mat) => {
     const matchesCat = selectedCategory === 'All' || mat.category === selectedCategory;
@@ -64,6 +76,117 @@ export default function MaterialsTab() {
       mat.description.toLowerCase().includes(searchQuery.toLowerCase());
     return matchesCat && matchesLvl && matchesSearch;
   });
+
+  const openReplaceModal = (mat: StudyMaterial) => {
+    setReplacingMaterial(mat);
+    setReplaceTitle(mat.title);
+    setReplaceLevel(mat.level);
+    setReplaceCategory(mat.category);
+    setReplaceDescription(mat.description || '');
+    setReplaceFile(null);
+    setReplaceError('');
+  };
+
+  const handleDeleteMaterial = async (id: string, title: string) => {
+    if (!window.confirm(`Are you sure you want to remove "${title}" from the materials library?`)) {
+      return;
+    }
+    setDeletingId(id);
+    try {
+      await fetch(`/api/materials?id=${encodeURIComponent(id)}`, { method: 'DELETE' });
+    } catch (err: any) {
+      console.warn('Delete material API notice:', err);
+    } finally {
+      deleteMaterial(id);
+      setCloudMaterials((prev) => prev.filter((m) => m.id !== id));
+      if (viewingMaterial?.id === id) {
+        setViewingMaterial(null);
+      }
+      setDeletingId(null);
+    }
+  };
+
+  const handleModalReplace = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!replacingMaterial) return;
+
+    setReplaceUploading(true);
+    setReplaceError('');
+
+    try {
+      let publicUrl = replacingMaterial.filePath;
+      let cleanName = replacingMaterial.fileName;
+
+      // If a new PDF file is chosen, upload directly to Supabase Storage
+      if (replaceFile && supabase) {
+        const timestamp = Date.now();
+        cleanName = replaceFile.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+        const storagePath = `${timestamp}_${cleanName}`;
+
+        const { error: uploadErr } = await supabase.storage
+          .from('study-materials')
+          .upload(storagePath, replaceFile, {
+            contentType: 'application/pdf',
+            upsert: true,
+          });
+
+        if (uploadErr) {
+          throw new Error(`Cloud storage upload failed: ${uploadErr.message}`);
+        }
+
+        const { data: urlData } = supabase.storage
+          .from('study-materials')
+          .getPublicUrl(storagePath);
+
+        publicUrl = urlData.publicUrl;
+      }
+
+      const updatedPayload = {
+        id: replacingMaterial.id,
+        title: replaceTitle.trim() || replacingMaterial.title,
+        fileName: cleanName,
+        fileUrl: publicUrl,
+        level: replaceLevel,
+        category: replaceCategory,
+        description: replaceDescription.trim(),
+      };
+
+      const res = await fetch('/api/materials', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updatedPayload),
+      });
+
+      const updatedMaterial: StudyMaterial = {
+        id: replacingMaterial.id,
+        title: replaceTitle.trim() || replacingMaterial.title,
+        fileName: cleanName,
+        filePath: publicUrl,
+        level: replaceLevel,
+        category: replaceCategory,
+        description: replaceDescription.trim(),
+      };
+
+      updateMaterial(replacingMaterial.id, updatedMaterial);
+      setCloudMaterials((prev) => {
+        const exists = prev.some((m) => m.id === replacingMaterial.id);
+        if (exists) {
+          return prev.map((m) => (m.id === replacingMaterial.id ? updatedMaterial : m));
+        }
+        return [updatedMaterial, ...prev];
+      });
+
+      if (viewingMaterial?.id === replacingMaterial.id) {
+        setViewingMaterial(updatedMaterial);
+      }
+
+      setReplacingMaterial(null);
+    } catch (err: any) {
+      setReplaceError(err.message || 'Failed to replace PDF material');
+    } finally {
+      setReplaceUploading(false);
+    }
+  };
 
   const handleModalUpload = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -320,6 +443,33 @@ export default function MaterialsTab() {
               >
                 <Download className="w-3.5 h-3.5" />
               </a>
+
+              {/* Teacher Management: Replace & Delete */}
+              {(currentRole === 'teacher' || currentRole === 'admin') && (
+                <>
+                  <button
+                    onClick={() => openReplaceModal(mat)}
+                    className="py-2 px-2.5 bg-amber-50 hover:bg-amber-100 text-amber-700 font-bold text-xs rounded-xl flex items-center justify-center gap-1 transition-colors"
+                    title="Replace with another PDF or update details"
+                  >
+                    <RefreshCw className="w-3.5 h-3.5" />
+                    <span className="hidden sm:inline">Replace</span>
+                  </button>
+
+                  <button
+                    onClick={() => handleDeleteMaterial(mat.id, mat.title)}
+                    disabled={deletingId === mat.id}
+                    className="py-2 px-2.5 bg-rose-50 hover:bg-rose-100 text-rose-600 font-bold text-xs rounded-xl flex items-center justify-center gap-1 transition-colors disabled:opacity-50"
+                    title="Delete this PDF material"
+                  >
+                    {deletingId === mat.id ? (
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    ) : (
+                      <Trash2 className="w-3.5 h-3.5" />
+                    )}
+                  </button>
+                </>
+              )}
             </div>
           </div>
         ))}
@@ -354,6 +504,33 @@ export default function MaterialsTab() {
                   <Download className="w-3.5 h-3.5" />
                   <span>Download</span>
                 </a>
+
+                {(currentRole === 'teacher' || currentRole === 'admin') && (
+                  <>
+                    <button
+                      onClick={() => openReplaceModal(viewingMaterial)}
+                      className="px-3 py-1 bg-amber-500/20 hover:bg-amber-500/30 text-amber-200 rounded-lg text-xs font-bold flex items-center gap-1 transition-colors"
+                      title="Replace this PDF"
+                    >
+                      <RefreshCw className="w-3.5 h-3.5" />
+                      <span>Replace</span>
+                    </button>
+                    <button
+                      onClick={() => handleDeleteMaterial(viewingMaterial.id, viewingMaterial.title)}
+                      disabled={deletingId === viewingMaterial.id}
+                      className="px-3 py-1 bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 rounded-lg text-xs font-bold flex items-center gap-1 transition-colors disabled:opacity-50"
+                      title="Delete this PDF"
+                    >
+                      {deletingId === viewingMaterial.id ? (
+                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      ) : (
+                        <Trash2 className="w-3.5 h-3.5" />
+                      )}
+                      <span>Delete</span>
+                    </button>
+                  </>
+                )}
+
                 <button
                   onClick={() => setViewingMaterial(null)}
                   className="p-1 hover:bg-white/10 rounded-lg text-gray-300 ml-2"
@@ -509,6 +686,163 @@ export default function MaterialsTab() {
                 >
                   <Upload className="w-4 h-4" />
                   <span>{modalUploading ? 'Uploading...' : 'Publish PDF'}</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+      {/* 5. Replace PDF Material Modal */}
+      {replacingMaterial && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-sm p-4 animate-fade-in">
+          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-lg p-6 sm:p-8 space-y-6">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                <div className="w-10 h-10 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center">
+                  <RefreshCw className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="font-extrabold text-base text-gray-900">
+                    Replace PDF Study Material
+                  </h3>
+                  <p className="text-xs text-gray-500">
+                    Update metadata or upload a new PDF file to replace the current one.
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => setReplacingMaterial(null)}
+                className="p-1 rounded-lg hover:bg-gray-100 text-gray-400"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleModalReplace} className="space-y-4">
+              {/* Optional Replacement File */}
+              <div>
+                <label className="block text-xs font-bold text-gray-700 mb-1">
+                  Choose Replacement PDF (Optional)
+                </label>
+                <div className="border-2 border-dashed border-gray-200 hover:border-amber-400 rounded-2xl p-4 text-center transition-colors">
+                  <input
+                    type="file"
+                    accept=".pdf,application/pdf"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) setReplaceFile(file);
+                    }}
+                    className="hidden"
+                    id="replace-pdf-input"
+                  />
+                  <label htmlFor="replace-pdf-input" className="cursor-pointer block">
+                    <Upload className="w-6 h-6 text-amber-500 mx-auto mb-1.5" />
+                    <span className="text-xs font-bold text-gray-800 block">
+                      {replaceFile ? replaceFile.name : 'Click to select new replacement .pdf'}
+                    </span>
+                    <span className="text-[11px] text-gray-400 block mt-0.5">
+                      {replaceFile
+                        ? `${(replaceFile.size / (1024 * 1024)).toFixed(2)} MB selected`
+                        : 'Leave blank to keep existing file and only update title/level'}
+                    </span>
+                  </label>
+                </div>
+              </div>
+
+              {/* Title */}
+              <div>
+                <label className="block text-xs font-bold text-gray-700 mb-1">
+                  Document Title
+                </label>
+                <input
+                  type="text"
+                  value={replaceTitle}
+                  onChange={(e) => setReplaceTitle(e.target.value)}
+                  placeholder="e.g. B2 Phrasal Verbs in Action"
+                  className="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-xs font-medium focus:ring-2 focus:ring-amber-500 focus:outline-none"
+                  required
+                />
+              </div>
+
+              {/* Level & Category */}
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 mb-1">CEFR Level</label>
+                  <select
+                    value={replaceLevel}
+                    onChange={(e) => setReplaceLevel(e.target.value)}
+                    className="w-full px-3 py-2 rounded-xl border border-gray-200 text-xs font-medium focus:ring-2 focus:ring-amber-500 focus:outline-none"
+                  >
+                    <option value="A1-A2">A1-A2 Elementary</option>
+                    <option value="B1-B2">B1-B2 Intermediate</option>
+                    <option value="C1 Advanced">C1 Advanced</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 mb-1">Category</label>
+                  <select
+                    value={replaceCategory}
+                    onChange={(e) => setReplaceCategory(e.target.value)}
+                    className="w-full px-3 py-2 rounded-xl border border-gray-200 text-xs font-medium focus:ring-2 focus:ring-amber-500 focus:outline-none"
+                  >
+                    <option value="Speaking & Discussion">Speaking & Discussion</option>
+                    <option value="Grammar Practice">Grammar Practice</option>
+                    <option value="Debates & Discussions">Debates & Discussions</option>
+                    <option value="Pronunciation & Phonetics">Pronunciation & Phonetics</option>
+                    <option value="ESL Games & Activities">ESL Games & Activities</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Description */}
+              <div>
+                <label className="block text-xs font-bold text-gray-700 mb-1">
+                  Brief Description
+                </label>
+                <textarea
+                  value={replaceDescription}
+                  onChange={(e) => setReplaceDescription(e.target.value)}
+                  placeholder="Summary of topics covered..."
+                  rows={2}
+                  className="w-full px-4 py-2 rounded-xl border border-gray-200 text-xs font-medium focus:ring-2 focus:ring-amber-500 focus:outline-none"
+                />
+              </div>
+
+              {replaceError && (
+                <div className="p-3 bg-red-50 border border-red-200 text-red-700 text-xs rounded-xl">
+                  {replaceError}
+                </div>
+              )}
+
+              <div className="flex items-center justify-end gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setReplacingMaterial(null)}
+                  className="px-4 py-2 text-xs font-semibold text-gray-600 hover:bg-gray-100 rounded-xl"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={replaceUploading}
+                  className={`px-5 py-2 rounded-xl text-xs font-bold text-white shadow-md flex items-center gap-2 ${
+                    replaceUploading
+                      ? 'bg-amber-400 cursor-not-allowed'
+                      : 'bg-amber-600 hover:bg-amber-700'
+                  }`}
+                >
+                  {replaceUploading ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      <span>Saving Changes...</span>
+                    </>
+                  ) : (
+                    <>
+                      <RefreshCw className="w-4 h-4" />
+                      <span>Save &amp; Replace PDF</span>
+                    </>
+                  )}
                 </button>
               </div>
             </form>

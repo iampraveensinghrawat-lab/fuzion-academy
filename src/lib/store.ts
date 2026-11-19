@@ -3,7 +3,7 @@ import { persist } from 'zustand/middleware';
 import { StudyMaterial } from '@/lib/materialsData';
 import { GameItem } from '@/lib/gamesData';
 
-export type UserRole = 'student' | 'teacher' | 'parent';
+export type UserRole = 'student' | 'teacher' | 'parent' | 'admin';
 
 export interface StudentRecord {
   id: string;
@@ -70,6 +70,8 @@ export interface AppState {
   // Custom Uploaded Materials & Games
   customMaterials: StudyMaterial[];
   customGames: GameItem[];
+  deletedMaterialIds: string[];
+  deletedGameIds: string[];
   
   // Actions
   setRole: (role: UserRole) => void;
@@ -82,8 +84,10 @@ export interface AppState {
   // Game & Material Upload Actions
   addMaterial: (material: StudyMaterial) => void;
   deleteMaterial: (id: string) => void;
+  updateMaterial: (id: string, updated: Partial<StudyMaterial>) => void;
   addGame: (game: GameItem) => void;
   deleteGame: (id: string) => void;
+  updateGame: (id: string, updated: Partial<GameItem>) => void;
   
   // Student Management Actions
   addStudent: (student: Omit<StudentRecord, 'id'>) => void;
@@ -117,6 +121,8 @@ export const useAppStore = create<AppState>()(
       certificateModalOpen: false,
       customMaterials: [],
       customGames: [],
+      deletedMaterialIds: [],
+      deletedGameIds: [],
 
       // Initial Student Records matching Screenshot 2026-11-04 004922.png
       students: [
@@ -275,19 +281,31 @@ export const useAppStore = create<AppState>()(
       })),
 
       addMaterial: (material) => set((state) => ({
-        customMaterials: [material, ...state.customMaterials]
+        customMaterials: [material, ...(state.customMaterials || []).filter((m) => m.id !== material.id)],
+        deletedMaterialIds: (state.deletedMaterialIds || []).filter((id) => id !== material.id),
       })),
 
       deleteMaterial: (id) => set((state) => ({
-        customMaterials: state.customMaterials.filter((m) => m.id !== id)
+        customMaterials: (state.customMaterials || []).filter((m) => m.id !== id),
+        deletedMaterialIds: [...new Set([...(state.deletedMaterialIds || []), id])],
+      })),
+
+      updateMaterial: (id, updated) => set((state) => ({
+        customMaterials: (state.customMaterials || []).map((m) => m.id === id ? { ...m, ...updated } : m),
       })),
 
       addGame: (game) => set((state) => ({
-        customGames: [game, ...state.customGames.filter((g) => g.id !== game.id)]
+        customGames: [game, ...(state.customGames || []).filter((g) => g.id !== game.id)],
+        deletedGameIds: (state.deletedGameIds || []).filter((id) => id !== game.id),
       })),
 
       deleteGame: (id) => set((state) => ({
-        customGames: state.customGames.filter((g) => g.id !== id)
+        customGames: (state.customGames || []).filter((g) => g.id !== id),
+        deletedGameIds: [...new Set([...(state.deletedGameIds || []), id])],
+      })),
+
+      updateGame: (id, updated) => set((state) => ({
+        customGames: (state.customGames || []).map((g) => g.id === id ? { ...g, ...updated } : g),
       })),
     }),
     {
